@@ -7,6 +7,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Thông tin project -->
     <groupId>vn.edu.ictu</groupId>
     <artifactId>qlkh</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -14,6 +15,7 @@
 
     <name>He Thong Quan Ly Khach Hang</name>
 
+    <!-- Cấu hình Java -->
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,29 +45,42 @@
             <version>3.0.1</version>
         </dependency>
 
+        <!-- MySQL JDBC Driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.4.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
+
+        <!-- Tên file WAR sau khi build -->
         <finalName>qlkh</finalName>
 
         <plugins>
 
+            <!-- Java Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
             </plugin>
 
+            <!-- Tạo file WAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
+
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
 
         </plugins>
+
     </build>
 
 </project>
