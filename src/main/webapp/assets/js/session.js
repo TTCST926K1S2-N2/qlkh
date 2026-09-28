@@ -1,4 +1,6 @@
-// Thời gian hết phiên (15 phút) & cảnh báo trước 1 phút
+/**
+ * Logic quản lý phiên và cảnh báo hết hạn (HTQLKH-2)
+ */
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const WARNING_BEFORE_MS = 1 * 60 * 1000;
 
@@ -11,10 +13,8 @@ function resetSessionTimer() {
   clearTimeout(warningTimer);
   clearInterval(countdownInterval);
 
-  // Lên lịch cảnh báo
   warningTimer = setTimeout(triggerSessionWarning, SESSION_TIMEOUT_MS - WARNING_BEFORE_MS);
 
-  // Lên lịch logout tự động
   idleTimer = setTimeout(() => {
     performLogout(true);
   }, SESSION_TIMEOUT_MS);
@@ -47,35 +47,27 @@ function dismissSessionWarning() {
 
 async function performLogout(isExpired = false) {
   try {
-    const token = localStorage.getItem("token");
-    if (token) {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-    }
+    await fetch(window.location.origin + "/logout", { method: "POST" });
   } catch (e) {
-    console.warn("Lỗi gọi API logout:", e);
+    console.warn("Lỗi khi gửi yêu cầu logout:", e);
   } finally {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
+    localStorage.clear();
     sessionStorage.clear();
 
     if (isExpired) {
-      alert("Phiên đăng nhập đã hết hạn do không thao tác. Vui lòng đăng nhập lại.");
+      alert("Phiên đăng nhập đã hết hạn do không có hoạt động. Vui lòng đăng nhập lại.");
     }
-    window.location.href = "./login.html";
+    window.location.href = window.location.origin + "/views/auth/login.jsp";
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Lắng nghe tương tác để tính phiên
-  ["mousedown", "keydown", "scroll", "touchstart"].forEach(evt => {
-    window.addEventListener(evt, resetSessionTimer, false);
+  const userActions = ["mousedown", "keydown", "scroll", "touchstart"];
+  userActions.forEach(action => {
+    window.addEventListener(action, resetSessionTimer, false);
   });
   resetSessionTimer();
 
-  // Bắt sự kiện các nút
   const btnExtend = document.getElementById("btn-extend-session");
   const btnConfirm = document.getElementById("btn-confirm-logout");
   const btnNavLogout = document.getElementById("btn-nav-logout");
