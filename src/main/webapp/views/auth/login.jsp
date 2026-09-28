@@ -11,7 +11,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Đường dẫn CSS chuẩn cho dự án chạy Tomcat có context path /qlkh -->
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
 </head>
 <body>
@@ -22,7 +21,9 @@
         <p class="subtitle">Hệ Thống Quản Lý Khách Hàng</p>
       </div>
 
-      <div id="alert-message" class="alert-box"></div>
+      <div id="alert-message" class="alert-box ${not empty errorMessage ? 'alert-error' : ''}">
+        ${errorMessage}
+      </div>
 
       <form id="login-form" method="POST" action="${pageContext.request.contextPath}/login" novalidate>
         <div class="form-group">
@@ -49,7 +50,12 @@
               autocomplete="current-password"
               required 
             />
-            <button type="button" id="btn-toggle-password" class="btn-toggle-eye" aria-label="Hiện mật khẩu">👁️</button>
+            <button type="button" id="btn-toggle-password" class="btn-toggle-eye" aria-label="Ẩn hiện mật khẩu">
+              <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </div>
           <span class="field-error" id="password-error"></span>
         </div>

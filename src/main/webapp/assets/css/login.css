@@ -21,11 +21,7 @@ body {
 
 .login-card {
   background: #ffffff;
-<<<<<<< Updated upstream
-  padding: 36px 30px;
-=======
   padding: 36px 32px;
->>>>>>> Stashed changes
   border-radius: 16px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
 }
@@ -56,26 +52,12 @@ body {
 }
 
 .alert-error {
-<<<<<<< Updated upstream
   display: block !important;
-=======
-  display: block;
->>>>>>> Stashed changes
   background-color: #fee2e2;
   color: #991b1b;
   border: 1px solid #fecaca;
 }
 
-<<<<<<< Updated upstream
-.alert-success {
-  display: block !important;
-  background-color: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-=======
->>>>>>> Stashed changes
 .form-group {
   margin-bottom: 18px;
 }
@@ -99,13 +81,8 @@ body {
 }
 
 .form-group input:focus {
-<<<<<<< Updated upstream
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-=======
   border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
->>>>>>> Stashed changes
 }
 
 .password-wrapper {
@@ -114,18 +91,30 @@ body {
   align-items: center;
 }
 
+.password-wrapper input {
+  padding-right: 42px;
+}
+
 .btn-toggle-eye {
   position: absolute;
   right: 10px;
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-<<<<<<< Updated upstream
-  color: #64748b;
-=======
->>>>>>> Stashed changes
   padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.btn-toggle-eye:hover {
+  color: #1e293b;
+}
+
+.btn-toggle-eye svg {
+  display: block;
 }
 
 .field-error {
@@ -153,11 +142,7 @@ body {
 }
 
 .forgot-link {
-<<<<<<< Updated upstream
-  color: #6366f1;
-=======
   color: #4f46e5;
->>>>>>> Stashed changes
   text-decoration: none;
   font-weight: 500;
 }
