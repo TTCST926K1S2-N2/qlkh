@@ -25,3 +25,5 @@ replay_pid*
 
 # Maven build output
 target/
+# Local database configuration
+src/main/resources/db.properties
