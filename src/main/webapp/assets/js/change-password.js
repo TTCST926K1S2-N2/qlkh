@@ -1,95 +1,98 @@
-
+/**
+ * Validation và Xử lý Giao diện Đổi Mật Khẩu (HTQLKH-4 FE)
+ */
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("changePasswordForm");
     const currentPasswordInput = document.getElementById("currentPassword");
     const newPasswordInput = document.getElementById("newPassword");
     const confirmPasswordInput = document.getElementById("confirmPassword");
+    
+    // Thẻ thông báo lỗi tổng quan
     const generalErrorAlert = document.getElementById("jsErrorAlert");
     const generalErrorMessage = document.getElementById("jsErrorMessage");
 
-    // Các thẻ hiển thị tiêu chuẩn độ mạnh mật khẩu (Checklist)
-    const ruleLength = document.getElementById("ruleLength");
-    const ruleLetter = document.getElementById("ruleLetter");
-    const ruleNumber = document.getElementById("ruleNumber");
+    // Thống nhất ID checklist quy tắc mật khẩu (Kebab-case)
+    const ruleLength = document.getElementById("rule-length");
+    const ruleLetter = document.getElementById("rule-letter");
+    const ruleNumber = document.getElementById("rule-number");
 
     if (!form) return;
 
-    // Lắng nghe sự kiện gõ phím trên mật khẩu mới để cập nhật checklist trực quan
+    // 1. Kiểm tra trực quan checklist khi người dùng gõ mật khẩu mới
     newPasswordInput.addEventListener("input", function () {
-        const val = newPasswordInput.value;
-        
-        // Điều kiện 1: >= 8 ký tự
-        const hasMinLength = val.length >= 8;
-        updateRuleStatus(ruleLength, hasMinLength);
-
-        // Điều kiện 2: Có ít nhất 1 chữ cái (a-z, A-Z)
-        const hasLetter = /[a-zA-Z]/.test(val);
-        updateRuleStatus(ruleLetter, hasLetter);
-
-        // Điều kiện 3: Có ít nhất 1 chữ số (0-9)
-        const hasNumber = /[0-9]/.test(val);
-        updateRuleStatus(ruleNumber, hasNumber);
+        validatePasswordRules(newPasswordInput.value);
     });
 
-    // Bắt sự kiện SUBMIT và chặn nếu không hợp lệ
+    // 2. Chặn Submit Form nếu dữ liệu không hợp lệ
     form.addEventListener("submit", function (e) {
         hideErrorAlert();
         clearInputErrors();
 
         let isValid = true;
-        let errorMsgs = [];
+        let errorMessages = [];
 
         const currentVal = currentPasswordInput.value.trim();
         const newVal = newPasswordInput.value;
         const confirmVal = confirmPasswordInput.value;
 
-        // 1. Validate Mật khẩu hiện tại
+        // Validation 1: Mật khẩu hiện tại không được trống
         if (currentVal === "") {
-            markInvalid(currentPasswordInput, "Vui lòng nhập mật khẩu hiện tại!");
-            errorMsgs.push("Mật khẩu hiện tại không được để trống.");
+            markInvalid(currentPasswordInput, "Vui lòng nhập mật khẩu hiện tại.");
+            errorMessages.push("Mật khẩu hiện tại không được để trống.");
             isValid = false;
         }
 
-        // 2. Validate Mật khẩu mới (>= 8 ký tự + chữ + số)
+        // Validation 2: Mật khẩu mới >= 8 ký tự, phải có cả chữ và số
         const hasMinLength = newVal.length >= 8;
         const hasLetter = /[a-zA-Z]/.test(newVal);
         const hasNumber = /[0-9]/.test(newVal);
 
         if (!hasMinLength || !hasLetter || !hasNumber) {
-            markInvalid(newPasswordInput, "Mật khẩu mới phải từ 8 ký tự, gồm cả chữ và số!");
-            errorMsgs.push("Mật khẩu mới chưa đạt chuẩn quy định (tối thiểu 8 ký tự, bao gồm cả chữ và số).");
+            markInvalid(newPasswordInput, "Mật khẩu mới không đạt yêu cầu an toàn.");
+            errorMessages.push("Mật khẩu mới phải từ 8 ký tự, chứa ít nhất 1 chữ cái và 1 chữ số.");
             isValid = false;
         }
 
-        // 3. Validate Mật khẩu xác nhận trùng khớp
+        // Validation 3: Xác nhận mật khẩu mới phải khớp
         if (confirmVal === "" || confirmVal !== newVal) {
-            markInvalid(confirmPasswordInput, "Xác nhận mật khẩu không trùng khớp với mật khẩu mới!");
-            errorMsgs.push("Xác nhận mật khẩu không khớp.");
+            markInvalid(confirmPasswordInput, "Mật khẩu xác nhận không trùng khớp.");
+            errorMessages.push("Xác nhận mật khẩu mới không khớp.");
             isValid = false;
         }
 
-        // CHẶN SUBMIT nếu phát hiện lỗi
+        // BẮT BUỘC CHẶN SUBMIT nếu phát hiện bất kỳ lỗi nào
         if (!isValid) {
             e.preventDefault();
             e.stopPropagation();
-            showErrorAlert(errorMsgs.join("<br>"));
+            showErrorAlert(errorMessages.join("<br>"));
         }
     });
 
-    function updateRuleStatus(element, isValid) {
+    // Cập nhật trạng thái biểu tượng & màu sắc của checklist
+    function validatePasswordRules(val) {
+        const hasMinLength = val.length >= 8;
+        const hasLetter = /[a-zA-Z]/.test(val);
+        const hasNumber = /[0-9]/.test(val);
+
+        updateRuleItem(ruleLength, hasMinLength);
+        updateRuleItem(ruleLetter, hasLetter);
+        updateRuleItem(ruleNumber, hasNumber);
+    }
+
+    function updateRuleItem(element, isValid) {
         if (!element) return;
+        const icon = element.querySelector("i");
         if (isValid) {
-            element.classList.remove("invalid", "text-muted");
-            element.classList.add("valid");
-            element.querySelector("i").className = "fas fa-check-circle me-1";
+            element.className = "valid";
+            if (icon) icon.className = "fas fa-check-circle me-1";
         } else {
-            element.classList.remove("valid");
-            element.classList.add("invalid");
-            element.querySelector("i").className = "fas fa-times-circle me-1";
+            element.className = "invalid";
+            if (icon) icon.className = "fas fa-times-circle me-1";
         }
     }
 
     function markInvalid(inputElement, message) {
+        if (!inputElement) return;
         inputElement.classList.add("is-invalid");
         const feedback = inputElement.nextElementSibling;
         if (feedback && feedback.classList.contains("invalid-feedback")) {
@@ -98,8 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function clearInputErrors() {
-        const inputs = [currentPasswordInput, newPasswordInput, confirmPasswordInput];
-        inputs.forEach(input => {
+        [currentPasswordInput, newPasswordInput, confirmPasswordInput].forEach(input => {
             if (input) input.classList.remove("is-invalid");
         });
     }

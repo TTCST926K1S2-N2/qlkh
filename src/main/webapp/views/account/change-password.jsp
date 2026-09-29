@@ -9,15 +9,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS cho HTQLKH-4 -->
+    <!-- CSS Tích hợp riêng cho HTQLKH-4 -->
     <link href="${pageContext.request.contextPath}/assets/css/change-password.css" rel="stylesheet">
 </head>
 <body>
 
 <div class="container">
     <div class="card change-password-card p-4 bg-white">
-        <h3 class="text-center mb-3 text-primary fw-bold">ĐỔI MẬT KHẨU</h3>
-        <p class="text-muted text-center small mb-4">Cập nhật mật khẩu định kỳ để bảo vệ tài khoản</p>
+        <h3 class="text-center mb-2 text-primary fw-bold">ĐỔI MẬT KHẨU</h3>
+        <p class="text-muted text-center small mb-4">Quản lý và cập nhật mật khẩu tài khoản</p>
 
         <!-- Khung báo lỗi từ Client JS -->
         <div id="jsErrorAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
@@ -48,7 +48,7 @@
             <!-- Mật khẩu hiện tại -->
             <div class="mb-3">
                 <label for="currentPassword" class="form-label fw-semibold">Mật khẩu hiện tại <span class="text-danger">*</span></label>
-                <input type="password" class="form-control" id="currentPassword" name="currentPassword" placeholder="Nhập mật khẩu đang dùng">
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" placeholder="Nhập mật khẩu đang sử dụng">
                 <div class="invalid-feedback">Vui lòng nhập mật khẩu hiện tại.</div>
             </div>
 
@@ -56,13 +56,13 @@
             <div class="mb-3">
                 <label for="newPassword" class="form-label fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
                 <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nhập mật khẩu mới">
-                <div class="invalid-feedback">Mật khẩu mới chưa hợp lệ.</div>
+                <div class="invalid-feedback">Mật khẩu mới không đạt yêu cầu.</div>
                 
-                <!-- Checklist tiêu chuẩn độ mạnh mật khẩu -->
-                <ul class="password-checklist mt-2">
-                    <li id="ruleLength" class="text-muted"><i class="fas fa-times-circle me-1"></i>Tối thiểu 8 ký tự</li>
-                    <li id="ruleLetter" class="text-muted"><i class="fas fa-times-circle me-1"></i>Chứa ít nhất 1 chữ cái (a-z, A-Z)</li>
-                    <li id="ruleNumber" class="text-muted"><i class="fas fa-times-circle me-1"></i>Chứa ít nhất 1 chữ số (0-9)</li>
+                <!-- Checklist quy tắc mật khẩu - Thống nhất ID Kebab-case -->
+                <ul class="password-checklist mt-2 ms-1">
+                    <li id="rule-length" class="invalid"><i class="fas fa-times-circle me-1"></i>Tối thiểu 8 ký tự</li>
+                    <li id="rule-letter" class="invalid"><i class="fas fa-times-circle me-1"></i>Chứa ít nhất 1 chữ cái (a-z, A-Z)</li>
+                    <li id="rule-number" class="invalid"><i class="fas fa-times-circle me-1"></i>Chứa ít nhất 1 chữ số (0-9)</li>
                 </ul>
             </div>
 
@@ -70,10 +70,10 @@
             <div class="mb-3">
                 <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
                 <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu mới">
-                <div class="invalid-feedback">Xác nhận mật khẩu không trùng khớp.</div>
+                <div class="invalid-feedback">Mật khẩu xác nhận không trùng khớp.</div>
             </div>
 
-            <!-- Nút bấm gửi / hủy -->
+            <!-- Nút bấm -->
             <div class="d-grid gap-2 mt-4">
                 <button type="submit" class="btn btn-primary py-2 fw-semibold">Cập nhật mật khẩu</button>
                 <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-light border py-2 text-secondary">Hủy bỏ</a>
@@ -86,7 +86,7 @@
 
 <!-- JS Bootstrap 5 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Custom JS cho HTQLKH-4 -->
+<!-- JS Tích hợp riêng cho HTQLKH-4 -->
 <script src="${pageContext.request.contextPath}/assets/js/change-password.js"></script>
 
 </body>
