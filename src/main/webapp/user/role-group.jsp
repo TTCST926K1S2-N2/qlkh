@@ -43,13 +43,14 @@
                                 1. Gán vai trò (Roles)
                             </h5>
 
+                            <!-- ADMIN -->
                             <div class="form-check">
                                 <input class="form-check-input"
                                        type="checkbox"
                                        name="roles"
                                        value="ADMIN"
                                        id="roleAdmin"
-                                       ${selectedRoles.contains('ADMIN') ? 'checked' : ''}>
+                                       ${not empty selectedRoles && selectedRoles.contains('ADMIN') ? 'checked' : ''}>
 
                                 <label class="form-check-label"
                                        for="roleAdmin">
@@ -57,13 +58,14 @@
                                 </label>
                             </div>
 
+                            <!-- MANAGER -->
                             <div class="form-check">
                                 <input class="form-check-input"
                                        type="checkbox"
                                        name="roles"
                                        value="MANAGER"
                                        id="roleManager"
-                                       ${selectedRoles.contains('MANAGER') ? 'checked' : ''}>
+                                       ${not empty selectedRoles && selectedRoles.contains('MANAGER') ? 'checked' : ''}>
 
                                 <label class="form-check-label"
                                        for="roleManager">
@@ -71,13 +73,14 @@
                                 </label>
                             </div>
 
+                            <!-- SALES -->
                             <div class="form-check">
                                 <input class="form-check-input"
                                        type="checkbox"
                                        name="roles"
                                        value="SALES"
                                        id="roleSales"
-                                       ${selectedRoles.contains('SALES') ? 'checked' : ''}>
+                                       ${not empty selectedRoles && selectedRoles.contains('SALES') ? 'checked' : ''}>
 
                                 <label class="form-check-label"
                                        for="roleSales">
@@ -107,9 +110,9 @@
                                            items="${businessGroups}">
 
                                     <option value="${group.id}"
-                                        ${group.id == selectedGroupId
-                                            ? 'selected'
-                                            : ''}>
+                                            ${group.id == selectedGroupId
+                                                ? 'selected'
+                                                : ''}>
 
                                         <c:out value="${group.name}" />
 
@@ -119,6 +122,7 @@
 
                             </select>
 
+                            <!-- Không có nhóm kinh doanh -->
                             <c:if test="${empty businessGroups}">
                                 <div class="text-muted mt-2">
                                     Chưa có nhóm kinh doanh.
@@ -127,6 +131,7 @@
 
                         </div>
 
+                        <!-- Nút thao tác -->
                         <div class="d-flex justify-content-between">
 
                             <a href="${pageContext.request.contextPath}/users"
