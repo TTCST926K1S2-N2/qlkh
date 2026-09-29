@@ -7,6 +7,7 @@
     
     // Lấy URL hiện tại để xử lý class "active"
     String currentURI = request.getRequestURI();
+    String ctxPath = request.getContextPath();
 %>
 
 <!-- Nhúng file CSS đã tách -->
