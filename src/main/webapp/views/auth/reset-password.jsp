@@ -1,11 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đặt lại mật khẩu - Quản Lý Khách Hàng</title>
-  
+  <title>Đặt Lại Mật Khẩu - Quản Lý Khách Hàng</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,7 +30,7 @@
 
     .auth-container {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
     }
 
     .auth-card {
@@ -48,32 +49,35 @@
       font-size: 1.6rem;
       font-weight: 700;
       color: #0f172a;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .auth-header .subtitle {
       color: #64748b;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       line-height: 1.4;
     }
 
     .alert-box {
       display: none;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border-radius: 8px;
       font-size: 0.88rem;
       margin-bottom: 18px;
+      line-height: 1.4;
+    }
+
+    .alert-box.show {
+      display: block;
     }
 
     .alert-error {
-      display: block !important;
       background-color: #fee2e2;
       color: #991b1b;
       border: 1px solid #fecaca;
     }
 
     .alert-success {
-      display: block !important;
       background-color: #dcfce7;
       color: #166534;
       border: 1px solid #bbf7d0;
@@ -97,9 +101,9 @@
       align-items: center;
     }
 
-    .password-wrapper input {
+    .form-group input {
       width: 100%;
-      padding: 11px 44px 11px 14px;
+      padding: 11px 14px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       font-size: 0.95rem;
@@ -107,7 +111,11 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .password-wrapper input:focus {
+    .password-wrapper input {
+      padding-right: 44px;
+    }
+
+    .form-group input:focus {
       border-color: #4f46e5;
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
@@ -157,20 +165,22 @@
     }
 
     .auth-footer {
-      margin-top: 24px;
       text-align: center;
+      margin-top: 20px;
+      font-size: 0.88rem;
     }
 
     .auth-footer a {
-      color: #64748b;
+      color: #4f46e5;
       text-decoration: none;
-      font-size: 0.88rem;
       font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       transition: color 0.2s;
     }
 
     .auth-footer a:hover {
-      color: #4f46e5;
       text-decoration: underline;
     }
   </style>
@@ -180,154 +190,76 @@
     <div class="auth-card">
       <div class="auth-header">
         <h2 class="title">Đặt Lại Mật Khẩu</h2>
-        <p class="subtitle">Vui lòng thiết lập mật khẩu mới cho tài khoản của bạn</p>
+        <p class="subtitle">Vui lòng nhập mật khẩu mới cho tài khoản của bạn</p>
       </div>
 
-      <div id="alert-message" class="alert-box ${not empty errorMessage ? 'alert-error' : ''}">
-        ${errorMessage}
-      </div>
+      <!-- Hiển thị thông báo sạch bằng thẻ JSTL / EL chuẩn, không lồng style phức tạp -->
+      <c:if test="${not empty errorMessage}">
+        <div class="alert-box alert-error show">${errorMessage}</div>
+      </c:if>
+      <c:if test="${not empty successMessage}">
+        <div class="alert-box alert-success show">${successMessage}</div>
+      </c:if>
+      <div id="alert-message" class="alert-box"></div>
 
-      <form id="reset-form" method="POST" action="reset-password" novalidate>
-        <input type="hidden" name="token" value="${param.token}" />
+      <!-- Form submit -->
+      <form id="reset-password-form" method="POST" action="${pageContext.request.contextPath}/reset-password" novalidate>
+        <input type="hidden" name="token" id="token" value="${param.token}" />
 
         <div class="form-group">
-          <label for="new-password">Mật khẩu mới</label>
+          <label for="newPassword">Mật khẩu mới</label>
           <div class="password-wrapper">
             <input 
               type="password" 
-              id="new-password" 
+              id="newPassword" 
               name="newPassword" 
-              placeholder="Nhập tối thiểu 6 ký tự" 
+              placeholder="Nhập mật khẩu mới..." 
               autocomplete="new-password" 
               required 
             />
-            <button type="button" class="btn-toggle-eye" data-target="new-password" aria-label="Ẩn hiện mật khẩu">
-              <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="btn-toggle-eye" data-target="newPassword" aria-label="Ẩn/hiện mật khẩu">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
           </div>
-          <span class="field-error" id="new-password-error"></span>
+          <span class="field-error" id="newPassword-error"></span>
         </div>
 
         <div class="form-group">
-          <label for="confirm-password">Xác nhận mật khẩu mới</label>
+          <label for="confirmPassword">Xác nhận mật khẩu mới</label>
           <div class="password-wrapper">
             <input 
               type="password" 
-              id="confirm-password" 
+              id="confirmPassword" 
               name="confirmPassword" 
-              placeholder="Nhập lại mật khẩu mới" 
+              placeholder="Nhập lại mật khẩu mới..." 
               autocomplete="new-password" 
               required 
             />
-            <button type="button" class="btn-toggle-eye" data-target="confirm-password" aria-label="Ẩn hiện mật khẩu">
-              <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="btn-toggle-eye" data-target="confirmPassword" aria-label="Ẩn/hiện mật khẩu">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
           </div>
-          <span class="field-error" id="confirm-password-error"></span>
+          <span class="field-error" id="confirmPassword-error"></span>
         </div>
 
-        <button type="submit" class="btn-submit">Cập Nhật Mật Khẩu</button>
-
-        <!-- SỬA LINK ĐIỀU HƯỚNG QUAY LẠI ĐĂNG NHẬP -->
-        <div class="auth-footer">
-          <a href="${pageContext.request.contextPath}/views/auth/login.jsp">← Quay lại Đăng nhập</a>
-        </div>
+        <button type="submit" class="btn-submit" id="btn-submit">Xác Nhận Đổi Mật Khẩu</button>
       </form>
+
+      <!-- Đường dẫn quay lại Login chuẩn tránh lỗi 404 -->
+      <div class="auth-footer">
+        <a href="${pageContext.request.contextPath}/views/auth/login.jsp" id="link-back-login">
+          &larr; Quay lại trang Đăng nhập
+        </a>
+      </div>
     </div>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const loginUrl = "${pageContext.request.contextPath}/views/auth/login.jsp";
-
-      const eyeOpenSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-      `;
-
-      const eyeClosedSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-          <line x1="1" y1="1" x2="23" y2="23"></line>
-        </svg>
-      `;
-
-      // Toggle eye
-      document.querySelectorAll(".btn-toggle-eye").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const targetId = btn.getAttribute("data-target");
-          const input = document.getElementById(targetId);
-          if (input) {
-            const isPassword = input.getAttribute("type") === "password";
-            input.setAttribute("type", isPassword ? "text" : "password");
-            btn.innerHTML = isPassword ? eyeClosedSvg : eyeOpenSvg;
-          }
-        });
-      });
-
-      // Form validation & navigation logic
-      const form = document.getElementById("reset-form");
-      const p1Input = document.getElementById("new-password");
-      const p2Input = document.getElementById("confirm-password");
-      const err1 = document.getElementById("new-password-error");
-      const err2 = document.getElementById("confirm-password-error");
-      const alertBox = document.getElementById("alert-message");
-
-      [p1Input, p2Input].forEach((inp) => {
-        if (inp) {
-          inp.addEventListener("input", () => {
-            err1.textContent = "";
-            err2.textContent = "";
-            alertBox.className = "alert-box";
-            alertBox.style.display = "none";
-          });
-        }
-      });
-
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        let valid = true;
-        err1.textContent = "";
-        err2.textContent = "";
-
-        const p1 = p1Input ? p1Input.value : "";
-        const p2 = p2Input ? p2Input.value : "";
-
-        if (!p1) {
-          err1.textContent = "Vui lòng nhập mật khẩu mới.";
-          valid = false;
-        } else if (p1.length < 6) {
-          err1.textContent = "Mật khẩu phải chứa ít nhất 6 ký tự.";
-          valid = false;
-        }
-
-        if (!p2) {
-          err2.textContent = "Vui lòng xác nhận mật khẩu.";
-          valid = false;
-        } else if (p1 && p1 !== p2) {
-          err2.textContent = "Mật khẩu xác nhận không khớp.";
-          valid = false;
-        }
-
-        if (valid) {
-          alertBox.className = "alert-box alert-success";
-          // SỬA LINK CHUYỂN TIẾP SAU KHI CẬP NHẬT MẬT KHẨU THÀNH CÔNG
-          alertBox.innerHTML = `Mật khẩu đã được cập nhật thành công! <a href="${loginUrl}" style="color: #15803d; font-weight: 700; text-decoration: underline;">Đăng nhập ngay</a>.`;
-          alertBox.style.display = "block";
-          p1Input.value = "";
-          p2Input.value = "";
-        }
-      });
-    });
-  </script>
+  <script src="${pageContext.request.contextPath}/assets/js/reset-password.js"></script>
 </body>
 </html>
