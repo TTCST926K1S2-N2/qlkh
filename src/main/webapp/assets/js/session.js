@@ -1,131 +1,138 @@
-/**
- * Quản lý phiên làm việc & Đăng xuất (HTQLKH-2)
- * Quy chuẩn: 15 phút không hoạt động, popup cảnh báo 60 giây cuối.
- */
 (function () {
-  // Cấu hình thời gian (tính theo giây)
-  const TOTAL_IDLE_SECONDS = 15 * 60; // 15 phút = 900s
-  const WARNING_SECONDS = 60;         // Cảnh báo 60s cuối
-  const IDLE_BEFORE_MODAL = TOTAL_IDLE_SECONDS - WARNING_SECONDS; // 14 phút = 840s
+    const modal = document.getElementById("session-warning-modal");
+    if (!modal) return;
 
-  let idleTimer = null;
-  let countdownTimer = null;
-  let remainingSeconds = WARNING_SECONDS;
-  let isWarningActive = false;
+    // 1. Lấy contextPath động từ JSP, loại bỏ hard-code
+    const rawContextPath = modal.getAttribute("data-context-path");
+    const contextPath = (rawContextPath && rawContextPath !== "/") ? rawContextPath : "";
 
-  // Tự động nhận diện context path (/qlkh hoặc rỗng)
-  function getContextPath() {
-    const pathName = window.location.pathname;
-    if (pathName.startsWith("/qlkh")) {
-      return "/qlkh";
-    }
-    return "";
-  }
-
-  const contextPath = getContextPath();
-
-  // Hàm thực hiện đăng xuất & hủy HttpSession tại backend
-  function performLogout() {
-    clearTimeout(idleTimer);
-    clearInterval(countdownTimer);
-
-    // Xóa storage client
-    sessionStorage.clear();
-    localStorage.removeItem("user_token");
-
-    const loginRedirectUrl = contextPath + "/views/auth/login.jsp";
-
-    // Gọi backend /logout để hủy session
-    fetch(contextPath + "/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    })
-      .catch(() => {})
-      .finally(() => {
-        window.location.href = loginRedirectUrl;
-      });
-  }
-
-  // Đếm lùi 60 giây cuối cùng
-  function startWarningCountdown() {
-    isWarningActive = true;
-    const modal = document.getElementById("session-modal");
-    const secondsSpan = document.getElementById("session-seconds");
-
-    if (modal) modal.classList.add("active");
-
-    remainingSeconds = WARNING_SECONDS;
-    if (secondsSpan) secondsSpan.textContent = remainingSeconds;
-
-    if (countdownTimer) clearInterval(countdownTimer);
-
-    countdownTimer = setInterval(() => {
-      remainingSeconds--;
-      if (secondsSpan) secondsSpan.textContent = remainingSeconds;
-
-      if (remainingSeconds <= 0) {
-        clearInterval(countdownTimer);
-        performLogout();
-      }
-    }, 1000);
-  }
-
-  // Khởi động lại bộ đếm khi có hoạt động của người dùng
-  function resetIdleTimer() {
-    // Nếu popup đang hiện thì không tự động reset bằng cử chỉ chuột/phím,
-    // người dùng phải chủ động bấm "Duy trì đăng nhập"
-    if (isWarningActive) return;
-
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-      startWarningCountdown();
-    }, IDLE_BEFORE_MODAL * 1000);
-  }
-
-  // Gia hạn phiên làm việc
-  function extendSession() {
-    const modal = document.getElementById("session-modal");
-    if (countdownTimer) clearInterval(countdownTimer);
-    if (modal) modal.classList.remove("active");
-    isWarningActive = false;
-
-    // Gửi tín hiệu gia hạn HttpSession tới server nếu backend có hỗ trợ
-    fetch(contextPath + "/extend-session", { method: "POST" }).catch(() => {});
-
-    // Đặt lại bộ đếm từ đầu
-    resetIdleTimer();
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
+    const countdownEl = document.getElementById("session-countdown");
+    const alertEl = document.getElementById("session-modal-alert");
     const btnExtend = document.getElementById("btn-extend-session");
-    const btnLogout = document.getElementById("btn-confirm-logout");
+    const btnLogout = document.getElementById("btn-logout-session");
 
-    if (btnExtend) {
-      btnExtend.addEventListener("click", (e) => {
-        e.preventDefault();
-        extendSession();
-      });
+    // Cấu hình thời gian
+    const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 phút nhàn rỗi thì hiện modal
+    const COUNTDOWN_SECONDS = 60;           // Đếm ngược 60s
+    let idleTimer = null;
+    let countdownInterval = null;
+    let secondsLeft = COUNTDOWN_SECONDS;
+
+    function showAlert(message) {
+        if (alertEl) {
+            alertEl.textContent = message;
+            alertEl.classList.remove("session-modal--hidden");
+        }
     }
 
-    if (btnLogout) {
-      btnLogout.addEventListener("click", (e) => {
-        e.preventDefault();
-        performLogout();
-      });
+    function clearAlert() {
+        if (alertEl) {
+            alertEl.textContent = "";
+            alertEl.classList.add("session-modal--hidden");
+        }
     }
 
-    // Các sự kiện tương tác của người dùng để xác định còn đang hoạt động
-    const activityEvents = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
-    activityEvents.forEach((ev) => {
-      window.addEventListener(ev, resetIdleTimer, { passive: true });
+    function resetIdleTimer() {
+        if (!modal.classList.contains("session-modal--hidden")) return;
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(showWarningModal, IDLE_TIMEOUT_MS);
+    }
+
+    function showWarningModal() {
+        secondsLeft = COUNTDOWN_SECONDS;
+        if (countdownEl) countdownEl.textContent = secondsLeft;
+        clearAlert();
+        if (btnExtend) btnExtend.disabled = false;
+        if (btnLogout) btnLogout.disabled = false;
+
+        modal.classList.remove("session-modal--hidden");
+
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (countdownEl) countdownEl.textContent = secondsLeft;
+            if (secondsLeft <= 0) {
+                clearInterval(countdownInterval);
+                performLogout();
+            }
+        }, 1000);
+    }
+
+    function hideModal() {
+        modal.classList.add("session-modal--hidden");
+        clearInterval(countdownInterval);
+        clearAlert();
+        resetIdleTimer();
+    }
+
+    // 2. Gia hạn phiên: CHỈ reset timer khi backend trả về kết quả thành công
+    async function extendSession() {
+        if (btnExtend) btnExtend.disabled = true;
+        clearAlert();
+
+        try {
+            const response = await fetch(`${contextPath}/extend-session`, {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            });
+
+            if (response.ok) {
+                // Thành công: đóng modal và khởi động lại timer
+                hideModal();
+            } else {
+                throw new Error(`Gia hạn thất bại (Mã lỗi: ${response.status}). Phiên có thể đã kết thúc.`);
+            }
+        } catch (error) {
+            // Thất bại: Giữ nguyên modal, không reset timer, hiển thị cảnh báo
+            showAlert(error.message || "Không thể kết nối đến máy chủ để gia hạn phiên.");
+        } finally {
+            if (btnExtend && !modal.classList.contains("session-modal--hidden")) {
+                btnExtend.disabled = false;
+            }
+        }
+    }
+
+    // 4. Xử lý logout an toàn
+    async function performLogout() {
+        if (btnLogout) btnLogout.disabled = true;
+        if (btnExtend) btnExtend.disabled = true;
+
+        try {
+            const response = await fetch(`${contextPath}/logout`, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.href = response.url || `${contextPath}/views/auth/login.jsp`;
+            } else {
+                throw new Error("Máy chủ từ chối yêu cầu đăng xuất.");
+            }
+        } catch (err) {
+            // Logout thất bại hoặc lỗi mạng: fallback chuyển hướng trực tiếp về trang login
+            showAlert("Đăng xuất có sự cố, đang đưa bạn về trang đăng nhập...");
+            setTimeout(() => {
+                window.location.href = `${contextPath}/views/auth/login.jsp`;
+            }, 1000);
+        }
+    }
+
+    // Gắn sự kiện click
+    if (btnExtend) btnExtend.addEventListener("click", extendSession);
+    if (btnLogout) btnLogout.addEventListener("click", performLogout);
+
+    // Lắng nghe thao tác người dùng để duy trì timer khi chưa hiện popup
+    const userEvents = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    userEvents.forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
     });
 
-    // Bắt đầu đếm thời gian không hoạt động
+    // Bắt đầu đếm thời gian
     resetIdleTimer();
-  });
 
-  // Export để gọi nếu cần kiểm thử trên Console
-  window.performLogout = performLogout;
-  window.extendSession = extendSession;
-  window.startWarningCountdown = startWarningCountdown;
+    // Hỗ trợ kiểm thử thủ công qua console nếu cần
+    window.showSessionWarning = showWarningModal;
 })();
