@@ -2,7 +2,7 @@
     const modal = document.getElementById("session-warning-modal");
     if (!modal) return;
 
-    // 1. Lấy contextPath động từ JSP, loại bỏ hard-code
+    // Lấy contextPath động từ JSP, không hard-code /qlkh
     const rawContextPath = modal.getAttribute("data-context-path");
     const contextPath = (rawContextPath && rawContextPath !== "/") ? rawContextPath : "";
 
@@ -12,8 +12,8 @@
     const btnLogout = document.getElementById("btn-logout-session");
 
     // Cấu hình thời gian
-    const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 phút nhàn rỗi thì hiện modal
-    const COUNTDOWN_SECONDS = 60;           // Đếm ngược 60s
+    const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 phút không thao tác
+    const COUNTDOWN_SECONDS = 60;           // Đếm ngược 60 giây
     let idleTimer = null;
     let countdownInterval = null;
     let secondsLeft = COUNTDOWN_SECONDS;
@@ -65,7 +65,7 @@
         resetIdleTimer();
     }
 
-    // 2. Gia hạn phiên: CHỈ reset timer khi backend trả về kết quả thành công
+    // 1. Gia hạn phiên: CHỈ reset timer khi backend trả về HTTP 200 / thành công
     async function extendSession() {
         if (btnExtend) btnExtend.disabled = true;
         clearAlert();
@@ -80,13 +80,11 @@
             });
 
             if (response.ok) {
-                // Thành công: đóng modal và khởi động lại timer
                 hideModal();
             } else {
                 throw new Error(`Gia hạn thất bại (Mã lỗi: ${response.status}). Phiên có thể đã kết thúc.`);
             }
         } catch (error) {
-            // Thất bại: Giữ nguyên modal, không reset timer, hiển thị cảnh báo
             showAlert(error.message || "Không thể kết nối đến máy chủ để gia hạn phiên.");
         } finally {
             if (btnExtend && !modal.classList.contains("session-modal--hidden")) {
@@ -95,10 +93,13 @@
         }
     }
 
-    // 4. Xử lý logout an toàn
+    // 2. Xử lý Đăng xuất:
+    // - Thành công -> chuyển rõ ràng về trang login bằng contextPath (không dùng response.url)
+    // - Thất bại -> hiển thị lỗi, cho phép thử lại, KHÔNG tự chuyển hướng về login
     async function performLogout() {
         if (btnLogout) btnLogout.disabled = true;
         if (btnExtend) btnExtend.disabled = true;
+        clearAlert();
 
         try {
             const response = await fetch(`${contextPath}/logout`, {
@@ -106,33 +107,29 @@
                 headers: { "X-Requested-With": "XMLHttpRequest" }
             });
 
-            if (response.ok || response.redirected) {
-                window.location.href = response.url || `${contextPath}/views/auth/login.jsp`;
+            if (response.ok) {
+                window.location.href = `${contextPath}/views/auth/login.jsp`;
             } else {
-                throw new Error("Máy chủ từ chối yêu cầu đăng xuất.");
+                throw new Error(`Đăng xuất thất bại từ phía máy chủ (Mã lỗi: ${response.status}).`);
             }
         } catch (err) {
-            // Logout thất bại hoặc lỗi mạng: fallback chuyển hướng trực tiếp về trang login
-            showAlert("Đăng xuất có sự cố, đang đưa bạn về trang đăng nhập...");
-            setTimeout(() => {
-                window.location.href = `${contextPath}/views/auth/login.jsp`;
-            }, 1000);
+            showAlert(err.message || "Không thể kết nối máy chủ để đăng xuất. Vui lòng thử lại.");
+            if (btnLogout) btnLogout.disabled = false;
+            if (btnExtend) btnExtend.disabled = false;
         }
     }
 
-    // Gắn sự kiện click
+    // Gắn sự kiện click nút bấm
     if (btnExtend) btnExtend.addEventListener("click", extendSession);
     if (btnLogout) btnLogout.addEventListener("click", performLogout);
 
-    // Lắng nghe thao tác người dùng để duy trì timer khi chưa hiện popup
+    // Lắng nghe hoạt động người dùng để duy trì timer
     const userEvents = ["mousemove", "keydown", "click", "scroll", "touchstart"];
     userEvents.forEach(evt => {
         window.addEventListener(evt, resetIdleTimer, { passive: true });
     });
 
-    // Bắt đầu đếm thời gian
+    // Khởi động đếm thời gian
     resetIdleTimer();
-
-    // Hỗ trợ kiểm thử thủ công qua console nếu cần
     window.showSessionWarning = showWarningModal;
 })();
