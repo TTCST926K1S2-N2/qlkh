@@ -12,7 +12,7 @@
     const btnLogout = document.getElementById("btn-logout-session");
 
     // Cấu hình thời gian
-    const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 phút không thao tác
+    const IDLE_TIMEOUT_MS = 14 * 60 * 1000; // 14 phút không thao tác
     const COUNTDOWN_SECONDS = 60;           // Đếm ngược 60 giây
     let idleTimer = null;
     let countdownInterval = null;
