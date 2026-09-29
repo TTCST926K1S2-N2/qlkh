@@ -27,34 +27,34 @@
       padding: 20px;
     }
 
-    .login-container {
+    .auth-container {
       width: 100%;
       max-width: 420px;
     }
 
-    .login-card {
+    .auth-card {
       background: #ffffff;
       padding: 36px 32px;
       border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
     }
 
-    .login-header {
+    .auth-header {
       text-align: center;
       margin-bottom: 24px;
     }
 
-    .login-header .title {
+    .auth-header .title {
       font-size: 1.6rem;
       font-weight: 700;
       color: #0f172a;
       margin-bottom: 8px;
     }
 
-    .login-header .subtitle {
+    .auth-header .subtitle {
       color: #64748b;
       font-size: 0.9rem;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     .alert-box {
@@ -98,7 +98,7 @@
       border-radius: 8px;
       font-size: 0.95rem;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: all 0.2s;
     }
 
     .form-group input:focus {
@@ -114,7 +114,7 @@
       min-height: 16px;
     }
 
-    .btn-login {
+    .btn-submit {
       width: 100%;
       padding: 12px;
       background-color: #4f46e5;
@@ -125,19 +125,18 @@
       font-weight: 600;
       cursor: pointer;
       transition: background-color 0.2s;
-      margin-top: 4px;
     }
 
-    .btn-login:hover {
+    .btn-submit:hover {
       background-color: #4338ca;
     }
 
-    .back-to-login {
+    .auth-footer {
       margin-top: 24px;
       text-align: center;
     }
 
-    .back-to-login a {
+    .auth-footer a {
       color: #64748b;
       text-decoration: none;
       font-size: 0.88rem;
@@ -145,49 +144,44 @@
       transition: color 0.2s;
     }
 
-    .back-to-login a:hover {
+    .auth-footer a:hover {
       color: #4f46e5;
       text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
         <h2 class="title">Quên Mật Khẩu</h2>
-        <p class="subtitle">Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu</p>
+        <p class="subtitle">Nhập email tài khoản để nhận liên kết khôi phục mật khẩu</p>
       </div>
 
       <div id="alert-message" class="alert-box ${not empty errorMessage ? 'alert-error' : ''} ${not empty successMessage ? 'alert-success' : ''}">
         ${not empty errorMessage ? errorMessage : successMessage}
       </div>
 
-      <form id="forgot-form" method="POST" action="${pageContext.request.contextPath}/forgot-password" novalidate>
+      <form id="forgot-form" method="POST" action="forgot-password" novalidate>
         <div class="form-group">
-          <label for="email">Email tài khoản</label>
-          <input 
-            type="email" 
-            id="email" 
-            name="email" 
-            placeholder="example@domain.com" 
-            autocomplete="email"
-            required 
-          />
+          <label for="email">Email đã đăng ký</label>
+          <input type="email" id="email" name="email" placeholder="example@domain.com" autocomplete="email" required />
           <span class="field-error" id="email-error"></span>
         </div>
 
-        <button type="submit" id="btn-forgot-submit" class="btn-login">Gửi yêu cầu</button>
+        <button type="submit" class="btn-submit">Gửi yêu cầu đặt lại</button>
 
-        <div class="back-to-login">
-          <a href="${pageContext.request.contextPath}/views/auth/login.jsp">← Quay lại Đăng nhập</a>
+        <!-- SỬA LINK ĐIỀU HƯỚNG QUAY LẠI ĐĂNG NHẬP -->
+        <div class="auth-footer">
+          <a href="${pageContext.request.contextPath}/views/auth/login.jsp">← Quay lại trang Đăng nhập</a>
         </div>
       </form>
     </div>
   </div>
 
- <script>
+  <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const resetUrl = "${pageContext.request.contextPath}/views/auth/reset-password.jsp?token=demo123";
       const form = document.getElementById("forgot-form");
       const emailInput = document.getElementById("email");
       const emailErr = document.getElementById("email-error");
@@ -200,7 +194,7 @@
       });
 
       form.addEventListener("submit", (e) => {
-        e.preventDefault(); // Ngăn submit thật để không bị lỗi 404 Backend
+        e.preventDefault();
 
         let valid = true;
         emailErr.textContent = "";
@@ -216,9 +210,8 @@
         }
 
         if (valid) {
-          // Hiển thị thông báo thành công đẹp mắt ngay trên giao diện
           alertBox.className = "alert-box alert-success";
-          alertBox.innerHTML = `Yêu cầu đã được gửi tới <b>${email}</b>! Kiểm tra email hoặc bấm <a href="reset-password.jsp?token=demo123" style="color: #15803d; font-weight: 700; text-decoration: underline;">vào đây</a> để đặt lại mật khẩu.`;
+          alertBox.innerHTML = `Yêu cầu đã được gửi tới <b>` + email + `</b>! Kiểm tra email hoặc bấm <a href="` + resetUrl + `" style="color: #15803d; font-weight: 700; text-decoration: underline;">vào đây</a> để đặt lại mật khẩu.`;
           alertBox.style.display = "block";
         }
       });

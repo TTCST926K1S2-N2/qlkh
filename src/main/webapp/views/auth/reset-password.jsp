@@ -234,8 +234,9 @@
 
         <button type="submit" class="btn-submit">Cập Nhật Mật Khẩu</button>
 
+        <!-- SỬA LINK ĐIỀU HƯỚNG QUAY LẠI ĐĂNG NHẬP -->
         <div class="auth-footer">
-          <a href="login.jsp">← Quay lại Đăng nhập</a>
+          <a href="${pageContext.request.contextPath}/views/auth/login.jsp">← Quay lại Đăng nhập</a>
         </div>
       </form>
     </div>
@@ -243,6 +244,8 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const loginUrl = "${pageContext.request.contextPath}/views/auth/login.jsp";
+
       const eyeOpenSvg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -257,7 +260,7 @@
         </svg>
       `;
 
-      // 1. Toggle eye cho cả 2 trường mật khẩu
+      // Toggle eye
       document.querySelectorAll(".btn-toggle-eye").forEach((btn) => {
         btn.addEventListener("click", () => {
           const targetId = btn.getAttribute("data-target");
@@ -270,7 +273,7 @@
         });
       });
 
-      // 2. Validate form và xử lý frontend
+      // Form validation & navigation logic
       const form = document.getElementById("reset-form");
       const p1Input = document.getElementById("new-password");
       const p2Input = document.getElementById("confirm-password");
@@ -290,7 +293,7 @@
       });
 
       form.addEventListener("submit", (e) => {
-        e.preventDefault(); // Ngăn submit server thật để không bị 404 khi demo FE
+        e.preventDefault();
 
         let valid = true;
         err1.textContent = "";
@@ -317,7 +320,8 @@
 
         if (valid) {
           alertBox.className = "alert-box alert-success";
-          alertBox.innerHTML = `Mật khẩu đã được cập nhật thành công! <a href="login.jsp" style="color: #15803d; font-weight: 700; text-decoration: underline;">Đăng nhập ngay</a>.`;
+          // SỬA LINK CHUYỂN TIẾP SAU KHI CẬP NHẬT MẬT KHẨU THÀNH CÔNG
+          alertBox.innerHTML = `Mật khẩu đã được cập nhật thành công! <a href="${loginUrl}" style="color: #15803d; font-weight: 700; text-decoration: underline;">Đăng nhập ngay</a>.`;
           alertBox.style.display = "block";
           p1Input.value = "";
           p2Input.value = "";
