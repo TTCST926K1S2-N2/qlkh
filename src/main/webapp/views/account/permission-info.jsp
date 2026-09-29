@@ -1,29 +1,30 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-    // Lấy dữ liệu vai trò và tên người dùng từ Request/Session do Backend cung cấp
+    // Lấy userRole từ request hoặc session (thống nhất thuộc tính userRole)
     String role = (String) request.getAttribute("userRole");
-    if (role == null || role.trim().isEmpty()) {
-        role = (String) session.getAttribute("role");
-    }
     if (role == null || role.trim().isEmpty()) {
         role = (String) session.getAttribute("userRole");
     }
     if (role == null || role.trim().isEmpty()) {
-        role = "EMPLOYEE"; // Mặc định nếu Backend chưa truyền
+        role = (String) session.getAttribute("role");
     }
-    role = role.toUpperCase();
+    
+    // KHÔNG mặc định EMPLOYEE. Nếu không có session/request -> Xác định là GUEST
+    if (role == null || role.trim().isEmpty()) {
+        role = "GUEST";
+    } else {
+        role = role.trim().toUpperCase();
+    }
 
     String username = (String) session.getAttribute("username");
     if (username == null || username.trim().isEmpty()) {
         username = (String) request.getAttribute("username");
     }
-    if (username == null) {
-        username = "Nguoidung";
-    }
 
     boolean isAdmin = "ADMIN".equals(role);
     boolean isManager = "MANAGER".equals(role);
     boolean isEmployee = "EMPLOYEE".equals(role);
+    boolean isGuest = "GUEST".equals(role);
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -35,13 +36,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- File CSS Tùy Chỉnh của HTQLKH-5 -->
+    <!-- File CSS Tùy Chỉnh HTQLKH-5 -->
     <link href="${pageContext.request.contextPath}/assets/css/permission.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
 
 <div class="container my-4" id="permission-container" data-role="<%= role %>">
-    <!-- Header -->
+
+<% if (isGuest) { %>
+    <!-- MÀN HÌNH BÁO CHO GUEST / CHƯA ĐĂNG NHẬP -->
+    <div class="card shadow-sm mx-auto my-5 text-center p-4" style="max-width: 520px; border-radius: 12px;">
+        <div class="card-body">
+            <div class="text-warning mb-3">
+                <i class="fas fa-lock fa-4x"></i>
+            </div>
+            <h4 class="fw-bold mb-3 text-dark">Yêu Cầu Đăng Nhập</h4>
+            <p class="text-muted mb-4">
+                Bạn chưa đăng nhập hoặc không có quyền xem thông tin này. Vui lòng đăng nhập bằng tài khoản hợp lệ để truy cập hệ thống.
+            </p>
+            <a href="${pageContext.request.contextPath}/login" class="btn btn-primary px-4 py-2 fw-semibold">
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập ngay
+            </a>
+        </div>
+    </div>
+<% } else { %>
+    <!-- GIAO DIỆN CHÍNH HTQLKH-5 DÀNH CHO ADMIN / MANAGER / EMPLOYEE -->
     <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
         <div>
             <h3 class="text-primary fw-bold mb-1">
@@ -54,14 +73,14 @@
         </a>
     </div>
 
-    <!-- Khung thông báo khi không có quyền thao tác (Do JavaScript điều khiển) -->
+    <!-- Alert Cảnh báo từ Client JS -->
     <div id="permission-denied-alert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
         <i class="fas fa-exclamation-triangle me-2"></i>
         <span id="permission-alert-message">Tài khoản của bạn không có quyền thực hiện thao tác này!</span>
         <button type="button" class="btn-close" onclick="hidePermissionAlert()"></button>
     </div>
 
-    <!-- Block 1: Thông tin tài khoản & Vai trò -->
+    <!-- Card 1: Thông tin tài khoản & Role -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0 fw-bold text-dark">
@@ -77,17 +96,17 @@
                         </div>
                         <div>
                             <h6 class="mb-1 text-muted">Tên đăng nhập</h6>
-                            <h5 class="fw-bold mb-0"><%= username %></h5>
+                            <h5 class="fw-bold mb-0"><%= (username != null) ? username : "Nguoidung" %></h5>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <h6 class="mb-1 text-muted">Vai trò hệ thống (Role)</h6>
+                    <h6 class="mb-1 text-muted">Vai trò hệ thống (userRole)</h6>
                     <% if (isAdmin) { %>
                         <span class="badge bg-danger fs-6 px-3 py-2"><i class="fas fa-user-tie me-1"></i> ADMIN (Quản trị viên)</span>
                     <% } else if (isManager) { %>
                         <span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="fas fa-user-tag me-1"></i> MANAGER (Quản lý)</span>
-                    <% } else { %>
+                    <% } else if (isEmployee) { %>
                         <span class="badge bg-success fs-6 px-3 py-2"><i class="fas fa-user me-1"></i> EMPLOYEE (Nhân viên)</span>
                     <% } %>
                 </div>
@@ -95,7 +114,7 @@
         </div>
     </div>
 
-    <!-- Block 2: Quyền hạn theo phạm vi sở hữu dữ liệu (Data Ownership) -->
+    <!-- Card 2: Phạm vi dữ liệu sở hữu -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0 fw-bold text-dark">
@@ -117,7 +136,7 @@
                         Tài khoản <strong>MANAGER</strong> có quyền quản lý và theo dõi toàn bộ dữ liệu khách hàng và báo cáo doanh số thuộc chi nhánh/phòng ban do Backend phân công.
                     </p>
                 </div>
-            <% } else { %>
+            <% } else if (isEmployee) { %>
                 <div class="p-3 border-start border-success border-4 bg-light rounded">
                     <h6 class="fw-bold text-success mb-2"><i class="fas fa-user-check me-2"></i>Phạm vi: Dữ liệu cá nhân sở hữu (Owner Scope)</h6>
                     <p class="mb-0 text-secondary">
@@ -128,7 +147,7 @@
         </div>
     </div>
 
-    <!-- Block 3: Bảng chức năng & Trạng thái UI theo quyền -->
+    <!-- Card 3: Bảng danh sách chức năng theo phân quyền -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0 fw-bold text-dark">
@@ -170,7 +189,7 @@
                             </td>
                         </tr>
 
-                        <!-- Chức năng 3: Xem báo cáo doanh số -->
+                        <!-- Chức năng 3: Xem báo cáo -->
                         <tr>
                             <td class="fw-semibold"><i class="fas fa-chart-bar me-2 text-warning"></i>Xem báo cáo doanh số</td>
                             <td class="text-muted">Xem báo cáo tổng hợp doanh thu phòng ban/hệ thống</td>
@@ -243,11 +262,13 @@
             </div>
         </div>
     </div>
+<% } %>
+
 </div>
 
 <!-- JS Bootstrap 5 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- File JavaScript Phân Quyền UI HTQLKH-5 -->
+<!-- JS Phân Quyền UI HTQLKH-5 -->
 <script src="${pageContext.request.contextPath}/assets/js/permission.js"></script>
 
 </body>
