@@ -4,133 +4,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đổi Mật Khẩu - QLKH</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: #ffffff; width: 100%; max-width: 440px; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .card h2 { margin-bottom: 8px; color: #1a202c; font-size: 22px; text-align: center; }
-        .card p.subtitle { color: #718096; font-size: 14px; text-align: center; margin-bottom: 24px; }
-        .alert { padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
-        .alert-danger { background-color: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; }
-        .alert-success { background-color: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font-weight: 600; font-size: 14px; color: #2d3748; margin-bottom: 6px; }
-        .input-wrapper { position: relative; display: flex; align-items: center; }
-        .input-wrapper input { width: 100%; padding: 10px 40px 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; }
-        .input-wrapper input:focus { border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15); }
-        .toggle-btn { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #718096; font-size: 14px; }
-        .error-msg { color: #e53e3e; font-size: 12px; margin-top: 4px; display: block; }
-        .checklist { list-style: none; margin-top: 8px; padding-left: 4px; }
-        .checklist li { font-size: 12px; color: #a0aec0; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-        .checklist li.valid { color: #38a169; }
-        .checklist li.valid::before { content: '✓'; font-weight: bold; }
-        .checklist li.invalid::before { content: '○'; }
-        .form-checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; cursor: pointer; }
-        .form-checkbox input { width: 16px; height: 16px; cursor: pointer; }
-        .form-checkbox label { font-size: 13px; color: #4a5568; cursor: pointer; }
-        .btn-submit { width: 100%; padding: 12px; background-color: #3182ce; color: #ffffff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
-        .btn-submit:hover { background-color: #2b6cb0; }
-        .btn-submit:disabled { background-color: #a0aec0; cursor: not-allowed; }
-    </style>
+    <title>Đổi Mật Khẩu - Hệ Thống QLKH</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS cho HTQLKH-4 -->
+    <link href="${pageContext.request.contextPath}/assets/css/change-password.css" rel="stylesheet">
 </head>
 <body>
 
-<div class="card">
-    <h2>Đổi Mật Khẩu</h2>
-    <p class="subtitle">Bảo vệ tài khoản và danh mục khách hàng</p>
+<div class="container">
+    <div class="card change-password-card p-4 bg-white">
+        <h3 class="text-center mb-3 text-primary fw-bold">ĐỔI MẬT KHẨU</h3>
+        <p class="text-muted text-center small mb-4">Cập nhật mật khẩu định kỳ để bảo vệ tài khoản</p>
 
-    <% if (request.getAttribute("errorMessage") != null) { %>
-        <div class="alert alert-danger"><%= request.getAttribute("errorMessage") %></div>
-    <% } %>
-    <% if (request.getAttribute("successMessage") != null) { %>
-        <div class="alert alert-success"><%= request.getAttribute("successMessage") %></div>
-    <% } %>
+        <!-- Khung báo lỗi từ Client JS -->
+        <div id="jsErrorAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="jsErrorMessage"></span>
+        </div>
 
-    <form id="changePasswordForm" action="${pageContext.request.contextPath}/change-password" method="POST" novalidate>
-        <div class="form-group">
-            <label for="currentPassword">Mật khẩu hiện tại *</label>
-            <div class="input-wrapper">
-                <input type="password" id="currentPassword" name="currentPassword" required />
-                <button type="button" class="toggle-btn" onclick="togglePassword('currentPassword', this)">👁️</button>
+        <!-- Thông báo từ Server Backend (nếu có) -->
+        <% String error = (String) request.getAttribute("errorMessage"); %>
+        <% if (error != null) { %>
+            <div class="alert alert-danger text-center" role="alert">
+                <i class="fas fa-exclamation-circle me-1"></i> <%= error %>
             </div>
-            <span class="error-msg" id="currentPasswordError"></span>
-        </div>
+        <% } %>
 
-        <div class="form-group">
-            <label for="newPassword">Mật khẩu mới *</label>
-            <div class="input-wrapper">
-                <input type="password" id="newPassword" name="newPassword" required />
-                <button type="button" class="toggle-btn" onclick="togglePassword('newPassword', this)">👁️</button>
+        <% String success = (String) request.getAttribute("successMessage"); %>
+        <% if (success != null) { %>
+            <div class="alert alert-success text-center" role="alert">
+                <i class="fas fa-check-circle me-1"></i> <%= success %>
+                <div class="mt-3">
+                    <a href="${pageContext.request.contextPath}/login" class="btn btn-sm btn-outline-success">Đến trang đăng nhập</a>
+                </div>
             </div>
-            <ul class="checklist">
-                <li id="rule-length" class="invalid">Tối thiểu 8 ký tự</li>
-                <li id="rule-letter" class="invalid">Có ít nhất 1 chữ cái (a-z, A-Z)</li>
-                <li id="rule-number" class="invalid">Có ít nhất 1 chữ số (0-9)</li>
-            </ul>
-            <span class="error-msg" id="newPasswordError"></span>
-        </div>
+        <% } else { %>
 
-        <div class="form-group">
-            <label for="confirmPassword">Xác nhận mật khẩu mới *</label>
-            <div class="input-wrapper">
-                <input type="password" id="confirmPassword" name="confirmPassword" required />
-                <button type="button" class="toggle-btn" onclick="togglePassword('confirmPassword', this)">👁️</button>
+        <!-- Form Đổi Mật Khẩu -->
+        <form id="changePasswordForm" action="${pageContext.request.contextPath}/change-password" method="post" novalidate>
+            <!-- Mật khẩu hiện tại -->
+            <div class="mb-3">
+                <label for="currentPassword" class="form-label fw-semibold">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" placeholder="Nhập mật khẩu đang dùng">
+                <div class="invalid-feedback">Vui lòng nhập mật khẩu hiện tại.</div>
             </div>
-            <span class="error-msg" id="confirmPasswordError"></span>
-        </div>
 
-        <div class="form-checkbox">
-            <input type="checkbox" id="revokeOtherSessions" name="revokeOtherSessions" value="true" checked />
-            <label for="revokeOtherSessions">Đăng xuất và thu hồi các phiên đăng nhập khác</label>
-        </div>
+            <!-- Mật khẩu mới -->
+            <div class="mb-3">
+                <label for="newPassword" class="form-label fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nhập mật khẩu mới">
+                <div class="invalid-feedback">Mật khẩu mới chưa hợp lệ.</div>
+                
+                <!-- Checklist tiêu chuẩn độ mạnh mật khẩu -->
+                <ul class="password-checklist mt-2">
+                    <li id="ruleLength" class="text-muted"><i class="fas fa-times-circle me-1"></i>Tối thiểu 8 ký tự</li>
+                    <li id="ruleLetter" class="text-muted"><i class="fas fa-times-circle me-1"></i>Chứa ít nhất 1 chữ cái (a-z, A-Z)</li>
+                    <li id="ruleNumber" class="text-muted"><i class="fas fa-times-circle me-1"></i>Chứa ít nhất 1 chữ số (0-9)</li>
+                </ul>
+            </div>
 
-        <button type="submit" id="submitBtn" class="btn-submit">Cập Nhật Mật Khẩu</button>
-    </form>
+            <!-- Xác nhận mật khẩu mới -->
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                <div class="invalid-feedback">Xác nhận mật khẩu không trùng khớp.</div>
+            </div>
+
+            <!-- Nút bấm gửi / hủy -->
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-primary py-2 fw-semibold">Cập nhật mật khẩu</button>
+                <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-light border py-2 text-secondary">Hủy bỏ</a>
+            </div>
+        </form>
+
+        <% } %>
+    </div>
 </div>
 
-<script>
-    const newPass = document.getElementById('newPassword');
-    const confirmPass = document.getElementById('confirmPassword');
-    const ruleLength = document.getElementById('rule-length');
-    const ruleLetter = document.getElementById('rule-letter');
-    const ruleNumber = document.getElementById('rule-number');
+<!-- JS Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS cho HTQLKH-4 -->
+<script src="${pageContext.request.contextPath}/assets/js/change-password.js"></script>
 
-    newPass.addEventListener('input', () => {
-        const val = newPass.value;
-        updateRule(ruleLength, val.length >= 8);
-        updateRule(ruleLetter, /[a-zA-Z]/.test(val));
-        updateRule(ruleNumber, /[0-9]/.test(val));
-        validateMatch();
-    });
-
-    confirmPass.addEventListener('input', validateMatch);
-
-    function updateRule(el, isValid) {
-        el.className = isValid ? 'valid' : 'invalid';
-    }
-
-    function validateMatch() {
-        const errEl = document.getElementById('confirmPasswordError');
-        if (confirmPass.value && confirmPass.value !== newPass.value) {
-            errEl.textContent = 'Mật khẩu xác nhận không trùng khớp';
-            return false;
-        } else {
-            errEl.textContent = '';
-            return true;
-        }
-    }
-
-    function togglePassword(inputId, btn) {
-        const input = document.getElementById(inputId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            btn.textContent = '🔒';
-        } else {
-            input.type = 'password';
-            btn.textContent = '👁️';
-        }
-    }
-</script>
 </body>
 </html>
