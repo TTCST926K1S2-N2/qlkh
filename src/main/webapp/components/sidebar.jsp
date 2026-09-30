@@ -2,244 +2,376 @@
 
 <%
     String role = (String) session.getAttribute("userRole");
+    String userName = (String) session.getAttribute("userName");
+    Object businessGroupObj = session.getAttribute("businessGroupName");
 
-    if (role == null) {
+    if (role == null || role.isBlank()) {
         role = "GUEST";
     }
 
-    // Lấy URL hiện tại để xử lý class "active"
+    if (userName == null || userName.isBlank()) {
+        userName = "Người dùng";
+    }
+
+    String businessGroupName =
+            businessGroupObj != null
+                    ? businessGroupObj.toString()
+                    : null;
+
+    String roleDisplayName;
+
+    switch (role) {
+        case "ADMIN":
+            roleDisplayName = "Quản trị hệ thống";
+            break;
+
+        case "MANAGER":
+            roleDisplayName = "Quản lý kinh doanh";
+            break;
+
+        case "SALES":
+            roleDisplayName = "Nhân viên kinh doanh";
+            break;
+
+        default:
+            roleDisplayName = "Khách";
+            break;
+    }
+
     String currentURI = request.getRequestURI();
-    String ctxPath = request.getContextPath();
 %>
 
-<!-- Nhúng file CSS đã tách -->
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/assets/css/sidebar.css">
 
-<div class="sidebar">
+<aside class="sidebar">
 
-    <!-- HEADER -->
-    <div class="sidebar-header">
-        HỆ THỐNG QLKH
+    <!-- ========================= -->
+    <!-- THƯƠNG HIỆU -->
+    <!-- ========================= -->
+
+    <div class="sidebar-brand">
+        <div class="brand-mark">
+            Q
+        </div>
+
+        <div class="brand-text">
+            <div class="brand-title">
+                HỆ THỐNG QLKH
+            </div>
+
+            <div class="brand-subtitle">
+                Customer Management
+            </div>
+        </div>
     </div>
 
 
-    <!-- ===================================================== -->
-    <!-- NHÓM TỔNG QUAN -->
-    <!-- ===================================================== -->
+    <!-- ========================= -->
+    <!-- THÔNG TIN NGƯỜI DÙNG -->
+    <!-- ========================= -->
 
-    <div class="menu-category">
-        Tổng quan
-    </div>
+    <% if (!"GUEST".equals(role)) { %>
 
-    <ul class="sidebar-menu">
+        <div class="sidebar-user">
 
-        <li>
-            <a href="${pageContext.request.contextPath}/"
-               class="<%= currentURI.endsWith("/")
-                       || currentURI.endsWith("/index.jsp")
-                       ? "active"
-                       : "" %>">
+            <div class="user-avatar">
+                <%= userName.substring(0, 1).toUpperCase() %>
+            </div>
 
-                Trang chủ
-            </a>
-        </li>
+            <div class="user-information">
 
-    </ul>
+                <div class="user-name"
+                     title="<%= userName %>">
+                    <%= userName %>
+                </div>
+
+                <div class="user-role">
+                    <%= roleDisplayName %>
+                </div>
+
+                <% if (businessGroupName != null
+                        && !businessGroupName.isBlank()) { %>
+
+                    <div class="user-group">
+                        Nhóm: <%= businessGroupName %>
+                    </div>
+
+                <% } %>
+
+            </div>
+
+        </div>
+
+    <% } %>
 
 
-    <!-- ===================================================== -->
-    <!-- NHÓM QUẢN LÝ -->
-    <!-- ===================================================== -->
+    <!-- ========================= -->
+    <!-- MENU -->
+    <!-- ========================= -->
 
-    <%
-        if ("EMPLOYEE".equals(role)
-                || "MANAGER".equals(role)
-                || "ADMIN".equals(role)) {
-    %>
+    <nav class="sidebar-navigation">
+
+        <!-- TỔNG QUAN -->
 
         <div class="menu-category">
-            Quản lý
+            Tổng quan
         </div>
 
         <ul class="sidebar-menu">
 
             <li>
-                <a href="${pageContext.request.contextPath}/customers"
-                   class="<%= currentURI.contains("/customers")
+                <a href="${pageContext.request.contextPath}/"
+                   class="<%= currentURI.endsWith("/")
+                           || currentURI.endsWith("/index.jsp")
                            ? "active"
                            : "" %>">
 
-                    Quản lý khách hàng
+                    <span class="menu-indicator"></span>
+
+                    <span class="menu-text">
+                        Trang chủ
+                    </span>
+
                 </a>
             </li>
 
         </ul>
 
-    <%
-        }
-    %>
 
-
-    <!-- ===================================================== -->
-    <!-- NHÓM QUẢN TRỊ -->
-    <!-- ===================================================== -->
-
-    <%
-        if ("ADMIN".equals(role)) {
-    %>
-
-        <div class="menu-category">
-            Quản trị
-        </div>
-
-        <ul class="sidebar-menu">
-
-            <li>
-                <a href="${pageContext.request.contextPath}/users"
-                   class="<%= currentURI.contains("/users")
-                           ? "active"
-                           : "" %>">
-
-                    Quản lý tài khoản
-                </a>
-            </li>
-
-
-            <li>
-                <a href="${pageContext.request.contextPath}/roles"
-                   class="<%= currentURI.contains("/roles")
-                           ? "active"
-                           : "" %>">
-
-                    Phân quyền & Nhóm nghiệp vụ
-                </a>
-            </li>
-
-
-            <li>
-                <a href="${pageContext.request.contextPath}/lock-transfer"
-                   class="<%= currentURI.contains("/lock-transfer")
-                           ? "active"
-                           : "" %>">
-
-                    Khóa tài khoản & Bàn giao dữ liệu
-                </a>
-            </li>
-
-        </ul>
-
-    <%
-        }
-    %>
-
-
-    <!-- ===================================================== -->
-    <!-- NHÓM TÀI KHOẢN -->
-    <!-- ===================================================== -->
-
-    <div class="menu-category">
-        Tài khoản
-    </div>
-
-
-    <ul class="sidebar-menu">
+        <!-- ========================= -->
+        <!-- QUẢN LÝ -->
+        <!-- SALES / MANAGER / ADMIN -->
+        <!-- ========================= -->
 
         <%
-            if (!"GUEST".equals(role)) {
+            if ("SALES".equals(role)
+                    || "MANAGER".equals(role)
+                    || "ADMIN".equals(role)) {
         %>
 
+            <div class="menu-category">
+                Quản lý
+            </div>
 
-            <!-- HỒ SƠ CÁ NHÂN -->
+            <ul class="sidebar-menu">
 
-            <li>
-                <a href="${pageContext.request.contextPath}/profile"
-                   class="<%= currentURI.contains("/profile")
-                           ? "active"
-                           : "" %>">
+                <li>
+                    <a href="${pageContext.request.contextPath}/customers"
+                       class="<%= currentURI.contains("/customers")
+                               ? "active"
+                               : "" %>">
 
-                    Hồ sơ cá nhân
-                </a>
-            </li>
+                        <span class="menu-indicator"></span>
 
+                        <span class="menu-text">
+                            Quản lý khách hàng
+                        </span>
 
-            <!-- ĐỔI MẬT KHẨU -->
+                    </a>
+                </li>
 
-            <li>
-                <a href="${pageContext.request.contextPath}/change-password"
-                   class="<%= currentURI.contains("/change-password")
-                           ? "active"
-                           : "" %>">
-
-                    Đổi mật khẩu
-                </a>
-            </li>
-
-
-            <!-- ================================================= -->
-            <!-- ĐĂNG XUẤT -->
-            <!--
-                HTQLKH-2:
-
-                Không sử dụng:
-                    <a href="/logout">
-
-                vì thẻ <a> sẽ gửi GET /logout.
-
-                Logout phải sử dụng POST để thay đổi trạng thái
-                phiên đăng nhập phía server.
-            -->
-            <!-- ================================================= -->
-
-            <li>
-
-                <a href="#"
-                   onclick="
-                       event.preventDefault();
-                       document.getElementById(
-                           'sidebar-logout-form'
-                       ).submit();
-                   ">
-
-                    Đăng xuất
-                </a>
-
-
-                <!--
-                    Form ẩn gửi POST tới LogoutServlet.
-                -->
-
-                <form id="sidebar-logout-form"
-                      action="${pageContext.request.contextPath}/logout"
-                      method="post"
-                      style="display: none;">
-                </form>
-
-            </li>
-
-
-        <%
-            } else {
-        %>
-
-
-            <!-- ĐĂNG NHẬP -->
-
-            <li>
-                <a href="${pageContext.request.contextPath}/login"
-                   class="<%= currentURI.contains("/login")
-                           ? "active"
-                           : "" %>">
-
-                    Đăng nhập
-                </a>
-            </li>
-
+            </ul>
 
         <%
             }
         %>
 
-    </ul>
 
-</div>
+        <!-- ========================= -->
+        <!-- QUẢN TRỊ -->
+        <!-- CHỈ ADMIN -->
+        <!-- ========================= -->
+
+        <%
+            if ("ADMIN".equals(role)) {
+        %>
+
+            <div class="menu-category">
+                Quản trị
+            </div>
+
+            <ul class="sidebar-menu">
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/users"
+                       class="<%= currentURI.contains("/users")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Quản lý tài khoản
+                        </span>
+
+                    </a>
+                </li>
+
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/roles"
+                       class="<%= currentURI.contains("/roles")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Phân quyền & Nhóm nghiệp vụ
+                        </span>
+
+                    </a>
+                </li>
+
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/lock-transfer"
+                       class="<%= currentURI.contains("/lock-transfer")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Khóa tài khoản & Bàn giao
+                        </span>
+
+                    </a>
+                </li>
+
+            </ul>
+
+        <%
+            }
+        %>
+
+
+        <!-- ========================= -->
+        <!-- TÀI KHOẢN -->
+        <!-- ========================= -->
+
+        <div class="menu-category">
+            Tài khoản
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <% if (!"GUEST".equals(role)) { %>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/profile"
+                       class="<%= currentURI.contains("/profile")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Hồ sơ cá nhân
+                        </span>
+
+                    </a>
+                </li>
+
+
+                <!--
+                    Trang xem quyền và phạm vi dữ liệu.
+                    Có thể sử dụng cho SALES, MANAGER và ADMIN.
+                -->
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/permission"
+                       class="<%= currentURI.contains("/permission")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Quyền & phạm vi dữ liệu
+                        </span>
+
+                    </a>
+                </li>
+
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/change-password"
+                       class="<%= currentURI.contains("/change-password")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Đổi mật khẩu
+                        </span>
+
+                    </a>
+                </li>
+
+
+                <!-- Logout bắt buộc dùng POST -->
+
+                <li class="logout-item">
+
+                    <a href="#"
+                       onclick="
+                           event.preventDefault();
+                           document.getElementById(
+                               'sidebar-logout-form'
+                           ).submit();
+                       ">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Đăng xuất
+                        </span>
+
+                    </a>
+
+
+                    <form id="sidebar-logout-form"
+                          action="${pageContext.request.contextPath}/logout"
+                          method="post"
+                          style="display: none;">
+                    </form>
+
+                </li>
+
+            <% } else { %>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/login"
+                       class="<%= currentURI.contains("/login")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Đăng nhập
+                        </span>
+
+                    </a>
+                </li>
+
+            <% } %>
+
+        </ul>
+
+    </nav>
+
+
+    <!-- ========================= -->
+    <!-- FOOTER -->
+    <!-- ========================= -->
+
+    <div class="sidebar-footer">
+        <span class="system-status"></span>
+        Hệ thống đang hoạt động
+    </div>
+
+</aside>

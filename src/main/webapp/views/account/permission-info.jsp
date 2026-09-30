@@ -20,21 +20,31 @@
         role = role.trim().toUpperCase();
     }
 
-    String username = (String) session.getAttribute("username");
+    /*
+     * LoginServlet hiện lưu userName trong session.
+     * Ưu tiên tên hiển thị, sau đó mới fallback sang email/username.
+     */
+    String username = (String) session.getAttribute("userName");
+
+    if (username == null || username.trim().isEmpty()) {
+        username = (String) session.getAttribute("userEmail");
+    }
+
+    if (username == null || username.trim().isEmpty()) {
+        username = (String) session.getAttribute("username");
+    }
 
     if (username == null || username.trim().isEmpty()) {
         username = (String) request.getAttribute("username");
     }
 
     /*
-     * dataScope do Backend xác định.
-     *
-     * Giá trị dự kiến:
+     * dataScope hoàn toàn do Backend xác định:
      * MY   = Của tôi
      * TEAM = Của nhóm tôi
      * ALL  = Tất cả
      *
-     * FE KHÔNG tự suy ra dataScope từ role.
+     * FE không tự suy ra dataScope từ role.
      */
     String dataScope = (String) request.getAttribute("dataScope");
 
@@ -61,117 +71,129 @@
 
     <title>Phân quyền và phạm vi dữ liệu</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <link href="${pageContext.request.contextPath}/assets/css/permission.css"
-          rel="stylesheet">
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/permission.css">
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container py-4"
+<div class="permission-page"
      id="permission-container"
      data-scope="${currentDataScope}">
 
-    <!-- Chưa đăng nhập -->
+    <!-- CHƯA ĐĂNG NHẬP -->
     <c:if test="${currentRole == 'GUEST'}">
 
-        <div class="card shadow-sm mx-auto login-required-card">
+        <div class="login-required-card">
 
-            <div class="card-body text-center p-5">
+            <div class="login-icon"></div>
 
-                <h4 class="fw-bold mb-3">
-                    Yêu cầu đăng nhập
-                </h4>
+            <h2>Yêu cầu đăng nhập</h2>
 
-                <p class="text-muted">
-                    Bạn chưa đăng nhập hoặc phiên đăng nhập
-                    không còn hợp lệ.
-                </p>
+            <p>
+                Bạn chưa đăng nhập hoặc phiên đăng nhập
+                không còn hợp lệ.
+            </p>
 
-                <a href="${pageContext.request.contextPath}/login"
-                   class="btn btn-primary">
-
-                    Đăng nhập
-
-                </a>
-
-            </div>
+            <a href="${pageContext.request.contextPath}/login"
+               class="primary-button">
+                Đăng nhập
+            </a>
 
         </div>
 
     </c:if>
 
 
-    <!-- Đã đăng nhập -->
+    <!-- ĐÃ ĐĂNG NHẬP -->
     <c:if test="${currentRole != 'GUEST'}">
 
-        <div class="d-flex justify-content-between
-                    align-items-center
-                    border-bottom
-                    pb-3 mb-4">
+        <div class="permission-wrapper">
 
-            <div>
+            <!-- HEADER -->
+            <header class="page-header">
 
-                <h3 class="fw-bold mb-1">
-                    Phân quyền và phạm vi dữ liệu
-                </h3>
+                <div class="header-left">
 
-                <p class="text-muted mb-0">
-                    Dữ liệu hiển thị theo phạm vi được
-                    Backend cấp cho tài khoản hiện tại.
-                </p>
+                    <div class="header-icon">
+                        <span></span>
+                    </div>
 
-            </div>
-
-            <a href="${pageContext.request.contextPath}/dashboard"
-               class="btn btn-outline-secondary">
-
-                Quay lại Dashboard
-
-            </a>
-
-        </div>
-
-
-        <!-- Thông báo lỗi do Backend trả về -->
-        <c:if test="${not empty permissionError}">
-
-            <div class="alert alert-danger"
-                 role="alert">
-
-                <strong>Không thể truy cập dữ liệu.</strong>
-
-                <c:out value="${permissionError}" />
-
-            </div>
-
-        </c:if>
-
-
-        <!-- Thông tin tài khoản -->
-        <div class="card shadow-sm mb-4">
-
-            <div class="card-header bg-white">
-
-                <h5 class="mb-0 fw-bold">
-                    Tài khoản hiện tại
-                </h5>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-
-                        <div class="text-muted small">
-                            Tên đăng nhập
+                    <div>
+                        <div class="eyebrow">
+                            QUẢN LÝ QUYỀN TRUY CẬP
                         </div>
 
-                        <div class="fw-bold">
+                        <h1>Phân quyền và phạm vi dữ liệu</h1>
+
+                        <p>
+                            Theo dõi quyền truy cập và phạm vi dữ liệu
+                            được Backend cấp cho tài khoản hiện tại.
+                        </p>
+                    </div>
+
+                </div>
+
+                <a href="${pageContext.request.contextPath}/"
+                   class="back-button">
+
+                    <span class="back-arrow"></span>
+                 Quay về trang chủ
+
+                </a>
+
+            </header>
+
+
+            <!-- LỖI BACKEND -->
+            <c:if test="${not empty permissionError}">
+
+                <div class="permission-alert permission-alert-danger">
+
+                    <div class="alert-symbol">!</div>
+
+                    <div>
+                        <strong>Không thể truy cập dữ liệu</strong>
+
+                        <p>
+                            <c:out value="${permissionError}" />
+                        </p>
+                    </div>
+
+                </div>
+
+            </c:if>
+
+
+            <!-- TÀI KHOẢN HIỆN TẠI -->
+            <section class="permission-panel account-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <span class="section-label">TÀI KHOẢN</span>
+                        <h2>Tài khoản hiện tại</h2>
+                    </div>
+
+                    <span class="status-badge">
+                        <span class="status-dot"></span>
+                        Đang hoạt động
+                    </span>
+
+                </div>
+
+
+                <div class="account-content">
+
+                    <div class="account-avatar"
+                         id="account-avatar">
+                        U
+                    </div>
+
+
+                    <div class="account-main">
+
+                        <div class="account-name">
 
                             <c:choose>
 
@@ -187,242 +209,389 @@
 
                         </div>
 
+                        <div class="account-description">
+                            Tài khoản đang sử dụng hệ thống
+                        </div>
+
                     </div>
 
 
-                    <div class="col-md-6">
+                    <div class="account-role">
 
-                        <div class="text-muted small">
-                            Vai trò
-                        </div>
+                        <span class="info-caption">
+                            VAI TRÒ HỆ THỐNG
+                        </span>
 
-                        <div class="fw-bold">
+                        <span class="role-badge role-${currentRole}">
                             <c:out value="${currentRole}" />
-                        </div>
+                        </span>
+
+                        <span class="role-description">
+
+                            <c:choose>
+
+                                <c:when test="${currentRole == 'SALES'}">
+                                    Nhân viên kinh doanh
+                                </c:when>
+
+                                <c:when test="${currentRole == 'MANAGER'}">
+                                    Quản lý kinh doanh
+                                </c:when>
+
+                                <c:when test="${currentRole == 'ADMIN'}">
+                                    Quản trị viên
+                                </c:when>
+
+                                <c:otherwise>
+                                    Người dùng hệ thống
+                                </c:otherwise>
+
+                            </c:choose>
+
+                        </span>
 
                     </div>
 
                 </div>
 
-            </div>
-
-        </div>
+            </section>
 
 
-        <!-- Phạm vi dữ liệu -->
-        <div class="card shadow-sm mb-4">
+            <!-- PHẠM VI -->
+            <section class="permission-panel">
 
-            <div class="card-header bg-white">
+                <div class="panel-heading">
 
-                <h5 class="mb-0 fw-bold">
-                    Phạm vi dữ liệu
-                </h5>
+                    <div>
+                        <span class="section-label">PHÂN QUYỀN</span>
+                        <h2>Phạm vi dữ liệu</h2>
+                    </div>
 
-            </div>
+                    <div class="current-scope-summary">
+                        Phạm vi hiện tại:
+                        <strong id="current-scope-text">
+                            Đang xác định
+                        </strong>
+                    </div>
 
-            <div class="card-body">
+                </div>
+
 
                 <div class="scope-grid">
 
                     <!-- MY -->
                     <div class="scope-card
-                        ${currentDataScope == 'MY'
+                         ${currentDataScope == 'MY'
                             ? 'scope-active'
-                            : ''}">
+                            : ''}"
+                         data-scope-card="MY">
 
-                        <h6 class="fw-bold">
-                            Của tôi
-                        </h6>
+                        <div class="scope-top">
 
-                        <p class="text-muted mb-0">
-                            Chỉ dữ liệu thuộc sở hữu
-                            của tài khoản hiện tại.
+                            <div class="scope-icon">
+                                <span>01</span>
+                            </div>
+
+                            <c:if test="${currentDataScope == 'MY'}">
+                                <span class="active-badge">
+                                    ✓ Đang áp dụng
+                                </span>
+                            </c:if>
+
+                        </div>
+
+                        <h3>Của tôi</h3>
+
+                        <p>
+                            Chỉ dữ liệu thuộc sở hữu của
+                            tài khoản hiện tại.
                         </p>
+
+                        <div class="scope-code">
+                            MY
+                        </div>
 
                     </div>
 
 
                     <!-- TEAM -->
                     <div class="scope-card
-                        ${currentDataScope == 'TEAM'
+                         ${currentDataScope == 'TEAM'
                             ? 'scope-active'
-                            : ''}">
+                            : ''}"
+                         data-scope-card="TEAM">
 
-                        <h6 class="fw-bold">
-                            Của nhóm tôi
-                        </h6>
+                        <div class="scope-top">
 
-                        <p class="text-muted mb-0">
+                            <div class="scope-icon">
+                                <span>02</span>
+                            </div>
+
+                            <c:if test="${currentDataScope == 'TEAM'}">
+                                <span class="active-badge">
+                                    ✓ Đang áp dụng
+                                </span>
+                            </c:if>
+
+                        </div>
+
+                        <h3>Của nhóm tôi</h3>
+
+                        <p>
                             Dữ liệu thuộc nhóm kinh doanh
                             của tài khoản hiện tại.
                         </p>
+
+                        <div class="scope-code">
+                            TEAM
+                        </div>
 
                     </div>
 
 
                     <!-- ALL -->
                     <div class="scope-card
-                        ${currentDataScope == 'ALL'
+                         ${currentDataScope == 'ALL'
                             ? 'scope-active'
-                            : ''}">
+                            : ''}"
+                         data-scope-card="ALL">
 
-                        <h6 class="fw-bold">
-                            Tất cả
-                        </h6>
+                        <div class="scope-top">
 
-                        <p class="text-muted mb-0">
+                            <div class="scope-icon">
+                                <span>03</span>
+                            </div>
+
+                            <c:if test="${currentDataScope == 'ALL'}">
+                                <span class="active-badge">
+                                    Đang áp dụng
+                                </span>
+                            </c:if>
+
+                        </div>
+
+                        <h3>Tất cả</h3>
+
+                        <p>
                             Toàn bộ dữ liệu mà tài khoản
                             được phép truy cập.
                         </p>
+
+                        <div class="scope-code">
+                            ALL
+                        </div>
 
                     </div>
 
                 </div>
 
 
-                <!-- BE chưa trả scope -->
                 <c:if test="${empty currentDataScope}">
 
-                    <div class="alert alert-warning mt-3 mb-0">
+                    <div class="permission-alert
+                                permission-alert-warning">
 
-                        Chưa xác định được phạm vi dữ liệu
-                        của tài khoản.
+                        <div class="alert-symbol">!</div>
+
+                        <div>
+                            <strong>Chưa xác định phạm vi</strong>
+
+                            <p>
+                                Backend chưa cung cấp phạm vi dữ liệu
+                                cho tài khoản hiện tại.
+                            </p>
+                        </div>
 
                     </div>
 
                 </c:if>
 
-            </div>
-
-        </div>
+            </section>
 
 
-        <!-- Các dữ liệu áp dụng phạm vi -->
-        <div class="card shadow-sm mb-4">
+            <!-- DỮ LIỆU ÁP DỤNG -->
+            <section class="permission-panel">
 
-            <div class="card-header bg-white">
+                <div class="panel-heading">
 
-                <h5 class="mb-0 fw-bold">
-                    Dữ liệu áp dụng phạm vi
-                </h5>
-
-            </div>
-
-            <div class="card-body">
-
-                <p class="text-muted">
-
-                    Phạm vi trên được áp dụng thống nhất
-                    khi Backend truy vấn danh sách,
-                    tìm kiếm và xuất Excel.
-
-                </p>
-
-                <div class="table-responsive">
-
-                    <table class="table table-bordered
-                                  align-middle mb-0">
-
-                        <thead class="table-light">
-
-                        <tr>
-                            <th>Loại dữ liệu</th>
-                            <th>Phạm vi áp dụng</th>
-                        </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                        <tr>
-                            <td>Khách hàng</td>
-
-                            <td>
-                                <span class="scope-label">
-                                    Đang xác định
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Cơ hội</td>
-
-                            <td>
-                                <span class="scope-label">
-                                    Đang xác định
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Hoạt động</td>
-
-                            <td>
-                                <span class="scope-label">
-                                    Đang xác định
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Báo giá</td>
-
-                            <td>
-                                <span class="scope-label">
-                                    Đang xác định
-                                </span>
-                            </td>
-                        </tr>
-
-                        </tbody>
-
-                    </table>
+                    <div>
+                        <span class="section-label">DỮ LIỆU</span>
+                        <h2>Dữ liệu áp dụng phạm vi</h2>
+                    </div>
 
                 </div>
 
-            </div>
 
-        </div>
+                <div class="panel-description">
+                    Phạm vi trên được áp dụng thống nhất khi Backend
+                    truy vấn danh sách, tìm kiếm và xuất Excel.
+                </div>
 
 
-        <!-- Quy tắc tìm kiếm và Excel -->
-        <div class="card shadow-sm">
+                <div class="data-grid">
 
-            <div class="card-header bg-white">
+                    <div class="data-item">
 
-                <h5 class="mb-0 fw-bold">
-                    Quy tắc áp dụng
-                </h5>
+                        <div class="data-icon">
+                            KH
+                        </div>
 
-            </div>
+                        <div class="data-info">
+                            <strong>Khách hàng</strong>
+                            <span>Dữ liệu khách hàng</span>
+                        </div>
 
-            <div class="card-body">
+                        <span class="scope-label">
+                            Đang xác định
+                        </span>
 
-                <ul class="mb-0">
+                    </div>
 
-                    <li>
-                        Danh sách dữ liệu được Backend
-                        lọc theo phạm vi của tài khoản.
-                    </li>
 
-                    <li>
-                        Tìm kiếm sử dụng cùng phạm vi dữ liệu.
-                    </li>
+                    <div class="data-item">
 
-                    <li>
-                        Xuất Excel chỉ xuất dữ liệu nằm
-                        trong phạm vi được phép.
-                    </li>
+                        <div class="data-icon">
+                            CH
+                        </div>
 
-                    <li>
-                        Khi truy cập bản ghi ngoài phạm vi,
-                        hệ thống hiển thị thông báo lỗi
-                        bằng tiếng Việt.
-                    </li>
+                        <div class="data-info">
+                            <strong>Cơ hội</strong>
+                            <span>Cơ hội kinh doanh</span>
+                        </div>
 
-                </ul>
+                        <span class="scope-label">
+                            Đang xác định
+                        </span>
 
-            </div>
+                    </div>
+
+
+                    <div class="data-item">
+
+                        <div class="data-icon">
+                            HĐ
+                        </div>
+
+                        <div class="data-info">
+                            <strong>Hoạt động</strong>
+                            <span>Hoạt động chăm sóc khách hàng</span>
+                        </div>
+
+                        <span class="scope-label">
+                            Đang xác định
+                        </span>
+
+                    </div>
+
+
+                    <div class="data-item">
+
+                        <div class="data-icon">
+                            BG
+                        </div>
+
+                        <div class="data-info">
+                            <strong>Báo giá</strong>
+                            <span>Dữ liệu báo giá</span>
+                        </div>
+
+                        <span class="scope-label">
+                            Đang xác định
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- QUY TẮC -->
+            <section class="permission-panel rules-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <span class="section-label">NGUYÊN TẮC</span>
+                        <h2>Quy tắc áp dụng</h2>
+                    </div>
+
+                </div>
+
+
+                <div class="rules-grid">
+
+                    <div class="rule-item">
+
+                        <span class="rule-number">01</span>
+
+                        <div>
+                            <strong>Danh sách dữ liệu</strong>
+
+                            <p>
+                                Backend lọc danh sách theo đúng
+                                phạm vi của tài khoản.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="rule-item">
+
+                        <span class="rule-number">02</span>
+
+                        <div>
+                            <strong>Tìm kiếm</strong>
+
+                            <p>
+                                Kết quả tìm kiếm sử dụng cùng
+                                phạm vi dữ liệu.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="rule-item">
+
+                        <span class="rule-number">03</span>
+
+                        <div>
+                            <strong>Xuất Excel</strong>
+
+                            <p>
+                                Chỉ xuất dữ liệu nằm trong phạm vi
+                                được phép.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="rule-item">
+
+                        <span class="rule-number">04</span>
+
+                        <div>
+                            <strong>Truy cập ngoài phạm vi</strong>
+
+                            <p>
+                                Hệ thống hiển thị thông báo lỗi
+                                bằng tiếng Việt.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <footer class="permission-footer">
+                Hệ thống quản lý khách hàng · Phân quyền dữ liệu
+            </footer>
 
         </div>
 
