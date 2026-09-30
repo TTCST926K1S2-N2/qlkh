@@ -20,7 +20,7 @@ public class UserService {
             Set.of("ADMIN", "MANAGER", "SALES");
 
     private static final Set<String> VALID_STATUSES =
-            Set.of("ACTIVE", "INACTIVE");
+            Set.of("ACTIVE", "INACTIVE", "LOCKED");
 
     private static final String TEMP_PASSWORD_CHARS =
             "ABCDEFGHJKLMNPQRSTUVWXYZ"
@@ -116,7 +116,23 @@ public class UserService {
         );
     }
 
-    /**
+        /**
+     * HTQLKH-10:
+     * Lấy toàn bộ tài khoản ACTIVE để hiển thị
+     * trong danh sách người nhận bàn giao.
+     */
+    public List<User> getActiveUsersForHandover()
+            throws SQLException {
+
+        return userDAO.findUsers(
+                null,
+                null,
+                "ACTIVE",
+                1,
+                Integer.MAX_VALUE
+        );
+    }
+/**
      * Lấy tài khoản theo ID để hiển thị form sửa.
      */
     public User getUserById(long userId)
