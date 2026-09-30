@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.ictu.qlkh.model.User;
 import vn.edu.ictu.qlkh.service.AuthService;
+import vn.edu.ictu.qlkh.service.SessionService;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -30,6 +31,13 @@ public class LoginServlet extends HttpServlet {
     private static final String INVALID_LOGIN_MESSAGE =
             "Email hoặc mật khẩu không chính xác.";
 
+    /*
+     * HTQLKH-2:
+     * Thông báo khi phiên đăng nhập đã hết hạn.
+     */
+    private static final String SESSION_EXPIRED_MESSAGE =
+            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+
     private AuthService authService;
 
     @Override
@@ -47,15 +55,29 @@ public class LoginServlet extends HttpServlet {
                 request.getSession(false);
 
         /*
-         * Đã đăng nhập thì không cần quay lại trang login.
+         * Nếu phiên đăng nhập vẫn còn hợp lệ
+         * thì không cần quay lại trang login.
          */
-        if (session != null
-                && session.getAttribute("userRole") != null) {
-
+        if (SessionService.isAuthenticated(session)) {
             response.sendRedirect(
                     request.getContextPath() + "/"
             );
             return;
+        }
+
+        /*
+         * HTQLKH-2:
+         * AuthenticationFilter chuyển tới:
+         *
+         * /login?expired=1
+         *
+         * khi phát hiện session đã hết hạn.
+         */
+        if ("1".equals(request.getParameter("expired"))) {
+            request.setAttribute(
+                    "errorMessage",
+                    SESSION_EXPIRED_MESSAGE
+            );
         }
 
         request.getRequestDispatcher(LOGIN_VIEW)
@@ -84,6 +106,10 @@ public class LoginServlet extends HttpServlet {
             AuthService.LoginResult result =
                     authService.login(email, password);
 
+            /*
+             * Đăng nhập thất bại:
+             * luôn sử dụng cùng một thông báo.
+             */
             if (!result.isSuccess()) {
                 request.setAttribute(
                         "errorMessage",
@@ -109,9 +135,21 @@ public class LoginServlet extends HttpServlet {
                 oldSession.invalidate();
             }
 
+            /*
+             * Tạo session mới sau khi đăng nhập thành công.
+             */
             HttpSession newSession =
                     request.getSession(true);
 
+            /*
+             * HTQLKH-2:
+             * Phiên hết hạn sau 15 phút không hoạt động.
+             */
+            SessionService.configureSession(newSession);
+
+            /*
+             * Lưu thông tin người dùng vào session.
+             */
             newSession.setAttribute(
                     "userId",
                     user.getId()
