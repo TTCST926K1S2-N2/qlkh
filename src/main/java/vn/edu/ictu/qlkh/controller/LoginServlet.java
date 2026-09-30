@@ -42,7 +42,9 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     public void init() {
-        authService = new AuthService();
+
+        authService =
+                new AuthService();
     }
 
     @Override
@@ -59,9 +61,11 @@ public class LoginServlet extends HttpServlet {
          * thì không cần quay lại trang login.
          */
         if (SessionService.isAuthenticated(session)) {
+
             response.sendRedirect(
                     request.getContextPath() + "/"
             );
+
             return;
         }
 
@@ -73,15 +77,21 @@ public class LoginServlet extends HttpServlet {
          *
          * khi phát hiện session đã hết hạn.
          */
-        if ("1".equals(request.getParameter("expired"))) {
+        if ("1".equals(
+                request.getParameter("expired"))) {
+
             request.setAttribute(
                     "errorMessage",
                     SESSION_EXPIRED_MESSAGE
             );
         }
 
-        request.getRequestDispatcher(LOGIN_VIEW)
-                .forward(request, response);
+        request.getRequestDispatcher(
+                LOGIN_VIEW
+        ).forward(
+                request,
+                response
+        );
     }
 
     @Override
@@ -90,65 +100,91 @@ public class LoginServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding(
+                "UTF-8"
+        );
 
         /*
          * FE hiện tại đặt name="username".
-         * Theo Jira HTQLKH-1, giá trị này được xử lý như email.
+         * Theo Jira HTQLKH-1,
+         * giá trị này được xử lý như email.
          */
         String email =
-                request.getParameter("username");
+                request.getParameter(
+                        "username"
+                );
 
         String password =
-                request.getParameter("password");
+                request.getParameter(
+                        "password"
+                );
 
         try {
+
             AuthService.LoginResult result =
-                    authService.login(email, password);
+                    authService.login(
+                            email,
+                            password
+                    );
 
             /*
              * Đăng nhập thất bại:
              * luôn sử dụng cùng một thông báo.
              */
             if (!result.isSuccess()) {
+
                 request.setAttribute(
                         "errorMessage",
                         INVALID_LOGIN_MESSAGE
                 );
 
-                request.getRequestDispatcher(LOGIN_VIEW)
-                        .forward(request, response);
+                request.getRequestDispatcher(
+                        LOGIN_VIEW
+                ).forward(
+                        request,
+                        response
+                );
 
                 return;
             }
 
-            User user = result.getUser();
+            User user =
+                    result.getUser();
 
             /*
              * Chống session fixation:
-             * hủy session cũ trước khi tạo session đăng nhập mới.
+             * hủy session cũ trước khi tạo
+             * session đăng nhập mới.
              */
             HttpSession oldSession =
                     request.getSession(false);
 
             if (oldSession != null) {
-                oldSession.invalidate();
+
+                SessionService.invalidateSession(
+                        oldSession
+                );
             }
 
             /*
-             * Tạo session mới sau khi đăng nhập thành công.
+             * Tạo session mới sau khi
+             * đăng nhập thành công.
              */
             HttpSession newSession =
                     request.getSession(true);
 
             /*
              * HTQLKH-2:
-             * Phiên hết hạn sau 15 phút không hoạt động.
+             * Phiên hết hạn sau 15 phút
+             * không hoạt động.
              */
-            SessionService.configureSession(newSession);
+            SessionService.configureSession(
+                    newSession
+            );
 
             /*
-             * Lưu thông tin người dùng vào session.
+             * Lưu thông tin người dùng
+             * vào session.
              */
             newSession.setAttribute(
                     "userId",
@@ -171,15 +207,34 @@ public class LoginServlet extends HttpServlet {
             );
 
             /*
+             * HTQLKH-4:
+             * Đăng ký session của tài khoản.
+             *
+             * Việc này cho phép hệ thống biết
+             * một user đang đăng nhập ở những
+             * phiên nào.
+             *
+             * Khi đổi mật khẩu thành công,
+             * các phiên khác của cùng user
+             * sẽ được thu hồi.
+             */
+            SessionService.registerSession(
+                    user.getId(),
+                    newSession
+            );
+
+            /*
              * Repo hiện tại chỉ có một trang chủ.
-             * Vai trò được lưu trong userRole để giao diện
-             * và chức năng hiển thị theo quyền.
+             * Vai trò được lưu trong userRole
+             * để giao diện và chức năng
+             * hiển thị theo quyền.
              */
             response.sendRedirect(
                     request.getContextPath() + "/"
             );
 
         } catch (SQLException e) {
+
             throw new ServletException(
                     "Không thể xử lý yêu cầu đăng nhập.",
                     e

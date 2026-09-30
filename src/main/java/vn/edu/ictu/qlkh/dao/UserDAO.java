@@ -22,7 +22,8 @@ public class UserDAO {
      * Dùng để xác định tài khoản khi người dùng
      * yêu cầu đặt lại mật khẩu.
      */
-    public User findByEmail(String email) throws SQLException {
+    public User findByEmail(String email)
+            throws SQLException {
 
         String sql = """
                 SELECT id,
@@ -40,10 +41,14 @@ public class UserDAO {
 
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-            statement.setString(1, email);
+            statement.setString(
+                    1,
+                    email
+            );
 
             try (ResultSet resultSet =
                          statement.executeQuery()) {
@@ -52,57 +57,65 @@ public class UserDAO {
                     return null;
                 }
 
-                User user = new User();
+                return mapUser(resultSet);
+            }
+        }
+    }
 
-                user.setId(
-                        resultSet.getLong("id")
-                );
+    /**
+     * HTQLKH-4:
+     * Tìm người dùng theo userId trong session.
+     *
+     * Khi người dùng đã đăng nhập,
+     * LoginServlet lưu userId vào HttpSession.
+     *
+     * ChangePasswordService sử dụng userId này
+     * để lấy đúng tài khoản đang đổi mật khẩu.
+     */
+    public User findById(long userId)
+            throws SQLException {
 
-                user.setEmail(
-                        resultSet.getString("email")
-                );
+        String sql = """
+                SELECT id,
+                       email,
+                       password_hash,
+                       full_name,
+                       role,
+                       status,
+                       failed_login_attempts,
+                       locked_until
+                FROM users
+                WHERE id = ?
+                LIMIT 1
+                """;
 
-                user.setPasswordHash(
-                        resultSet.getString("password_hash")
-                );
+        try (Connection connection =
+                     DBConnection.getConnection();
 
-                user.setFullName(
-                        resultSet.getString("full_name")
-                );
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
 
-                user.setRole(
-                        resultSet.getString("role")
-                );
+            statement.setLong(
+                    1,
+                    userId
+            );
 
-                user.setStatus(
-                        resultSet.getString("status")
-                );
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
 
-                user.setFailedLoginAttempts(
-                        resultSet.getInt(
-                                "failed_login_attempts"
-                        )
-                );
-
-                Timestamp lockedUntil =
-                        resultSet.getTimestamp(
-                                "locked_until"
-                        );
-
-                if (lockedUntil != null) {
-                    user.setLockedUntil(
-                            lockedUntil.toLocalDateTime()
-                    );
+                if (!resultSet.next()) {
+                    return null;
                 }
 
-                return user;
+                return mapUser(resultSet);
             }
         }
     }
 
     /**
      * HTQLKH-1:
-     * Cập nhật số lần đăng nhập sai và thời gian khóa.
+     * Cập nhật số lần đăng nhập sai
+     * và thời gian khóa.
      */
     public void updateLoginFailureState(
             long userId,
@@ -119,6 +132,7 @@ public class UserDAO {
 
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
@@ -128,14 +142,19 @@ public class UserDAO {
             );
 
             if (lockedUntil == null) {
+
                 statement.setTimestamp(
                         2,
                         null
                 );
+
             } else {
+
                 statement.setTimestamp(
                         2,
-                        Timestamp.valueOf(lockedUntil)
+                        Timestamp.valueOf(
+                                lockedUntil
+                        )
                 );
             }
 
@@ -150,8 +169,8 @@ public class UserDAO {
 
     /**
      * HTQLKH-1:
-     * Reset trạng thái đăng nhập sai sau khi
-     * đăng nhập thành công.
+     * Reset trạng thái đăng nhập sai
+     * sau khi đăng nhập thành công.
      */
     public void resetLoginFailures(
             long userId)
@@ -166,6 +185,7 @@ public class UserDAO {
 
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
@@ -179,16 +199,17 @@ public class UserDAO {
     }
 
     /**
-     * HTQLKH-3:
+     * HTQLKH-3 + HTQLKH-4:
      * Cập nhật mật khẩu mới cho người dùng.
      *
-     * Connection được truyền từ PasswordService
-     * để việc:
+     * Connection được truyền từ Service
+     * để thao tác cập nhật có thể nằm
+     * trong transaction.
      *
-     * 1. Đổi mật khẩu
-     * 2. Đánh dấu token đã sử dụng
-     *
-     * nằm trong cùng một transaction.
+     * Khi đổi mật khẩu thành công:
+     * - cập nhật password_hash
+     * - reset failed_login_attempts
+     * - bỏ trạng thái khóa tài khoản
      */
     public boolean updatePassword(
             Connection connection,
@@ -219,5 +240,67 @@ public class UserDAO {
 
             return statement.executeUpdate() == 1;
         }
+    }
+
+    /**
+     * Chuyển dữ liệu ResultSet thành User.
+     *
+     * Dùng chung cho findByEmail()
+     * và findById() để tránh lặp code.
+     */
+    private User mapUser(
+            ResultSet resultSet)
+            throws SQLException {
+
+        User user =
+                new User();
+
+        user.setId(
+                resultSet.getLong("id")
+        );
+
+        user.setEmail(
+                resultSet.getString("email")
+        );
+
+        user.setPasswordHash(
+                resultSet.getString(
+                        "password_hash"
+                )
+        );
+
+        user.setFullName(
+                resultSet.getString(
+                        "full_name"
+                )
+        );
+
+        user.setRole(
+                resultSet.getString("role")
+        );
+
+        user.setStatus(
+                resultSet.getString("status")
+        );
+
+        user.setFailedLoginAttempts(
+                resultSet.getInt(
+                        "failed_login_attempts"
+                )
+        );
+
+        Timestamp lockedUntil =
+                resultSet.getTimestamp(
+                        "locked_until"
+                );
+
+        if (lockedUntil != null) {
+
+            user.setLockedUntil(
+                    lockedUntil.toLocalDateTime()
+            );
+        }
+
+        return user;
     }
 }

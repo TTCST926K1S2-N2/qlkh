@@ -7,7 +7,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Đổi Mật Khẩu - Hệ Thống QLKH</title>
 
@@ -59,7 +60,7 @@
 
 
         <!-- ============================== -->
-        <!-- THÔNG BÁO TỪ BACKEND -->
+        <!-- THÔNG BÁO LỖI TỪ BACKEND -->
         <!-- ============================== -->
 
         <%
@@ -70,6 +71,7 @@
         <% if (error != null) { %>
 
             <div
+                id="serverErrorAlert"
                 class="alert alert-danger text-center"
                 role="alert">
 
@@ -81,6 +83,10 @@
 
         <% } %>
 
+
+        <!-- ============================== -->
+        <!-- THÔNG BÁO THÀNH CÔNG BACKEND -->
+        <!-- ============================== -->
 
         <%
             String success =
@@ -100,10 +106,10 @@
                 <div class="mt-3">
 
                     <a
-                        href="${pageContext.request.contextPath}/login"
+                        href="${pageContext.request.contextPath}/"
                         class="btn btn-sm btn-outline-success">
 
-                        Đến trang đăng nhập
+                        Về trang chủ
 
                     </a>
 
@@ -120,12 +126,14 @@
 
         <form
             id="changePasswordForm"
-action="${pageContext.request.contextPath}/change-password"
+            action="${pageContext.request.contextPath}/change-password"
             method="post"
             novalidate>
 
 
-            <!-- Mật khẩu hiện tại -->
+            <!-- ========================== -->
+            <!-- MẬT KHẨU HIỆN TẠI -->
+            <!-- ========================== -->
 
             <div class="mb-3">
 
@@ -143,7 +151,8 @@ action="${pageContext.request.contextPath}/change-password"
                     class="form-control"
                     id="currentPassword"
                     name="currentPassword"
-                    placeholder="Nhập mật khẩu đang sử dụng">
+                    placeholder="Nhập mật khẩu đang sử dụng"
+                    autocomplete="current-password">
 
                 <div class="invalid-feedback">
                     Vui lòng nhập mật khẩu hiện tại.
@@ -152,7 +161,9 @@ action="${pageContext.request.contextPath}/change-password"
             </div>
 
 
-            <!-- Mật khẩu mới -->
+            <!-- ========================== -->
+            <!-- MẬT KHẨU MỚI -->
+            <!-- ========================== -->
 
             <div class="mb-3">
 
@@ -170,7 +181,8 @@ action="${pageContext.request.contextPath}/change-password"
                     class="form-control"
                     id="newPassword"
                     name="newPassword"
-                    placeholder="Nhập mật khẩu mới">
+                    placeholder="Nhập mật khẩu mới"
+                    autocomplete="new-password">
 
                 <div class="invalid-feedback">
                     Mật khẩu mới không đạt yêu cầu.
@@ -213,7 +225,9 @@ action="${pageContext.request.contextPath}/change-password"
             </div>
 
 
-            <!-- Xác nhận mật khẩu mới -->
+            <!-- ========================== -->
+            <!-- XÁC NHẬN MẬT KHẨU -->
+            <!-- ========================== -->
 
             <div class="mb-3">
 
@@ -231,7 +245,8 @@ action="${pageContext.request.contextPath}/change-password"
                     class="form-control"
                     id="confirmPassword"
                     name="confirmPassword"
-placeholder="Nhập lại mật khẩu mới">
+                    placeholder="Nhập lại mật khẩu mới"
+                    autocomplete="new-password">
 
                 <div class="invalid-feedback">
                     Mật khẩu xác nhận không trùng khớp.
@@ -240,7 +255,9 @@ placeholder="Nhập lại mật khẩu mới">
             </div>
 
 
-            <!-- Nút thao tác -->
+            <!-- ========================== -->
+            <!-- NÚT THAO TÁC -->
+            <!-- ========================== -->
 
             <div class="d-grid gap-2 mt-4">
 
@@ -256,7 +273,8 @@ placeholder="Nhập lại mật khẩu mới">
                 <!--
                     HTQLKH-4:
                     Trang chủ hiện tại sử dụng context root.
-                    Không sử dụng /dashboard vì chưa có route này.
+                    Không sử dụng /dashboard vì repo
+                    hiện chưa có route này.
                 -->
 
                 <a
