@@ -53,7 +53,19 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        // Validation 3: Xác nhận mật khẩu mới phải khớp
+        // Validation 3: Mật khẩu mới phải khác mật khẩu hiện tại
+        if (newVal !== "" && currentVal !== "" && newVal === currentVal) {
+            markInvalid(
+                newPasswordInput,
+                "Mật khẩu mới phải khác mật khẩu hiện tại."
+            );
+            errorMessages.push(
+                "Mật khẩu mới không được trùng với mật khẩu hiện tại."
+            );
+            isValid = false;
+        }
+
+        // Validation 4: Xác nhận mật khẩu mới phải khớp
         if (confirmVal === "" || confirmVal !== newVal) {
             markInvalid(confirmPasswordInput, "Mật khẩu xác nhận không trùng khớp.");
             errorMessages.push("Xác nhận mật khẩu mới không khớp.");
