@@ -503,18 +503,28 @@
             <h1>Quản lý tài khoản</h1>
 
             <p>
-                Tìm kiếm, theo dõi và quản lý tài khoản người dùng trong hệ thống.
-            </p>
+    Tìm kiếm, theo dõi và quản lý tài khoản người dùng trong hệ thống.
+</p>
 
-        </div>
+</div>
 
-        <a
-            href="${pageContext.request.contextPath}/users/create"
-            class="btn btn-primary">
-            + Thêm tài khoản
-        </a>
+<div style="display: flex; gap: 10px; align-items: center;">
 
-    </div>
+    <a
+        href="${pageContext.request.contextPath}/"
+        class="btn btn-secondary">
+         Trang chủ
+    </a>
+
+    <a
+        href="${pageContext.request.contextPath}/users/create"
+        class="btn btn-primary">
+         Thêm tài khoản
+    </a>
+
+</div>
+
+</div>
 
 </header>
 

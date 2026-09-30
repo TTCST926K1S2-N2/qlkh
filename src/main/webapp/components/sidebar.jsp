@@ -39,6 +39,15 @@
     }
 
     String currentURI = request.getRequestURI();
+    String currentView = request.getParameter("view");
+
+    boolean isRoleGroupPage =
+            currentURI.contains("/users/role-group")
+                    || "role-group".equals(currentView);
+
+    boolean isUserManagementPage =
+            currentURI.contains("/users")
+                    && !isRoleGroupPage;
 %>
 
 <link rel="stylesheet"
@@ -51,11 +60,13 @@
     <!-- ========================= -->
 
     <div class="sidebar-brand">
+
         <div class="brand-mark">
             Q
         </div>
 
         <div class="brand-text">
+
             <div class="brand-title">
                 HỆ THỐNG QLKH
             </div>
@@ -63,7 +74,9 @@
             <div class="brand-subtitle">
                 Customer Management
             </div>
+
         </div>
+
     </div>
 
 
@@ -90,8 +103,10 @@
                     <%= roleDisplayName %>
                 </div>
 
-                <% if (businessGroupName != null
-                        && !businessGroupName.isBlank()) { %>
+                <%
+                    if (businessGroupName != null
+                            && !businessGroupName.isBlank()) {
+                %>
 
                     <div class="user-group">
                         Nhóm: <%= businessGroupName %>
@@ -112,7 +127,10 @@
 
     <nav class="sidebar-navigation">
 
+
+        <!-- ========================= -->
         <!-- TỔNG QUAN -->
+        <!-- ========================= -->
 
         <div class="menu-category">
             Tổng quan
@@ -121,6 +139,7 @@
         <ul class="sidebar-menu">
 
             <li>
+
                 <a href="${pageContext.request.contextPath}/"
                    class="<%= currentURI.endsWith("/")
                            || currentURI.endsWith("/index.jsp")
@@ -134,6 +153,7 @@
                     </span>
 
                 </a>
+
             </li>
 
         </ul>
@@ -157,6 +177,7 @@
             <ul class="sidebar-menu">
 
                 <li>
+
                     <a href="${pageContext.request.contextPath}/customers"
                        class="<%= currentURI.contains("/customers")
                                ? "active"
@@ -169,6 +190,7 @@
                         </span>
 
                     </a>
+
                 </li>
 
             </ul>
@@ -193,9 +215,13 @@
 
             <ul class="sidebar-menu">
 
+
+                <!-- QUẢN LÝ TÀI KHOẢN -->
+
                 <li>
+
                     <a href="${pageContext.request.contextPath}/users"
-                       class="<%= currentURI.contains("/users")
+                       class="<%= isUserManagementPage
                                ? "active"
                                : "" %>">
 
@@ -206,26 +232,35 @@
                         </span>
 
                     </a>
+
                 </li>
 
 
+                <!-- HTQLKH-9 -->
+                <!-- PHÂN QUYỀN & NHÓM KINH DOANH -->
+
                 <li>
-                    <a href="${pageContext.request.contextPath}/roles"
-                       class="<%= currentURI.contains("/roles")
+
+                    <a href="${pageContext.request.contextPath}/users?view=role-group"
+                       class="<%= isRoleGroupPage
                                ? "active"
                                : "" %>">
 
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Phân quyền & Nhóm nghiệp vụ
+                            Phân quyền & Nhóm kinh doanh
                         </span>
 
                     </a>
+
                 </li>
 
 
+                <!-- KHÓA TÀI KHOẢN & BÀN GIAO -->
+
                 <li>
+
                     <a href="${pageContext.request.contextPath}/lock-transfer"
                        class="<%= currentURI.contains("/lock-transfer")
                                ? "active"
@@ -238,6 +273,7 @@
                         </span>
 
                     </a>
+
                 </li>
 
             </ul>
@@ -259,7 +295,11 @@
 
             <% if (!"GUEST".equals(role)) { %>
 
+
+                <!-- HỒ SƠ CÁ NHÂN -->
+
                 <li>
+
                     <a href="${pageContext.request.contextPath}/profile"
                        class="<%= currentURI.contains("/profile")
                                ? "active"
@@ -272,15 +312,14 @@
                         </span>
 
                     </a>
+
                 </li>
 
 
-                <!--
-                    Trang xem quyền và phạm vi dữ liệu.
-                    Có thể sử dụng cho SALES, MANAGER và ADMIN.
-                -->
+                <!-- QUYỀN & PHẠM VI DỮ LIỆU -->
 
                 <li>
+
                     <a href="${pageContext.request.contextPath}/permission"
                        class="<%= currentURI.contains("/permission")
                                ? "active"
@@ -293,10 +332,14 @@
                         </span>
 
                     </a>
+
                 </li>
 
 
+                <!-- ĐỔI MẬT KHẨU -->
+
                 <li>
+
                     <a href="${pageContext.request.contextPath}/change-password"
                        class="<%= currentURI.contains("/change-password")
                                ? "active"
@@ -309,10 +352,11 @@
                         </span>
 
                     </a>
+
                 </li>
 
 
-                <!-- Logout bắt buộc dùng POST -->
+                <!-- ĐĂNG XUẤT -->
 
                 <li class="logout-item">
 
@@ -332,7 +376,6 @@
 
                     </a>
 
-
                     <form id="sidebar-logout-form"
                           action="${pageContext.request.contextPath}/logout"
                           method="post"
@@ -341,9 +384,14 @@
 
                 </li>
 
+
             <% } else { %>
 
+
+                <!-- ĐĂNG NHẬP -->
+
                 <li>
+
                     <a href="${pageContext.request.contextPath}/login"
                        class="<%= currentURI.contains("/login")
                                ? "active"
@@ -356,7 +404,9 @@
                         </span>
 
                     </a>
+
                 </li>
+
 
             <% } %>
 
@@ -370,8 +420,11 @@
     <!-- ========================= -->
 
     <div class="sidebar-footer">
+
         <span class="system-status"></span>
+
         Hệ thống đang hoạt động
+
     </div>
 
 </aside>
