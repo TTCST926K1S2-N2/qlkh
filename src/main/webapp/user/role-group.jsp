@@ -3,116 +3,266 @@
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <title>Gán Vai Trò & Nhóm Kinh Doanh</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/css/bootstrap.min.css"
-          rel="stylesheet">
+    <title>Gán vai trò & Nhóm kinh doanh</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
 <div class="container mt-5">
+
     <div class="row justify-content-center">
-        <div class="col-md-8">
+
+        <div class="col-lg-8 col-md-10">
 
             <div class="card shadow">
 
-                <div class="card-header bg-dark text-white">
-                    <h4 class="mb-0">
-                        Phân quyền & Nhóm kinh doanh cho tài khoản:
-                        <c:out value="${user.fullName}" />
+                <!-- HEADER -->
+                <div class="card-header bg-dark text-white py-3">
+
+                    <h4 class="mb-1">
+                        Phân quyền & Nhóm kinh doanh
                     </h4>
+
+                    <div class="small">
+                        Tài khoản:
+                        <strong>
+                            <c:out value="${user.fullName}" />
+                        </strong>
+                    </div>
+
                 </div>
 
-                <div class="card-body">
+                <!-- BODY -->
+                <div class="card-body p-4">
 
-                    <form action="${pageContext.request.contextPath}/users/role-group"
-                          method="POST">
+                    <!-- THÔNG BÁO THÀNH CÔNG -->
+                    <c:if test="${not empty successMessage}">
 
-                        <!-- ID tài khoản đang được phân quyền -->
-                        <input type="hidden"
-                               name="userId"
-                               value="${user.id}">
+                        <div class="alert alert-success"
+                             role="alert">
 
-                        <!-- Vai trò -->
+                            <c:out value="${successMessage}" />
+
+                        </div>
+
+                    </c:if>
+
+
+                    <!-- THÔNG BÁO LỖI -->
+                    <c:if test="${not empty errorMessage}">
+
+                        <div class="alert alert-danger"
+                             role="alert">
+
+                            <c:out value="${errorMessage}" />
+
+                        </div>
+
+                    </c:if>
+
+
+                    <!-- THÔNG TIN TÀI KHOẢN -->
+                    <div class="mb-4">
+
+                        <div class="text-muted small">
+                            Họ và tên
+                        </div>
+
+                        <div class="fw-semibold">
+                            <c:out value="${user.fullName}" />
+                        </div>
+
+                        <div class="text-muted small mt-2">
+                            Email
+                        </div>
+
+                        <div>
+                            <c:out value="${user.email}" />
+                        </div>
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <!-- FORM -->
+                    <form
+                        action="${pageContext.request.contextPath}/users/role-group"
+                        method="POST">
+
+                        <!-- USER ID -->
+                        <input
+                            type="hidden"
+                            name="userId"
+                            value="${user.id}">
+
+
+                        <!-- ========================= -->
+                        <!-- VAI TRÒ -->
+                        <!-- ========================= -->
+
                         <div class="mb-4">
 
-                            <h5 class="text-primary">
-                                1. Gán vai trò (Roles)
+                            <h5 class="text-primary mb-3">
+                                1. Gán vai trò
                             </h5>
 
-                            <!-- ADMIN -->
-                            <div class="form-check">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       name="roles"
-                                       value="ADMIN"
-                                       id="roleAdmin"
-                                       ${not empty selectedRoles && selectedRoles.contains('ADMIN') ? 'checked' : ''}>
+                            <p class="text-muted">
+                                Một người dùng có thể giữ nhiều vai trò cùng lúc.
+                            </p>
 
-                                <label class="form-check-label"
-                                       for="roleAdmin">
-                                    Quản trị hệ thống (Admin)
+
+                            <!-- ADMIN -->
+                            <div class="form-check mb-2">
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="roles"
+                                    value="ADMIN"
+                                    id="roleAdmin"
+                                    ${not empty selectedRoles
+                                      && selectedRoles.contains('ADMIN')
+                                      ? 'checked'
+                                      : ''}>
+
+                                <label
+                                    class="form-check-label"
+                                    for="roleAdmin">
+
+                                    <strong>
+                                        Quản trị hệ thống
+                                    </strong>
+
+                                    <span class="text-muted">
+                                        (ADMIN)
+                                    </span>
+
                                 </label>
+
                             </div>
+
 
                             <!-- MANAGER -->
-                            <div class="form-check">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       name="roles"
-                                       value="MANAGER"
-                                       id="roleManager"
-                                       ${not empty selectedRoles && selectedRoles.contains('MANAGER') ? 'checked' : ''}>
+                            <div class="form-check mb-2">
 
-                                <label class="form-check-label"
-                                       for="roleManager">
-                                    Quản lý kinh doanh (Manager)
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="roles"
+                                    value="MANAGER"
+                                    id="roleManager"
+                                    ${not empty selectedRoles
+                                      && selectedRoles.contains('MANAGER')
+                                      ? 'checked'
+                                      : ''}>
+
+                                <label
+                                    class="form-check-label"
+                                    for="roleManager">
+
+                                    <strong>
+                                        Quản lý kinh doanh
+                                    </strong>
+
+                                    <span class="text-muted">
+                                        (MANAGER)
+                                    </span>
+
                                 </label>
+
                             </div>
 
-                            <!-- SALES -->
-                            <div class="form-check">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       name="roles"
-                                       value="SALES"
-                                       id="roleSales"
-                                       ${not empty selectedRoles && selectedRoles.contains('SALES') ? 'checked' : ''}>
 
-                                <label class="form-check-label"
-                                       for="roleSales">
-                                    Nhân viên kinh doanh (Sales)
+                            <!-- SALES -->
+                            <div class="form-check mb-2">
+
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="roles"
+                                    value="SALES"
+                                    id="roleSales"
+                                    ${not empty selectedRoles
+                                      && selectedRoles.contains('SALES')
+                                      ? 'checked'
+                                      : ''}>
+
+                                <label
+                                    class="form-check-label"
+                                    for="roleSales">
+
+                                    <strong>
+                                        Nhân viên kinh doanh
+                                    </strong>
+
+                                    <span class="text-muted">
+                                        (SALES)
+                                    </span>
+
                                 </label>
+
                             </div>
 
                         </div>
 
-                        <!-- Nhóm kinh doanh -->
+
+                        <hr>
+
+
+                        <!-- ========================= -->
+                        <!-- NHÓM KINH DOANH -->
+                        <!-- ========================= -->
+
                         <div class="mb-4">
 
-                            <h5 class="text-primary">
-                                2. Gán nhóm kinh doanh (Business Groups)
+                            <h5 class="text-primary mb-3">
+                                2. Gán nhóm kinh doanh
                             </h5>
 
-                            <select class="form-select"
-                                    name="groupId"
-                                    required>
+                            <p class="text-muted">
+                                Người giữ vai trò Quản lý kinh doanh
+                                phải được gán một nhóm kinh doanh cụ thể.
+                            </p>
+
+
+                            <label
+                                for="groupId"
+                                class="form-label fw-semibold">
+
+                                Nhóm kinh doanh
+
+                            </label>
+
+
+                            <select
+                                class="form-select"
+                                id="groupId"
+                                name="groupId">
 
                                 <option value="">
-                                    -- Chọn nhóm kinh doanh --
+                                    -- Không chọn nhóm --
                                 </option>
 
-                                <!-- Danh sách nhóm do Backend truyền sang -->
-                                <c:forEach var="group"
-                                           items="${businessGroups}">
+                                <c:forEach
+                                    var="group"
+                                    items="${businessGroups}">
 
-                                    <option value="${group.id}"
-                                            ${group.id == selectedGroupId
-                                                ? 'selected'
-                                                : ''}>
+                                    <option
+                                        value="${group.id}"
+                                        ${group.id == selectedGroupId
+                                          ? 'selected'
+                                          : ''}>
 
                                         <c:out value="${group.name}" />
 
@@ -122,26 +272,46 @@
 
                             </select>
 
-                            <!-- Không có nhóm kinh doanh -->
+
+                            <!-- KHÔNG CÓ NHÓM -->
                             <c:if test="${empty businessGroups}">
-                                <div class="text-muted mt-2">
-                                    Chưa có nhóm kinh doanh.
+
+                                <div class="alert alert-warning mt-3 mb-0">
+
+                                    Hiện chưa có nhóm kinh doanh
+                                    trong hệ thống.
+
                                 </div>
+
                             </c:if>
 
                         </div>
 
-                        <!-- Nút thao tác -->
-                        <div class="d-flex justify-content-between">
 
-                            <a href="${pageContext.request.contextPath}/users"
-                               class="btn btn-secondary">
+                        <hr>
+
+
+                        <!-- ========================= -->
+                        <!-- BUTTON -->
+                        <!-- ========================= -->
+
+                        <div class="d-flex justify-content-between mt-4">
+
+                            <a
+                                href="${pageContext.request.contextPath}/users"
+                                class="btn btn-secondary">
+
                                 Quay lại
+
                             </a>
 
-                            <button type="submit"
-                                    class="btn btn-primary">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary">
+
                                 Lưu cấu hình
+
                             </button>
 
                         </div>
@@ -149,11 +319,21 @@
                     </form>
 
                 </div>
+
             </div>
 
         </div>
+
     </div>
+
 </div>
 
+
+<!-- BOOTSTRAP -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
+
 </body>
+
 </html>
