@@ -259,7 +259,7 @@ document.getElementById("email");
     if (!form || !emailInput) {
         return;
     }
-
+let isSubmitting = false;
 
     // Xóa thông báo lỗi khi người dùng nhập lại email
     emailInput.addEventListener("input", () => {
@@ -277,13 +277,15 @@ document.getElementById("email");
 
 
     // Kiểm tra email trước khi gửi Backend
-    form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", (e) => {
 
-        let valid = true;
+    // Nếu request đầu tiên đang được gửi thì chặn request tiếp theo
+    if (isSubmitting) {
+        e.preventDefault();
+        return;
+    }
 
-        if (emailErr) {
-            emailErr.textContent = "";
-        }
+    let valid = true;
 
 
         const email =
@@ -324,10 +326,22 @@ document.getElementById("email");
          * -> Browser POST tới Backend /forgot-password.
          */
         if (!valid) {
-            e.preventDefault();
-        }
+    e.preventDefault();
+    return;
+}
 
-    });
+// Email hợp lệ -> chỉ cho phép submit đúng một lần
+isSubmitting = true;
+
+const submitButton =
+    form.querySelector('button[type="submit"]');
+
+if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Đang gửi...";
+}
+
+});
 
 });
 </script>
