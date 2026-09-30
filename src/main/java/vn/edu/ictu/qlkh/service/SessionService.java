@@ -203,4 +203,40 @@ public final class SessionService {
             // Session đã hết hạn hoặc đã invalidate.
         }
     }
+
+    /**
+     * HTQLKH-10:
+     * Thu hồi toàn bộ phiên đăng nhập của một tài khoản
+     * ngay sau khi tài khoản bị khóa.
+     */
+    public static void invalidateAllSessions(
+            long userId) {
+
+        Set<HttpSession> sessions =
+                USER_SESSIONS.remove(userId);
+
+        if (sessions == null
+                || sessions.isEmpty()) {
+
+            return;
+        }
+
+        for (HttpSession session : sessions) {
+
+            if (session == null) {
+                continue;
+            }
+
+            try {
+
+                session.invalidate();
+
+            } catch (IllegalStateException ignored) {
+
+                // Session đã hết hạn hoặc đã bị thu hồi.
+            }
+        }
+
+        sessions.clear();
+    }
 }
