@@ -300,7 +300,7 @@
 
                 <li>
 
-                    <a href="${pageContext.request.contextPath}/profile"
+                    <a href="${pageContext.request.contextPath}/user/profile.jsp"
                        class="<%= currentURI.contains("/profile")
                                ? "active"
                                : "" %>">
