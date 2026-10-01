@@ -90,13 +90,7 @@
 
                 </div>
 
-                <button
-                    type="submit"
-                    id="importButton"
-                    class="btn btn-primary"
-                    disabled>
-                    Import người dùng
-                </button>
+                <button type="submit" id="importButton" class="btn btn-primary" disabled>Xem trước dữ liệu</button><button type="button" id="confirmImportButton" class="btn btn-primary" hidden>Xác nhận Import</button>
 
             </form>
 
