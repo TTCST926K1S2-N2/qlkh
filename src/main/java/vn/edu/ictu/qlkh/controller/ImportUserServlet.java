@@ -116,10 +116,10 @@ public class ImportUserServlet extends HttpServlet {
         try (InputStream inputStream =
                      filePart.getInputStream()) {
 
-            ImportUserResult result =
-                    importUserService.importUsers(
-                            inputStream
-                    );
+                ImportUserResult result =
+                        "true".equalsIgnoreCase(request.getParameter("preview"))
+                                ? importUserService.previewUsers(inputStream)
+                                : importUserService.importUsers(inputStream);
 
             writeImportResult(
                     response,
