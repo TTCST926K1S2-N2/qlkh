@@ -233,6 +233,29 @@ public class UserService {
     /**
      * Cập nhật thông tin tài khoản.
      */
+    public String validateUserForImport(
+            String fullName, String email, String role, String status)
+            throws SQLException {
+
+        String normalizedFullName = normalizeRequired(fullName);
+        String normalizedEmail = normalizeEmail(email);
+        String normalizedRole = normalizeRequired(role).toUpperCase();
+        String normalizedStatus = normalizeRequired(status).toUpperCase();
+
+        String validationMessage = validateUserInput(
+                normalizedFullName, normalizedEmail, normalizedRole, normalizedStatus);
+
+        if (validationMessage != null) {
+            return validationMessage;
+        }
+
+        if (userDAO.existsByEmail(normalizedEmail, null)) {
+            return "Email đã tồn tại trong hệ thống.";
+        }
+
+        return null;
+    }
+
     public UpdateUserResult updateUser(
             long userId,
             String fullName,
