@@ -1,212 +1,273 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page session="true" %>
+
+<%
+    if (session.getAttribute("userId") == null) {
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
+    }
+%>
 
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <title>Hồ sơ cá nhân</title>
+    <title>Hồ sơ cá nhân - Hệ thống QLKH</title>
 
-    <link
-        rel="stylesheet"
-        href="${pageContext.request.contextPath}/assets/css/profile.css">
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/sidebar.css">
+
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/profile.css">
 </head>
 
-<body>
+<body data-context-path="${pageContext.request.contextPath}">
 
-    <!-- HEADER -->
-    <header class="page-header">
-        <div class="page-header-inner">
-            <div>
-                <div class="breadcrumb">
-                    Tài khoản
-                </div>
+<jsp:include page="../components/sidebar.jsp" />
 
-                <h1>Hồ sơ cá nhân</h1>
+<main class="profile-page">
 
-                <p>
-                    Xem và cập nhật thông tin cá nhân của bạn.
-                </p>
-            </div>
+    <section class="profile-hero">
+
+        <div class="profile-eyebrow">
+            Tài khoản
         </div>
-    </header>
+
+        <h1>Hồ sơ cá nhân</h1>
+
+        <p>
+            Quản lý thông tin cá nhân và chữ ký email của bạn.
+        </p>
+
+    </section>
 
 
-    <!-- MAIN -->
-    <main class="main">
+    <section class="profile-content">
 
-        <section class="profile-card">
+        <div
+            id="profileAlert"
+            class="profile-alert"
+            role="status"
+            aria-live="polite"
+            hidden>
+        </div>
 
-            <div class="profile-card-header">
+
+        <article class="profile-card">
+
+            <header class="profile-card-header">
+
                 <h2>Thông tin cá nhân</h2>
 
                 <p>
-                    Cập nhật thông tin hồ sơ và chữ ký email của bạn.
+                    Cập nhật họ tên, số điện thoại và chữ ký
+                    dùng khi gửi email.
                 </p>
+
+            </header>
+
+
+            <div class="profile-card-body">
+
+                <div
+                    id="profileLoading"
+                    class="profile-loading">
+
+                    Đang tải thông tin hồ sơ...
+
+                </div>
+
+
+                <div id="profileFormContent" hidden>
+
+                    <form id="profileForm" novalidate>
+
+                        <div class="profile-grid">
+
+
+                            <!-- HO TEN -->
+
+                            <div class="profile-field">
+
+                                <label
+                                    class="profile-label"
+                                    for="fullName">
+
+                                    Họ và tên
+
+                                    <span class="profile-required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <input
+                                    class="profile-input"
+                                    type="text"
+                                    id="fullName"
+                                    name="fullName"
+                                    maxlength="255"
+                                    autocomplete="name"
+                                    placeholder="Nhập họ và tên">
+
+                                <div
+                                    id="fullNameError"
+                                    class="profile-error">
+                                </div>
+
+                            </div>
+
+
+                            <!-- EMAIL -->
+
+                            <div class="profile-field">
+
+                                <label
+                                    class="profile-label"
+                                    for="email">
+
+                                    Email
+
+                                </label>
+
+                                <input
+                                    class="profile-input"
+                                    type="email"
+                                    id="email"
+                                    readonly>
+
+                                <span class="profile-help">
+                                    Email không thể thay đổi tại trang hồ sơ.
+                                </span>
+
+                            </div>
+
+
+                            <!-- PHONE -->
+
+                            <div class="profile-field">
+
+                                <label
+                                    class="profile-label"
+                                    for="phone">
+
+                                    Số điện thoại
+
+                                </label>
+
+                                <input
+                                    class="profile-input"
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    maxlength="20"
+                                    autocomplete="tel"
+                                    placeholder="Ví dụ: 0912345678">
+
+                                <div
+                                    id="phoneError"
+                                    class="profile-error">
+                                </div>
+
+                            </div>
+
+
+                            <!-- ROLE -->
+
+                            <div class="profile-field">
+
+                                <label
+                                    class="profile-label"
+                                    for="role">
+
+                                    Vai trò
+
+                                </label>
+
+                                <input
+                                    class="profile-input"
+                                    type="text"
+                                    id="role"
+                                    readonly>
+
+                                <span class="profile-help">
+                                    Vai trò do quản trị viên quản lý.
+                                </span>
+
+                            </div>
+
+
+                            <!-- EMAIL SIGNATURE -->
+
+                            <div class="profile-field full-width">
+
+                                <label
+                                    class="profile-label"
+                                    for="emailSignature">
+
+                                    Chữ ký email
+
+                                </label>
+
+                                <textarea
+                                    class="profile-textarea"
+                                    id="emailSignature"
+                                    name="emailSignature"
+                                    placeholder="Nhập chữ ký dùng khi gửi email..."></textarea>
+
+                                <span class="profile-help">
+                                    Chữ ký này sẽ được sử dụng trong email của bạn.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="profile-actions">
+
+                            <button
+                                class="profile-btn profile-btn-secondary"
+                                type="button"
+                                id="cancelProfileButton">
+
+                                Hủy
+
+                            </button>
+
+
+                            <button
+                                class="profile-btn profile-btn-primary"
+                                type="submit"
+                                id="saveProfileButton">
+
+                                Lưu thay đổi
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
             </div>
 
+        </article>
 
-            <!-- THÔNG BÁO -->
-            <div
-                id="profileMessage"
-                class="profile-message"
-                hidden>
-            </div>
+    </section>
+
+</main>
 
 
-            <!-- FORM HỒ SƠ -->
-            <form id="profileForm">
-
-                <!-- HỌ TÊN -->
-                <div class="form-group">
-
-                    <label for="fullName">
-                        Họ và tên
-                        <span class="required">*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="fullName"
-                        name="fullName"
-                        class="form-control"
-                        value="${sessionScope.userName}"
-                        placeholder="Nhập họ và tên">
-
-                    <p
-                        id="fullNameError"
-                        class="field-error">
-                    </p>
-
-                </div>
-
-
-                <!-- EMAIL -->
-                <div class="form-group">
-
-                    <label for="email">
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        class="form-control readonly-field"
-                        value="${sessionScope.userEmail}"
-                        readonly>
-
-                    <p class="field-note">
-                        Email không thể chỉnh sửa.
-                    </p>
-
-                </div>
-
-
-                <!-- SỐ ĐIỆN THOẠI -->
-                <div class="form-group">
-
-                    <label for="phone">
-                        Số điện thoại
-                        <span class="required">*</span>
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        class="form-control"
-                        value=""
-                        placeholder="Ví dụ: 0912345678"
-                        inputmode="numeric"
-                        maxlength="10">
-
-                    <p
-                        id="phoneError"
-                        class="field-error">
-                    </p>
-
-                </div>
-
-
-                <!-- VAI TRÒ -->
-                <div class="form-group">
-
-                    <label for="role">
-                        Vai trò
-                    </label>
-
-                    <input
-                        type="text"
-                        id="role"
-                        class="form-control readonly-field"
-                        value="${sessionScope.userRole}"
-                        readonly>
-
-                    <p class="field-note">
-                        Vai trò do quản trị viên quản lý.
-                    </p>
-
-                </div>
-
-
-                <!-- CHỮ KÝ EMAIL -->
-                <div class="form-group">
-
-                    <label for="emailSignature">
-                        Chữ ký email
-                    </label>
-
-                    <textarea
-                        id="emailSignature"
-                        name="emailSignature"
-                        class="form-control signature-input"
-                        rows="6"
-                        maxlength="1000"
-                        placeholder="Nhập chữ ký sử dụng khi gửi email..."></textarea>
-
-                    <div class="signature-footer">
-
-                        <span>
-                            Chữ ký này sẽ được sử dụng khi gửi email.
-                        </span>
-
-                        <span id="signatureCount">
-                            0/1000
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ACTION -->
-                <div class="form-actions">
-
-                    <button
-                        type="submit"
-                        id="saveProfileButton"
-                        class="btn btn-primary">
-
-                        Lưu thay đổi
-
-                    </button>
-
-                </div>
-
-            </form>
-
-        </section>
-
-    </main>
-
-
-    <!-- JAVASCRIPT -->
-    <script
-        src="${pageContext.request.contextPath}/assets/js/profile.js">
-    </script>
+<script
+    src="${pageContext.request.contextPath}/assets/js/profile.js"
+    defer>
+</script>
 
 </body>
-
 </html>

@@ -1,144 +1,430 @@
-document.addEventListener("DOMContentLoaded", function () {
+(() => {
+    "use strict";
 
-    const profileForm = document.getElementById("profileForm");
+    const contextPath =
+        document.body.dataset.contextPath || "";
 
-    const fullNameInput = document.getElementById("fullName");
-    const phoneInput = document.getElementById("phone");
-    const signatureInput = document.getElementById("emailSignature");
+    const form =
+        document.getElementById("profileForm");
 
-    const fullNameError = document.getElementById("fullNameError");
-    const phoneError = document.getElementById("phoneError");
+    const fullName =
+        document.getElementById("fullName");
 
-    const signatureCount = document.getElementById("signatureCount");
-    const saveButton = document.getElementById("saveProfileButton");
+    const email =
+        document.getElementById("email");
+
+    const phone =
+        document.getElementById("phone");
+
+    const role =
+        document.getElementById("role");
+
+    const emailSignature =
+        document.getElementById("emailSignature");
+
+    const saveButton =
+        document.getElementById("saveProfileButton");
+
+    const cancelButton =
+        document.getElementById("cancelProfileButton");
+
+    const alertBox =
+        document.getElementById("profileAlert");
+
+    const loadingBox =
+        document.getElementById("profileLoading");
+
+    const formContent =
+        document.getElementById("profileFormContent");
+
+    let initialProfile = null;
 
 
-    // ==============================
-    // ĐẾM KÝ TỰ CHỮ KÝ EMAIL
-    // ==============================
-
-    function updateSignatureCount() {
-        const length = signatureInput.value.length;
-
-        signatureCount.textContent = length + "/1000";
-    }
-
-    updateSignatureCount();
-
-    signatureInput.addEventListener("input", updateSignatureCount);
-
-
-    // ==============================
-    // VALIDATE HỌ TÊN
-    // ==============================
-
-    function validateFullName() {
-
-        const fullName = fullNameInput.value.trim();
-
-        fullNameError.textContent = "";
-
-        if (fullName === "") {
-            fullNameError.textContent = "Vui lòng nhập họ và tên.";
-            return false;
-        }
-
-        if (fullName.length < 2) {
-            fullNameError.textContent =
-                "Họ và tên phải có ít nhất 2 ký tự.";
-            return false;
-        }
-
-        return true;
+    function normalizePhone(value) {
+        return value
+            .trim()
+            .replace(/[\s.-]/g, "");
     }
 
 
-    // ==============================
-    // VALIDATE SỐ ĐIỆN THOẠI VIỆT NAM
-    // ==============================
+    function showAlert(message, type) {
 
-    function validatePhone() {
+        alertBox.textContent = message;
 
-        const phone = phoneInput.value.trim();
+        alertBox.className =
+            "profile-alert " +
+            (type === "success"
+                ? "is-success"
+                : "is-error");
 
-        phoneError.textContent = "";
-
-        if (phone === "") {
-            phoneError.textContent =
-                "Vui lòng nhập số điện thoại.";
-            return false;
-        }
-
-        /*
-         * Số điện thoại di động Việt Nam:
-         * - Bắt đầu bằng 0
-         * - Đầu số 03, 05, 07, 08 hoặc 09
-         * - Tổng cộng 10 chữ số
-         */
-        const vietnamPhoneRegex = /^0(3|5|7|8|9)[0-9]{8}$/;
-
-        if (!vietnamPhoneRegex.test(phone)) {
-            phoneError.textContent =
-                "Số điện thoại Việt Nam không hợp lệ.";
-            return false;
-        }
-
-        return true;
+        alertBox.hidden = false;
     }
 
 
-    // ==============================
-    // VALIDATE KHI NGƯỜI DÙNG NHẬP
-    // ==============================
+    function hideAlert() {
 
-    fullNameInput.addEventListener("blur", validateFullName);
+        alertBox.hidden = true;
+        alertBox.textContent = "";
 
-    phoneInput.addEventListener("blur", validatePhone);
+    }
 
-    fullNameInput.addEventListener("input", function () {
-        if (fullNameError.textContent !== "") {
-            validateFullName();
+
+    function setFieldError(
+        input,
+        errorId,
+        message
+    ) {
+
+        const error =
+            document.getElementById(errorId);
+
+        input.classList.toggle(
+            "is-invalid",
+            Boolean(message)
+        );
+
+        error.textContent =
+            message || "";
+
+    }
+
+
+    function validateForm() {
+
+        let valid = true;
+
+        const nameValue =
+            fullName.value.trim();
+
+        const phoneValue =
+            normalizePhone(phone.value);
+
+
+        setFieldError(
+            fullName,
+            "fullNameError",
+            ""
+        );
+
+        setFieldError(
+            phone,
+            "phoneError",
+            ""
+        );
+
+
+        if (!nameValue) {
+
+            setFieldError(
+                fullName,
+                "fullNameError",
+                "Họ và tên không được để trống."
+            );
+
+            valid = false;
         }
-    });
-
-    phoneInput.addEventListener("input", function () {
-        if (phoneError.textContent !== "") {
-            validatePhone();
-        }
-    });
 
 
-    // ==============================
-    // SUBMIT FORM
-    // ==============================
+        if (
+            phoneValue &&
+            !/^(0|\+84)[35789]\d{8}$/.test(phoneValue)
+        ) {
 
-    profileForm.addEventListener("submit", function (event) {
+            setFieldError(
+                phone,
+                "phoneError",
+                "Số điện thoại Việt Nam không đúng định dạng."
+            );
 
-        event.preventDefault();
-
-        const isFullNameValid = validateFullName();
-        const isPhoneValid = validatePhone();
-
-        if (!isFullNameValid || !isPhoneValid) {
-            return;
+            valid = false;
         }
 
-        /*
-         * Phần gọi API cập nhật hồ sơ sẽ được tích hợp
-         * khi Backend cung cấp endpoint.
-         *
-         * FE hiện tại chỉ thực hiện kiểm tra dữ liệu
-         * trước khi gửi.
-         */
 
-        saveButton.disabled = true;
-        saveButton.textContent = "Đang lưu...";
+        return valid;
+    }
 
-        // Trả nút về trạng thái ban đầu vì chưa tích hợp API.
-        setTimeout(function () {
-            saveButton.disabled = false;
-            saveButton.textContent = "Lưu thay đổi";
-        }, 500);
-    });
 
-});
+    function roleLabel(value) {
+
+        const labels = {
+            ADMIN: "Quản trị viên",
+            USER: "Người dùng",
+            MANAGER: "Quản lý",
+            SALES: "Nhân viên"
+        };
+
+        return labels[value] || value || "";
+    }
+
+
+    function fillForm(data) {
+
+        fullName.value =
+            data.fullName || "";
+
+        email.value =
+            data.email || "";
+
+        phone.value =
+            data.phone || "";
+
+        role.value =
+            roleLabel(data.role);
+
+        emailSignature.value =
+            data.emailSignature || "";
+
+    }
+
+
+    async function loadProfile() {
+
+        hideAlert();
+
+        loadingBox.hidden = false;
+        formContent.hidden = true;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    contextPath + "/profile",
+                    {
+                        method: "GET",
+                        credentials: "same-origin",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (response.status === 401) {
+
+                window.location.href =
+                    contextPath + "/login";
+
+                return;
+            }
+
+
+            if (
+                !response.ok ||
+                !result.success ||
+                !result.data
+            ) {
+
+                throw new Error(
+                    result.message ||
+                    "Không thể tải hồ sơ cá nhân."
+                );
+            }
+
+
+            initialProfile = {
+                ...result.data
+            };
+
+
+            fillForm(initialProfile);
+
+            formContent.hidden = false;
+
+        }
+        catch (error) {
+
+            showAlert(
+                error.message ||
+                "Không thể tải hồ sơ cá nhân.",
+                "error"
+            );
+
+        }
+        finally {
+
+            loadingBox.hidden = true;
+
+        }
+
+    }
+
+
+    form.addEventListener(
+        "submit",
+        async (event) => {
+
+            event.preventDefault();
+
+            hideAlert();
+
+
+            if (!validateForm()) {
+                return;
+            }
+
+
+            const oldText =
+                saveButton.textContent;
+
+
+            saveButton.disabled = true;
+            cancelButton.disabled = true;
+
+            saveButton.textContent =
+                "Đang lưu...";
+
+
+            try {
+
+                const body =
+                    new URLSearchParams({
+                        fullName:
+                            fullName.value.trim(),
+
+                        phone:
+                            normalizePhone(
+                                phone.value
+                            ),
+
+                        emailSignature:
+                            emailSignature.value.trim()
+                    });
+
+
+                const response =
+                    await fetch(
+                        contextPath + "/profile",
+                        {
+                            method: "POST",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded;charset=UTF-8",
+
+                                "Accept":
+                                    "application/json"
+                            },
+
+                            body: body
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Cập nhật hồ sơ thất bại."
+                    );
+                }
+
+
+                initialProfile = {
+                    ...result.data
+                };
+
+
+                fillForm(initialProfile);
+
+
+                showAlert(
+                    "Cập nhật hồ sơ thành công.",
+                    "success"
+                );
+
+            }
+            catch (error) {
+
+                showAlert(
+                    error.message ||
+                    "Cập nhật hồ sơ thất bại.",
+                    "error"
+                );
+
+            }
+            finally {
+
+                saveButton.disabled = false;
+                cancelButton.disabled = false;
+
+                saveButton.textContent =
+                    oldText;
+
+            }
+
+        }
+    );
+
+
+    cancelButton.addEventListener(
+        "click",
+        () => {
+
+            if (initialProfile) {
+                fillForm(initialProfile);
+            }
+
+            setFieldError(
+                fullName,
+                "fullNameError",
+                ""
+            );
+
+            setFieldError(
+                phone,
+                "phoneError",
+                ""
+            );
+
+            hideAlert();
+
+        }
+    );
+
+
+    fullName.addEventListener(
+        "input",
+        () => {
+
+            setFieldError(
+                fullName,
+                "fullNameError",
+                ""
+            );
+
+        }
+    );
+
+
+    phone.addEventListener(
+        "input",
+        () => {
+
+            setFieldError(
+                phone,
+                "phoneError",
+                ""
+            );
+
+        }
+    );
+
+
+    loadProfile();
+
+})();
