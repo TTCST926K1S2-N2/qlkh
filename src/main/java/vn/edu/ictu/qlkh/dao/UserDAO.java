@@ -635,6 +635,30 @@ public class UserDAO {
             }
         }
     }
+
+    /**
+     * Cap nhat duong dan avatar cua nguoi dung.
+     */
+    public boolean updateAvatar(
+            long userId,
+            String avatarUrl)
+            throws SQLException {
+
+        String sql =
+                "UPDATE users SET avatar = ? WHERE id = ?";
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setString(1, avatarUrl);
+            statement.setLong(2, userId);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
     /**
      * Chuyển dữ liệu ResultSet thành User.
      *
