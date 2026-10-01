@@ -1,56 +1,514 @@
-/* CSS cho Menu Sidebar */
+/* =========================================================
+   HTQLKH-6
+   SIDEBAR MENU THEO QUYỀN
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
 .sidebar {
-    width: 280px;
+    width: 270px;
+    min-width: 270px;
     min-height: 100vh;
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+
+    background:
+        linear-gradient(
+            180deg,
+            #162635 0%,
+            #20384d 55%,
+            #263f55 100%
+        );
+
+    color: #ffffff;
+
     display: flex;
     flex-direction: column;
+
+    font-family:
+        "Segoe UI",
+        Tahoma,
+        Geneva,
+        Verdana,
+        sans-serif;
+
+    box-shadow:
+        4px 0 20px rgba(15, 23, 42, 0.12);
+
+    position: relative;
+    z-index: 10;
 }
-.sidebar-header {
-    padding: 25px 20px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-    background-color: #1a252f;
-    border-bottom: 1px solid #34495e;
-    letter-spacing: 1px;
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.sidebar-brand {
+    min-height: 88px;
+
+    padding: 18px 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    background: rgba(9, 22, 34, 0.42);
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.08);
 }
-.menu-category {
-    font-size: 0.75rem;
-    color: #7f8c8d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 25px 20px 10px 20px;
-    font-weight: 600;
-}
-.sidebar-menu {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-.sidebar-menu li a {
-    display: block;
-    padding: 12px 20px;
-    color: #bdc3c7;
-    text-decoration: none;
-    font-size: 15px;
-    transition: all 0.2s ease;
-}
-.sidebar-menu li a:hover {
-    background-color: #34495e;
-    color: #3498db;
-    padding-left: 28px;
-}
-.sidebar-menu li a.active {
-    background-color: #3498db;
+
+
+.brand-mark {
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #38a7e3,
+            #2388c7
+        );
+
     color: #ffffff;
-    font-weight: 500;
-    border-left: 4px solid #ecf0f1;
-    padding-left: 16px;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    box-shadow:
+        0 5px 14px rgba(52, 152, 219, 0.28);
 }
-.sidebar-menu li a.active:hover {
-    padding-left: 16px; 
+
+
+.brand-text {
+    min-width: 0;
+}
+
+
+.brand-title {
+    font-size: 15px;
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+
+    white-space: nowrap;
+}
+
+
+.brand-subtitle {
+    margin-top: 3px;
+
+    color: #8fa8bc;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   USER INFORMATION
+   ========================================================= */
+
+.sidebar-user {
+    margin: 16px 14px 6px;
+
+    padding: 14px;
+
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.055);
+
+    border:
+        1px solid rgba(255, 255, 255, 0.07);
+}
+
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #3498db;
+
+    color: #ffffff;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+
+.user-information {
+    min-width: 0;
+    flex: 1;
+}
+
+
+.user-name {
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.user-role {
+    margin-top: 3px;
+
+    color: #8fc8ed;
+
+    font-size: 11px;
+}
+
+
+.user-group {
+    margin-top: 3px;
+
+    color: #9fb1c0;
+
+    font-size: 10px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.sidebar-navigation {
+    flex: 1;
+
+    padding-bottom: 18px;
+}
+
+
+.menu-category {
+    padding:
+        20px
+        20px
+        8px;
+
+    color: #7f9aae;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.2px;
+
+    text-transform: uppercase;
+}
+
+
+.sidebar-menu {
+    margin: 0;
+    padding: 0 10px;
+
+    list-style: none;
+}
+
+
+.sidebar-menu li {
+    margin: 3px 0;
+}
+
+
+.sidebar-menu li a {
+    min-height: 42px;
+
+    padding: 0 13px;
+
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    border-radius: 8px;
+
+    color: #cbd7e0;
+
+    font-size: 13px;
+    font-weight: 400;
+
+    text-decoration: none;
+
+    transition:
+        background-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+
+.sidebar-menu li a:hover {
+    background:
+        rgba(255, 255, 255, 0.07);
+
+    color: #ffffff;
+
+    transform: translateX(2px);
+}
+
+
+/* =========================================================
+   INDICATOR
+   ========================================================= */
+
+.menu-indicator {
+    width: 7px;
+    height: 7px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #607d91;
+
+    transition:
+        background-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+.sidebar-menu li a:hover .menu-indicator {
+    background: #58b6e8;
+}
+
+
+/* =========================================================
+   ACTIVE MENU
+   ========================================================= */
+
+.sidebar-menu li a.active {
+    position: relative;
+
+    background:
+        linear-gradient(
+            90deg,
+            #3498db,
+            #318fc9
+        );
+
+    color: #ffffff;
+
+    font-weight: 600;
+
+    box-shadow:
+        0 4px 12px rgba(52, 152, 219, 0.20);
+
+    transform: none;
+}
+
+
+.sidebar-menu li a.active::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    top: 9px;
+    bottom: 9px;
+
+    width: 3px;
+
+    border-radius: 0 4px 4px 0;
+
+    background: #ffffff;
+}
+
+
+.sidebar-menu li a.active .menu-indicator {
+    background: #ffffff;
+
+    box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.16);
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+.logout-item {
+    margin-top: 8px !important;
+}
+
+
+.logout-item a {
+    color: #e2b6b6 !important;
+}
+
+
+.logout-item a:hover {
+    color: #ffffff !important;
+
+    background:
+        rgba(220, 80, 80, 0.16) !important;
+}
+
+
+.logout-item .menu-indicator {
+    background: #c56c6c;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.sidebar-footer {
+    min-height: 54px;
+
+    padding: 16px 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    color: #7f9aae;
+
+    font-size: 10px;
+
+    border-top:
+        1px solid rgba(255, 255, 255, 0.07);
+}
+
+
+.system-status {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #43b581;
+
+    box-shadow:
+        0 0 0 3px rgba(67, 181, 129, 0.10);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   HTQLKH-6: sử dụng được trên màn hình 360px
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        min-height: auto;
+
+        box-shadow:
+            0 3px 15px rgba(15, 23, 42, 0.12);
+    }
+
+
+    .sidebar-brand {
+        min-height: 72px;
+
+        padding: 14px 16px;
+    }
+
+
+    .brand-mark {
+        width: 38px;
+        height: 38px;
+    }
+
+
+    .sidebar-user {
+        margin:
+            12px
+            12px
+            4px;
+    }
+
+
+    .sidebar-navigation {
+        padding-bottom: 12px;
+    }
+
+
+    .menu-category {
+        padding:
+            16px
+            16px
+            7px;
+    }
+
+
+    .sidebar-menu {
+        padding: 0 10px;
+    }
+
+
+    .sidebar-menu li a {
+        min-height: 44px;
+
+        font-size: 14px;
+    }
+
+
+    .sidebar-footer {
+        padding: 14px 16px;
+    }
+}
+
+
+/* =========================================================
+   MÀN HÌNH 360PX
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    .brand-subtitle {
+        display: none;
+    }
+
+
+    .sidebar-user {
+        padding: 12px;
+    }
+
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+
+    .sidebar-menu li a {
+        padding:
+            0
+            12px;
+    }
 }

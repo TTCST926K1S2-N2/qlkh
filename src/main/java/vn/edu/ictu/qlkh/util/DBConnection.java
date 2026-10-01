@@ -30,16 +30,30 @@ public final class DBConnection {
                     e
             );
         }
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(
+                    "Không tìm thấy MySQL JDBC Driver.",
+                    e
+            );
+        }
     }
 
     private DBConnection() {
     }
 
     public static Connection getConnection() throws SQLException {
+
         String url = PROPERTIES.getProperty("db.url");
         String username = PROPERTIES.getProperty("db.username");
         String password = PROPERTIES.getProperty("db.password");
 
-        return DriverManager.getConnection(url, username, password);
+        return DriverManager.getConnection(
+                url,
+                username,
+                password
+        );
     }
 }
