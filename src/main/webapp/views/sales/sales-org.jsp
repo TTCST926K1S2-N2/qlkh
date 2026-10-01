@@ -5,17 +5,29 @@
     <meta charset="UTF-8">
     <title>Cơ cấu tổ chức kinh doanh - HỆ THỐNG QLKH</title>
     <style>
-        body { margin: 0; padding: 0; display: flex; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .main-content { flex-grow: 1; padding: 30px; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px; }
-        .btn-add { background-color: #2ecc71; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; border: none; cursor: pointer; }
+    body { 
+            margin: 0; padding: 0; display: flex; justify-content: center; 
+            background-color: #f4f6f9; font-family: Arial, sans-serif; 
+        }
+        /* Giới hạn khung nội dung chính đúng 1000px */
+        .main-content { 
+            padding: 30px; width: 100%; max-width: 1000px; box-sizing: border-box;
+        }
+        .page-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px; 
+        }
+        .page-header h2 { margin: 0; color: #2c3e50; }
+        .btn-add { background-color: #2ecc71; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; border: none; cursor: pointer; }
         .btn-add:hover { background-color: #27ae60; }
-        .content-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
+        .content-box { 
+            background: #fff; padding: 20px; border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
         /* CSS cho Bảng danh sách */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; font-size: 14px; text-transform: uppercase; }
+        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; font-size: 14px; }
         td { font-size: 14px; color: #333; }
         tr:hover { background-color: #f1f2f6; }
         
@@ -215,6 +227,16 @@
         modal.style.display = "none";
         form.reset();
     };
+    // Bắt sự kiện click cho các nút Xóa trên bảng
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(button => {
+            button.onclick = function() {
+                const confirmDelete = confirm("Bạn có chắc chắn muốn xóa danh mục này không? Thao tác này không thể hoàn tác.");
+                if (confirmDelete) {
+                    alert("Đã xác nhận! Sẽ gọi API để xóa danh mục khỏi cơ sở dữ liệu.");
+                }
+            };
+        });
     </script>
 </body>
 </html>
