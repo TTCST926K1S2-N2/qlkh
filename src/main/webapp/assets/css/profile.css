@@ -284,3 +284,50 @@ body {
         width: 100%;
     }
 }
+/* =========================================================
+   S2-02 PROFILE LAYOUT FIX
+   Sidebar co dinh ben trai, noi dung khong bi day xuong duoi
+   ========================================================= */
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Chỉ áp dụng cách bố trí sidebar khi đang ở trang profile */
+body > .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+/* Nội dung bắt đầu ngay cạnh sidebar */
+.profile-page {
+    margin-left: 270px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    background: #f4f7fb;
+}
+
+/* Không để nội dung bị đẩy xuống dưới sidebar */
+.profile-hero {
+    margin-top: 0;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+    body > .sidebar {
+        position: fixed;
+    }
+
+    .profile-page {
+        margin-left: 0;
+        width: 100%;
+    }
+}
