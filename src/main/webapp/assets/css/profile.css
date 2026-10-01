@@ -1,244 +1,333 @@
-* {
-    box-sizing: border-box;
-}
-
+html,
 body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100%;
     background: #f4f7fb;
-    color: #172b4d;
+    color: #162033;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-/* HEADER */
-
-.page-header {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+.profile-page {
+    min-height: 100vh;
+    margin-left: 270px;
+    background: #f4f7fb;
 }
 
-.page-header-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 28px 24px;
+.profile-hero {
+    padding: 46px 48px 18px;
 }
 
-.breadcrumb {
-    margin-bottom: 8px;
-    color: #1683c7;
-    font-size: 14px;
+.profile-eyebrow {
+    margin-bottom: 10px;
+    color: #2f91d0;
+    font-size: 13px;
     font-weight: 700;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
 }
 
-.page-header h1 {
+.profile-hero h1 {
     margin: 0 0 8px;
+    color: #10233d;
     font-size: 32px;
-    color: #102a43;
+    line-height: 1.2;
 }
 
-.page-header p {
+.profile-hero p {
     margin: 0;
-    color: #64748b;
+    color: #718096;
+    font-size: 15px;
 }
 
-/* MAIN */
-
-.main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 40px 24px;
+.profile-content {
+    max-width: 980px;
+    padding: 14px 48px 48px;
 }
 
 .profile-card {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 32px;
+    overflow: hidden;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4eaf2;
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 8px 30px rgba(31, 56, 88, 0.08);
 }
 
 .profile-card-header {
-    margin-bottom: 28px;
+    padding: 24px 28px;
+    border-bottom: 1px solid #edf1f5;
 }
 
 .profile-card-header h2 {
-    margin: 0 0 8px;
-    font-size: 24px;
-    color: #102a43;
+    margin: 0 0 6px;
+    color: #10233d;
+    font-size: 21px;
 }
 
 .profile-card-header p {
     margin: 0;
-    color: #64748b;
+    color: #7a8798;
+    font-size: 14px;
 }
 
-/* FORM */
+.profile-card-body {
+    padding: 28px;
+}
 
-.form-group {
+.profile-loading {
+    padding: 22px;
+    color: #718096;
+    text-align: center;
+}
+
+.profile-alert {
     margin-bottom: 22px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-.form-group label {
+.profile-alert.is-success {
+    color: #18794e;
+    background: #ecfdf3;
+    border: 1px solid #b7ebcd;
+}
+
+.profile-alert.is-error {
+    color: #c53030;
+    background: #fff2f2;
+    border: 1px solid #fed7d7;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 24px;
+}
+
+.profile-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.profile-label {
     display: block;
     margin-bottom: 8px;
+    color: #34445a;
     font-size: 14px;
     font-weight: 700;
-    color: #334155;
 }
 
-.required {
-    color: #dc2626;
+.profile-required {
+    color: #e05252;
 }
 
-.form-control {
+.profile-input,
+.profile-textarea {
     width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #1e293b;
-    font-size: 15px;
+    box-sizing: border-box;
+    border: 1px solid #d8e0ea;
+    border-radius: 9px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #ffffff;
+    color: #17243a;
+    font: inherit;
+    font-size: 14px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
 
-.form-control:focus {
-    border-color: #1683c7;
-    box-shadow: 0 0 0 3px rgba(22, 131, 199, 0.12);
+.profile-input {
+    height: 46px;
+    padding: 0 14px;
 }
 
-.readonly-field {
-    background: #f1f5f9;
-    color: #64748b;
+.profile-textarea {
+    min-height: 130px;
+    padding: 13px 14px;
+    resize: vertical;
+    line-height: 1.55;
+}
+
+.profile-input:focus,
+.profile-textarea:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+.profile-input[readonly] {
+    color: #526174;
+    background: #f7f9fc;
+    border-color: #e1e7ef;
     cursor: not-allowed;
 }
 
-.signature-input {
-    min-height: 130px;
-    resize: vertical;
-    font-family: inherit;
+.profile-input.is-invalid,
+.profile-textarea.is-invalid {
+    border-color: #e05252;
+    box-shadow: 0 0 0 3px rgba(224, 82, 82, 0.08);
 }
 
-.field-note {
-    margin: 7px 0 0;
-    color: #64748b;
-    font-size: 13px;
-}
-
-.field-error {
-    min-height: 16px;
-    margin: 6px 0 0;
-    color: #dc2626;
-    font-size: 13px;
-}
-
-.signature-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
+.profile-help {
+    display: block;
     margin-top: 7px;
-    color: #64748b;
-    font-size: 13px;
+    color: #8a96a6;
+    font-size: 12px;
 }
 
-/* MESSAGE */
-
-.profile-message {
-    margin-bottom: 22px;
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 14px;
+.profile-error {
+    min-height: 16px;
+    margin-top: 6px;
+    color: #d14343;
+    font-size: 12px;
 }
 
-.profile-message.success {
-    border: 1px solid #86efac;
-    background: #f0fdf4;
-    color: #166534;
-}
-
-.profile-message.error {
-    border: 1px solid #fecaca;
-    background: #fef2f2;
-    color: #b91c1c;
-}
-
-/* BUTTON */
-
-.form-actions {
+.profile-actions {
     display: flex;
     justify-content: flex-end;
-    padding-top: 4px;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 22px;
+    border-top: 1px solid #edf1f5;
 }
 
-.btn {
-    border: 0;
+.profile-btn {
+    min-width: 126px;
+    height: 42px;
+    padding: 0 18px;
     border-radius: 8px;
-    padding: 12px 22px;
-    font-size: 15px;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease,
+        opacity 0.2s ease;
 }
 
-.btn-primary {
-    background: #249bd7;
-    color: #ffffff;
+.profile-btn:active:not(:disabled) {
+    transform: translateY(1px);
 }
 
-.btn-primary:hover {
-    background: #1683c7;
-}
-
-.btn:disabled {
+.profile-btn:disabled {
     opacity: 0.65;
     cursor: not-allowed;
 }
 
-/* RESPONSIVE */
+.profile-btn-secondary {
+    color: #4a5568;
+    background: #ffffff;
+    border-color: #d7dee8;
+}
 
-@media (max-width: 768px) {
-    .page-header-inner {
-        padding: 22px 18px;
+.profile-btn-secondary:hover:not(:disabled) {
+    background: #f5f7fa;
+}
+
+.profile-btn-primary {
+    color: #ffffff;
+    background: #3196d3;
+    border-color: #3196d3;
+}
+
+.profile-btn-primary:hover:not(:disabled) {
+    background: #247fb5;
+    border-color: #247fb5;
+}
+
+@media (max-width: 900px) {
+
+    .profile-page {
+        margin-left: 0;
     }
 
-    .page-header h1 {
-        font-size: 27px;
+    .profile-hero {
+        padding: 88px 22px 16px;
     }
 
-    .main {
-        padding: 24px 14px;
-    }
-
-    .profile-card {
-        padding: 22px 18px;
-        border-radius: 12px;
-    }
-
-    .signature-footer {
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .form-actions {
-        display: block;
-    }
-
-    .btn {
-        width: 100%;
+    .profile-content {
+        padding: 12px 22px 32px;
     }
 }
 
-@media (max-width: 480px) {
-    .page-header h1 {
-        font-size: 24px;
+@media (max-width: 650px) {
+
+    .profile-hero h1 {
+        font-size: 27px;
     }
 
-    .profile-card-header h2 {
-        font-size: 21px;
+    .profile-grid {
+        grid-template-columns: 1fr;
     }
 
-    .profile-card {
-        padding: 20px 15px;
+    .profile-field.full-width {
+        grid-column: auto;
+    }
+
+    .profile-card-header,
+    .profile-card-body {
+        padding: 20px;
+    }
+
+    .profile-actions {
+        flex-direction: column-reverse;
+    }
+
+    .profile-btn {
+        width: 100%;
+    }
+}
+/* =========================================================
+   S2-02 PROFILE LAYOUT FIX
+   Sidebar co dinh ben trai, noi dung khong bi day xuong duoi
+   ========================================================= */
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Chỉ áp dụng cách bố trí sidebar khi đang ở trang profile */
+body > .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+/* Nội dung bắt đầu ngay cạnh sidebar */
+.profile-page {
+    margin-left: 270px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    background: #f4f7fb;
+}
+
+/* Không để nội dung bị đẩy xuống dưới sidebar */
+.profile-hero {
+    margin-top: 0;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+    body > .sidebar {
+        position: fixed;
+    }
+
+    .profile-page {
+        margin-left: 0;
+        width: 100%;
     }
 }
