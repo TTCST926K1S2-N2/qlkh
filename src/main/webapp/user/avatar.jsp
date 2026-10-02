@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -7,14 +7,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Ảnh đại diện</title>
+    <title>áº¢nh Ä‘áº¡i diá»‡n</title>
 
     <link
         rel="stylesheet"
         href="${pageContext.request.contextPath}/assets/css/avatar.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sidebar.css">
 </head>
 
-<body>
+<body data-context-path="${pageContext.request.contextPath}">
+<jsp:include page="../components/sidebar.jsp" />
 
     <!-- HEADER -->
     <header class="page-header">
@@ -22,13 +24,13 @@
 
             <div>
                 <div class="breadcrumb">
-                    Tài khoản
+                    TĂ i khoáº£n
                 </div>
 
-                <h1>Ảnh đại diện</h1>
+                <h1>áº¢nh Ä‘áº¡i diá»‡n</h1>
 
                 <p>
-                    Tải lên và xem trước ảnh đại diện của bạn.
+                    Táº£i lĂªn vĂ  xem trÆ°á»›c áº£nh Ä‘áº¡i diá»‡n cá»§a báº¡n.
                 </p>
             </div>
 
@@ -42,15 +44,15 @@
         <section class="avatar-card">
 
             <div class="avatar-card-header">
-                <h2>Cập nhật ảnh đại diện</h2>
+                <h2>Cáº­p nháº­t áº£nh Ä‘áº¡i diá»‡n</h2>
 
                 <p>
-                    Chọn một ảnh từ máy tính để xem trước trước khi tải lên.
+                    Chá»n má»™t áº£nh tá»« mĂ¡y tĂ­nh Ä‘á»ƒ xem trÆ°á»›c trÆ°á»›c khi táº£i lĂªn.
                 </p>
             </div>
 
 
-            <!-- THÔNG BÁO -->
+            <!-- THĂ”NG BĂO -->
             <div
                 id="avatarMessage"
                 class="avatar-message"
@@ -59,7 +61,7 @@
 
 
             <form
-                id="avatarForm"
+                id="avatarForm" action="${pageContext.request.contextPath}/api/users/avatar" method="post"
                 enctype="multipart/form-data">
 
                 <!-- PREVIEW -->
@@ -70,7 +72,7 @@
                         <img
                             id="avatarPreview"
                             src=""
-                            alt="Ảnh đại diện xem trước"
+                            alt="áº¢nh Ä‘áº¡i diá»‡n xem trÆ°á»›c"
                             hidden>
 
                         <div
@@ -78,7 +80,7 @@
                             class="avatar-placeholder">
 
                             <span>
-                                Ảnh đại diện
+                                áº¢nh Ä‘áº¡i diá»‡n
                             </span>
 
                         </div>
@@ -100,14 +102,14 @@
                 </div>
 
 
-                <!-- CHỌN ẢNH -->
+                <!-- CHá»ŒN áº¢NH -->
                 <div class="upload-area">
 
                     <label
                         for="avatarFile"
                         class="upload-label">
 
-                        Chọn ảnh từ máy
+                        Chá»n áº£nh tá»« mĂ¡y
                     </label>
 
                     <input
@@ -121,12 +123,12 @@
                         id="selectedFileName"
                         class="file-name">
 
-                        Chưa chọn ảnh
+                        ChÆ°a chá»n áº£nh
 
                     </p>
 
                     <p class="upload-note">
-                        Hỗ trợ định dạng JPG, JPEG và PNG.
+                        Há»— trá»£ Ä‘á»‹nh dáº¡ng JPG, JPEG vĂ  PNG.
                     </p>
 
                     <p
@@ -146,7 +148,7 @@
                         class="btn btn-light"
                         disabled>
 
-                        Bỏ ảnh đã chọn
+                        Bá» áº£nh Ä‘Ă£ chá»n
 
                     </button>
 
@@ -156,7 +158,7 @@
                         class="btn btn-primary"
                         disabled>
 
-                        Tải ảnh đại diện
+                        Táº£i áº£nh Ä‘áº¡i diá»‡n
 
                     </button>
 

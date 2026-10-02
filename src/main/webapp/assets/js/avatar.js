@@ -1,190 +1,59 @@
-document.addEventListener("DOMContentLoaded", function () {
-
-    const avatarForm = document.getElementById("avatarForm");
-
-    const avatarFile = document.getElementById("avatarFile");
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarPlaceholder = document.getElementById("avatarPlaceholder");
-
-    const selectedFileName = document.getElementById("selectedFileName");
-    const avatarError = document.getElementById("avatarError");
-
-    const removeAvatarButton = document.getElementById("removeAvatarButton");
-    const uploadAvatarButton = document.getElementById("uploadAvatarButton");
-
-    let previewUrl = null;
-
-
-    // =====================================
-    // RESET ẢNH ĐÃ CHỌN
-    // =====================================
-
-    function resetSelectedAvatar() {
-
-        avatarFile.value = "";
-
-        selectedFileName.textContent = "Chưa chọn ảnh";
-        avatarError.textContent = "";
-
-        avatarPreview.src = "";
-        avatarPreview.hidden = true;
-
-        avatarPlaceholder.hidden = false;
-
-        removeAvatarButton.disabled = true;
-        uploadAvatarButton.disabled = true;
-
-        if (previewUrl !== null) {
-            URL.revokeObjectURL(previewUrl);
-            previewUrl = null;
-        }
-    }
-
-
-    // =====================================
-    // KIỂM TRA FILE ẢNH
-    // =====================================
-
-    function isValidImage(file) {
-
-        const fileName = file.name.toLowerCase();
-
-        return (
-            fileName.endsWith(".jpg") ||
-            fileName.endsWith(".jpeg") ||
-            fileName.endsWith(".png")
-        );
-    }
-
-
-    // =====================================
-    // CHỌN ẢNH
-    // =====================================
-
-    avatarFile.addEventListener("change", function () {
-
-        avatarError.textContent = "";
-
-        const file = avatarFile.files[0];
-
-        if (!file) {
-            resetSelectedAvatar();
-            return;
-        }
-
-        selectedFileName.textContent = file.name;
-
-
-        // Kiểm tra định dạng
-        if (!isValidImage(file)) {
-
-            avatarError.textContent =
-                "Ảnh không hợp lệ. Vui lòng chọn file JPG, JPEG hoặc PNG.";
-
-            avatarPreview.src = "";
-            avatarPreview.hidden = true;
-            avatarPlaceholder.hidden = false;
-
-            removeAvatarButton.disabled = false;
-            uploadAvatarButton.disabled = true;
-
-            return;
-        }
-
-
-        // Xóa URL preview cũ nếu có
-        if (previewUrl !== null) {
-            URL.revokeObjectURL(previewUrl);
-        }
-
-
-        // Tạo preview mới
-        previewUrl = URL.createObjectURL(file);
-
-        avatarPreview.src = previewUrl;
-        avatarPreview.hidden = false;
-
-        avatarPlaceholder.hidden = true;
-
-        removeAvatarButton.disabled = false;
-        uploadAvatarButton.disabled = false;
-    });
-
-
-    // =====================================
-    // BỎ ẢNH ĐÃ CHỌN
-    // =====================================
-
-    removeAvatarButton.addEventListener("click", function () {
-        resetSelectedAvatar();
-    });
-
-
-    // =====================================
-    // SUBMIT
-    // =====================================
-
-    avatarForm.addEventListener("submit", function (event) {
-
-        event.preventDefault();
-
-        const file = avatarFile.files[0];
-
-        if (!file) {
-
-            avatarError.textContent =
-                "Vui lòng chọn ảnh đại diện.";
-
-            return;
-        }
-
-
-        if (!isValidImage(file)) {
-
-            avatarError.textContent =
-                "Ảnh không hợp lệ. Vui lòng chọn file JPG, JPEG hoặc PNG.";
-
-            uploadAvatarButton.disabled = true;
-
-            return;
-        }
-
-
-        /*
-         * Phần gọi API upload ảnh sẽ được tích hợp
-         * khi Backend cung cấp endpoint.
-         *
-         * FE hiện tại chỉ xử lý chọn file,
-         * kiểm tra định dạng và xem trước ảnh.
-         */
-
-        uploadAvatarButton.disabled = true;
-        removeAvatarButton.disabled = true;
-
-        uploadAvatarButton.textContent = "Đang tải...";
-
-
-        // Tạm trả lại trạng thái vì chưa tích hợp API.
-        setTimeout(function () {
-
-            uploadAvatarButton.disabled = false;
-            removeAvatarButton.disabled = false;
-
-            uploadAvatarButton.textContent = "Tải ảnh đại diện";
-
-        }, 500);
-    });
-
-
-    // =====================================
-    // DỌN URL KHI RỜI TRANG
-    // =====================================
-
-    window.addEventListener("beforeunload", function () {
-
-        if (previewUrl !== null) {
-            URL.revokeObjectURL(previewUrl);
-        }
-    });
-
+document.addEventListener("DOMContentLoaded", () => {
+  const form=document.getElementById("avatarForm"), fileInput=document.getElementById("avatarFile"),
+    preview=document.getElementById("avatarPreview"), placeholder=document.getElementById("avatarPlaceholder"),
+    fileName=document.getElementById("selectedFileName"), error=document.getElementById("avatarError"),
+    message=document.getElementById("avatarMessage"), removeBtn=document.getElementById("removeAvatarButton"),
+    uploadBtn=document.getElementById("uploadAvatarButton");
+  const MAX=2*1024*1024, context=document.body.dataset.contextPath||"";
+  let objectUrl=null;
+
+  function showMessage(text,type){
+    message.textContent=text; message.className="avatar-message "+type; message.hidden=false;
+  }
+  function clearMessage(){ message.hidden=true; message.textContent=""; message.className="avatar-message"; }
+  function valid(file){
+    const name=file.name.toLowerCase();
+    return name.endsWith(".jpg")||name.endsWith(".jpeg")||name.endsWith(".png");
+  }
+  function clearPreview(){
+    fileInput.value=""; fileName.textContent="Chưa chọn ảnh"; error.textContent=""; clearMessage();
+    if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}
+    preview.src=""; preview.hidden=true; placeholder.hidden=false;
+    removeBtn.disabled=true; uploadBtn.disabled=true;
+  }
+  fileInput.addEventListener("change",()=>{
+    clearMessage(); error.textContent="";
+    const file=fileInput.files[0];
+    if(!file){clearPreview();return;}
+    fileName.textContent=file.name; removeBtn.disabled=false;
+    if(!valid(file)){error.textContent="Chỉ chấp nhận ảnh JPG, JPEG hoặc PNG.";uploadBtn.disabled=true;return;}
+    if(file.size>MAX){error.textContent="Ảnh không được vượt quá 2MB.";uploadBtn.disabled=true;return;}
+    if(objectUrl)URL.revokeObjectURL(objectUrl);
+    objectUrl=URL.createObjectURL(file); preview.src=objectUrl; preview.hidden=false; placeholder.hidden=true; uploadBtn.disabled=false;
+  });
+  removeBtn.addEventListener("click",clearPreview);
+
+  form.addEventListener("submit",async e=>{
+    e.preventDefault(); clearMessage(); error.textContent="";
+    const file=fileInput.files[0];
+    if(!file){error.textContent="Vui lòng chọn ảnh đại diện.";return;}
+    if(!valid(file)){error.textContent="Chỉ chấp nhận ảnh JPG, JPEG hoặc PNG.";return;}
+    if(file.size>MAX){error.textContent="Ảnh không được vượt quá 2MB.";return;}
+    const data=new FormData(); data.append("avatar",file);
+    uploadBtn.disabled=true; removeBtn.disabled=true; uploadBtn.textContent="Đang tải...";
+    try{
+      const response=await fetch(form.action,{method:"POST",body:data,credentials:"same-origin"});
+      const result=await response.json().catch(()=>null);
+      if(!response.ok||!result||result.success!==true) throw new Error(result?.message||"Không thể tải ảnh đại diện.");
+      const url=result.thumbnailUrl||result.avatarUrl;
+      if(url){preview.src=/^https?:\/\//i.test(url)?url:context+(url.startsWith("/")?url:"/"+url);preview.hidden=false;placeholder.hidden=true;}
+      if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}
+      fileInput.value=""; fileName.textContent="Đã tải ảnh thành công"; removeBtn.disabled=true; uploadBtn.disabled=true;
+      showMessage("Cập nhật ảnh đại diện thành công.","success");
+    }catch(ex){
+      error.textContent=ex.message||"Không thể tải ảnh đại diện."; removeBtn.disabled=false; uploadBtn.disabled=false;
+      showMessage(error.textContent,"error");
+    }finally{uploadBtn.textContent="Tải ảnh đại diện";}
+  });
+  window.addEventListener("beforeunload",()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);});
 });

@@ -321,4 +321,4 @@ body {
         width: 112px;
         height: 112px;
     }
-}
+}/* S2-03-LAYOUT */ body>.sidebar{position:fixed;top:0;left:0;bottom:0;width:270px;height:100vh;z-index:1000;overflow-y:auto}.page-header{margin-left:270px;background:#f4f7fb;border-bottom:0}.page-header-inner{max-width:none;margin:0;padding:46px 48px 18px}.breadcrumb{margin-bottom:10px;color:#2f91d0;font-size:13px;letter-spacing:.8px}.page-header p{font-size:15px;color:#718096}.main{max-width:980px;margin:0 0 0 270px;padding:14px 48px 48px}.avatar-card{max-width:none;margin:0;padding:0;border-color:#e4eaf2;box-shadow:0 8px 30px rgba(31,56,88,.08)}.avatar-card-header{margin:0;padding:24px 28px;border-bottom:1px solid #edf1f5}.avatar-card-header h2{font-size:21px;color:#10233d}#avatarForm{padding:28px}.avatar-message{margin:22px 28px 0}.btn-primary{background:#3196d3}.btn-primary:hover:not(:disabled){background:#247fb5}
