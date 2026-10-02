@@ -1,120 +1,238 @@
-/**
- * Quản lý Nhật ký Thay đổi (Audit Log) - S2-04 FE
- */
+
+
 document.addEventListener("DOMContentLoaded", function () {
-    const API_URL = `${window.location.origin}${window.contextPath || ''}/api/audit-logs`;
 
-    // Elements
-    const searchForm = document.getElementById("searchForm");
-    const keywordInput = document.getElementById("searchKeyword");
-    const actionFilter = document.getElementById("actionFilter");
-    const startDateInput = document.getElementById("startDate");
-    const endDateInput = document.getElementById("endDate");
-    const btnReset = document.getElementById("btnReset");
+    const API_URL =
+        `${window.location.origin}${window.contextPath || ""}/api/audit-logs`;
 
-    const tableContainer = document.getElementById("tableContainer");
-    const logTableBody = document.getElementById("logTableBody");
-    const loadingState = document.getElementById("loadingState");
-    const emptyState = document.getElementById("emptyState");
-    const errorState = document.getElementById("errorState");
-    const errorMessageText = document.getElementById("errorMessageText");
+    const searchForm =
+        document.getElementById("searchForm");
 
-    // Lần đầu tải trang -> Gọi API lấy dữ liệu
+    const usernameFilter =
+        document.getElementById("usernameFilter");
+
+    const targetObjectFilter =
+        document.getElementById("targetObjectFilter");
+
+    const actionFilter =
+        document.getElementById("actionFilter");
+
+    const startDateInput =
+        document.getElementById("startDate");
+
+    const endDateInput =
+        document.getElementById("endDate");
+
+    const btnReset =
+        document.getElementById("btnReset");
+
+    const btnRetry =
+        document.getElementById("btnRetry");
+
+    const tableContainer =
+        document.getElementById("tableContainer");
+
+    const logTableBody =
+        document.getElementById("logTableBody");
+
+    const loadingState =
+        document.getElementById("loadingState");
+
+    const emptyState =
+        document.getElementById("emptyState");
+
+    const errorState =
+        document.getElementById("errorState");
+
+    const errorMessageText =
+        document.getElementById("errorMessageText");
+
+
+    // =========================
+    // Initial load
+    // =========================
+
     fetchAuditLogs();
 
-    // Sự kiện Tìm kiếm / Lọc
     if (searchForm) {
-        searchForm.addEventListener("submit", function (e) {
-            e.preventDefault();
+
+        searchForm.addEventListener("submit", function (event) {
+
+            event.preventDefault();
+
             fetchAuditLogs();
+
         });
     }
 
-    // Sự kiện Đặt lại bộ lọc
+
     if (btnReset) {
+
         btnReset.addEventListener("click", function () {
+
             searchForm.reset();
+
             fetchAuditLogs();
+
         });
     }
 
-    /**
-     * Hàm kết nối API Backend lấy danh sách nhật ký
-     */
+    if (btnRetry) {
+
+        btnRetry.addEventListener("click", function () {
+
+            fetchAuditLogs();
+
+        });
+    }
+
     function fetchAuditLogs() {
+
         showLoading();
 
-        // Chuẩn bị tham số Query
         const params = new URLSearchParams();
 
-        if (keywordInput.value.trim()) {
-            params.append("keyword", keywordInput.value.trim());
+
+        // Người thực hiện
+        if (usernameFilter &&
+            usernameFilter.value.trim()) {
+
+            params.append(
+                "username",
+                usernameFilter.value.trim()
+            );
         }
 
-        if (actionFilter.value) {
-            params.append("action", actionFilter.value);
+        if (targetObjectFilter &&
+            targetObjectFilter.value) {
+
+            params.append(
+                "targetObject",
+                targetObjectFilter.value
+            );
         }
 
-        if (startDateInput.value) {
-            params.append("startDate", startDateInput.value);
+        if (actionFilter &&
+            actionFilter.value) {
+
+            params.append(
+                "action",
+                actionFilter.value
+            );
         }
 
-        if (endDateInput.value) {
-            params.append("endDate", endDateInput.value);
+        if (startDateInput &&
+            startDateInput.value) {
+
+            params.append(
+                "startDate",
+                startDateInput.value
+            );
         }
 
-        fetch(`${API_URL}?${params.toString()}`, {
+        if (endDateInput &&
+            endDateInput.value) {
+
+            params.append(
+                "endDate",
+                endDateInput.value
+            );
+        }
+
+        const queryString =
+            params.toString();
+
+        const requestUrl =
+            queryString
+                ? `${API_URL}?${queryString}`
+                : API_URL;
+
+        fetch(requestUrl, {
             method: "GET",
             headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
+                "Accept": "application/json"
             }
         })
-        .then(response => {
+        .then(function (response) {
+
             if (!response.ok) {
-                throw new Error(
-                    `Lỗi kết nối máy chủ (${response.status}: ${response.statusText})`
-                );
+
+                return response.json()
+                    .catch(function () {
+                        return {};
+                    })
+                    .then(function (errorData) {
+
+                        throw new Error(
+                            errorData.error ||
+                            `Lỗi kết nối máy chủ (${response.status})`
+                        );
+
+                    });
             }
 
             return response.json();
+
         })
-        .then(data => {
-            if (!data || data.length === 0) {
-                showEmptyState();
-            } else {
-                renderLogTable(data);
+        .then(function (data) {
+
+            if (!Array.isArray(data)) {
+
+                throw new Error(
+                    "Dữ liệu API không đúng định dạng."
+                );
             }
+
+
+            if (data.length === 0) {
+
+                showEmptyState();
+
+                return;
+            }
+
+            renderLogTable(data);
+
         })
-        .catch(error => {
-            console.error("Audit Log API Error:", error);
+        .catch(function (error) {
+
+            console.error(
+                "Audit Log API Error:",
+                error
+            );
 
             showErrorState(
                 error.message ||
                 "Không thể tải danh sách nhật ký. Vui lòng thử lại sau."
             );
+
         });
     }
 
-    /**
-     * Render dữ liệu ra bảng HTML
-     */
+
     function renderLogTable(logs) {
+
         logTableBody.innerHTML = "";
 
-        logs.forEach((log, index) => {
-            const tr = document.createElement("tr");
+        logs.forEach(function (log, index) {
+
+            const tr =
+                document.createElement("tr");
 
             tr.innerHTML = `
-                <td class="text-center align-middle">${index + 1}</td>
+
+                <td class="text-center align-middle">
+                    ${index + 1}
+                </td>
 
                 <td class="align-middle">
+
                     <div class="fw-semibold text-dark">
-                        ${escapeHtml(log.executor || "Hệ thống")}
+                        ${escapeHtml(
+                            log.executor || "Hệ thống"
+                        )}
                     </div>
-                    <small class="text-muted">
-                        ${escapeHtml(log.executorRole || "")}
-                    </small>
+
                 </td>
 
                 <td class="align-middle text-center">
@@ -122,35 +240,77 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>
 
                 <td class="align-middle">
-                    <div class="fw-medium text-dark">
-                        ${escapeHtml(log.targetObject || "N/A")}
-                    </div>
-                    <div class="log-details-box text-muted mt-1">
-                        ${escapeHtml(log.details || "Không có chi tiết")}
-                    </div>
+
+                    <span class="badge bg-light text-dark border">
+                        ${escapeHtml(
+                            log.targetObject || "N/A"
+                        )}
+                    </span>
+
+                </td>
+
+                <td class="align-middle">
+                    ${renderValue(
+                        log.oldValue
+                    )}
+                </td>
+
+                <td class="align-middle">
+                    ${renderValue(
+                        log.newValue
+                    )}
                 </td>
 
                 <td class="align-middle text-nowrap">
-                    ${formatDateTime(log.timestamp)}
+                    ${formatDateTime(
+                        log.timestamp
+                    )}
                 </td>
+
             `;
 
             logTableBody.appendChild(tr);
+
         });
 
         showTable();
     }
 
-    /**
-     * Hiển thị hành động
-     * Không sử dụng icon
-     */
+    function renderValue(value) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            String(value).trim() === ""
+        ) {
+
+            return `
+                <span class="text-muted">
+                    Không có
+                </span>
+            `;
+        }
+
+
+        return `
+            <div class="log-value-box">
+                ${escapeHtml(value)}
+            </div>
+        `;
+    }
+
     function getActionBadge(action) {
-        const act = (action || "").toUpperCase();
+
+        const act =
+            String(action || "")
+                .trim()
+                .toUpperCase();
 
         switch (act) {
+
             case "CREATE":
             case "THÊM MỚI":
+
                 return `
                     <span class="badge badge-action-create px-2 py-1">
                         Thêm mới
@@ -159,6 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             case "UPDATE":
             case "CẬP NHẬT":
+
                 return `
                     <span class="badge badge-action-update px-2 py-1">
                         Cập nhật
@@ -167,6 +328,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             case "DELETE":
             case "XÓA":
+
                 return `
                     <span class="badge badge-action-delete px-2 py-1">
                         Xóa
@@ -175,6 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             case "LOGIN":
             case "ĐĂNG NHẬP":
+
                 return `
                     <span class="badge badge-action-login px-2 py-1">
                         Đăng nhập
@@ -182,88 +345,103 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
 
             default:
+
                 return `
                     <span class="badge bg-secondary px-2 py-1">
-                        ${escapeHtml(action || "Khác")}
+                        ${escapeHtml(
+                            action || "Khác"
+                        )}
                     </span>
                 `;
         }
     }
 
-    /**
-     * Định dạng ngày giờ
-     */
     function formatDateTime(isoString) {
+
         if (!isoString) {
+
             return "N/A";
         }
 
-        const date = new Date(isoString);
+        const date =
+            new Date(isoString);
 
         if (isNaN(date.getTime())) {
-            return isoString;
+
+            return escapeHtml(
+                isoString
+            );
         }
 
-        return date.toLocaleString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-        });
+        return date.toLocaleString(
+            "vi-VN",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }
+        );
     }
 
-    /**
-     * Trạng thái Loading
-     */
     function showLoading() {
+
         loadingState.classList.remove("d-none");
+
         tableContainer.classList.add("d-none");
+
         emptyState.classList.add("d-none");
+
         errorState.classList.add("d-none");
     }
 
-    /**
-     * Hiển thị bảng dữ liệu
-     */
     function showTable() {
+
         loadingState.classList.add("d-none");
+
         tableContainer.classList.remove("d-none");
+
         emptyState.classList.add("d-none");
+
         errorState.classList.add("d-none");
     }
 
-    /**
-     * Không có dữ liệu
-     */
+
     function showEmptyState() {
+
         loadingState.classList.add("d-none");
+
         tableContainer.classList.add("d-none");
+
         emptyState.classList.remove("d-none");
+
         errorState.classList.add("d-none");
     }
 
-    /**
-     * Hiển thị lỗi API
-     */
-    function showErrorState(msg) {
+    function showErrorState(message) {
+
         loadingState.classList.add("d-none");
+
         tableContainer.classList.add("d-none");
+
         emptyState.classList.add("d-none");
+
         errorState.classList.remove("d-none");
 
-        errorMessageText.textContent = msg;
+        errorMessageText.textContent =
+            message;
     }
 
-    /**
-     * Chống XSS khi hiển thị dữ liệu
-     */
-    function escapeHtml(str) {
-        return String(str)
+    function escapeHtml(value) {
+
+        return String(value)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
+
 });

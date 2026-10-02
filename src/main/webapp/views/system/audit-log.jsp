@@ -1,146 +1,165 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Nhật Ký Thay Đổi - Hệ Thống QLKH</title>
+    <title>Nhật ký thay đổi hệ thống.</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
 
-    <!-- Custom CSS cho Audit Log -->
-    <link href="${pageContext.request.contextPath}/assets/css/audit-log.css" rel="stylesheet">
+    <!-- Audit Log CSS -->
+    <link
+        href="${pageContext.request.contextPath}/assets/css/audit-log.css"
+        rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
 <script>
-    // Khai báo ContextPath toàn cục cho file JS
     window.contextPath = "${pageContext.request.contextPath}";
 </script>
 
 <div class="container-fluid py-4 px-4">
 
-    <!-- Tiêu đề màn hình -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold text-dark mb-1">
-                Nhật Ký Thay Đổi System
-            </h3>
+    <!-- Tiêu đề -->
+    <div class="mb-4">
+        <h3 class="fw-bold text-dark mb-1">
+            Nhật ký thay đổi hệ thống.
+        </h3>
 
-            <p class="text-muted small mb-0">
-                Theo dõi chi tiết các thao tác biến động dữ liệu trong hệ thống
-            </p>
-        </div>
+        <p class="text-muted small mb-0">
+            Theo dõi chi tiết các thao tác và biến động dữ liệu trong hệ thống.
+        </p>
     </div>
 
-
-    <!-- Khung tìm kiếm & bộ lọc -->
+    <!-- Bộ lọc -->
     <div class="card audit-log-card p-3 mb-4 bg-white">
 
         <form id="searchForm" class="row g-3">
 
-            <!-- Từ khóa -->
-            <div class="col-md-4">
-
-                <label for="searchKeyword"
-                       class="form-label fw-semibold small text-secondary">
-                    Từ khóa tìm kiếm
+            <!-- Người thực hiện -->
+            <div class="col-md-3">
+                <label
+                    for="usernameFilter"
+                    class="form-label fw-semibold small text-secondary">
+                    Người thực hiện
                 </label>
 
-                <input type="text"
-                       class="form-control bg-light"
-                       id="searchKeyword"
-                       placeholder="Người thực hiện, đối tượng...">
-
+                <input
+                    type="text"
+                    class="form-control bg-light"
+                    id="usernameFilter"
+                    placeholder="Nhập tên người thực hiện">
             </div>
 
+            <!-- Loại đối tượng -->
+            <div class="col-md-3">
+                <label
+                    for="targetObjectFilter"
+                    class="form-label fw-semibold small text-secondary">
+                    Loại đối tượng
+                </label>
+
+                <select
+                    class="form-select bg-light"
+                    id="targetObjectFilter">
+
+                    <option value="">-- Tất cả --</option>
+                    <option value="USER">USER</option>
+                    <option value="USER_ROLE">USER_ROLE</option>
+                    <option value="ROLE">ROLE</option>
+                    <option value="PRODUCT">PRODUCT</option>
+                    <option value="SERVICE">SERVICE</option>
+                    <option value="CUSTOMER">CUSTOMER</option>
+                </select>
+            </div>
 
             <!-- Hành động -->
             <div class="col-md-2">
-
-                <label for="actionFilter"
-                       class="form-label fw-semibold small text-secondary">
+                <label
+                    for="actionFilter"
+                    class="form-label fw-semibold small text-secondary">
                     Hành động
                 </label>
 
-                <select class="form-select bg-light"
-                        id="actionFilter">
+                <select
+                    class="form-select bg-light"
+                    id="actionFilter">
 
                     <option value="">-- Tất cả --</option>
                     <option value="CREATE">Thêm mới</option>
                     <option value="UPDATE">Cập nhật</option>
                     <option value="DELETE">Xóa</option>
                     <option value="LOGIN">Đăng nhập</option>
-
                 </select>
-
             </div>
-
 
             <!-- Từ ngày -->
             <div class="col-md-2">
-
-                <label for="startDate"
-                       class="form-label fw-semibold small text-secondary">
+                <label
+                    for="startDate"
+                    class="form-label fw-semibold small text-secondary">
                     Từ ngày
                 </label>
 
-                <input type="date"
-                       class="form-control bg-light"
-                       id="startDate">
-
+                <input
+                    type="date"
+                    class="form-control bg-light"
+                    id="startDate">
             </div>
-
 
             <!-- Đến ngày -->
             <div class="col-md-2">
-
-                <label for="endDate"
-                       class="form-label fw-semibold small text-secondary">
+                <label
+                    for="endDate"
+                    class="form-label fw-semibold small text-secondary">
                     Đến ngày
                 </label>
 
-                <input type="date"
-                       class="form-control bg-light"
-                       id="endDate">
-
+                <input
+                    type="date"
+                    class="form-control bg-light"
+                    id="endDate">
             </div>
 
+            <!-- Nút -->
+            <div class="col-12 d-flex justify-content-end gap-2">
 
-            <!-- Nút lọc -->
-            <div class="col-md-2 d-flex align-items-end gap-2">
-
-                <button type="submit"
-                        class="btn btn-primary flex-fill fw-medium">
+                <button
+                    type="submit"
+                    class="btn btn-primary fw-medium">
                     Lọc
                 </button>
 
-                <button type="button"
-                        id="btnReset"
-                        class="btn btn-outline-secondary">
+                <button
+                    type="button"
+                    id="btnReset"
+                    class="btn btn-outline-secondary">
                     Đặt lại
                 </button>
 
             </div>
 
         </form>
-
     </div>
 
-
-    <!-- Khung hiển thị danh sách nhật ký -->
+    <!-- Danh sách nhật ký -->
     <div class="card audit-log-card bg-white p-3">
 
+        <!-- Loading -->
+        <div
+            id="loadingState"
+            class="text-center py-5">
 
-        <!-- 1. Trạng thái đang tải dữ liệu -->
-        <div id="loadingState"
-             class="text-center py-5">
-
-            <div class="spinner-border text-primary"
-                 role="status">
+            <div
+                class="spinner-border text-primary"
+                role="status">
 
                 <span class="visually-hidden">
                     Đang tải...
@@ -151,21 +170,21 @@
             <p class="text-muted mt-2 mb-0">
                 Đang lấy dữ liệu nhật ký hệ thống...
             </p>
-
         </div>
 
+        <!-- Bảng -->
+        <div
+            id="tableContainer"
+            class="table-responsive d-none">
 
-        <!-- 2. Bảng danh sách nhật ký -->
-        <div id="tableContainer"
-             class="table-responsive d-none">
-
-            <table class="table table-hover table-audit align-middle mb-0">
+            <table
+                class="table table-hover table-audit align-middle mb-0">
 
                 <thead>
-
                     <tr>
 
-                        <th class="text-center"
+                        <th
+                            class="text-center"
                             style="width: 60px;">
                             STT
                         </th>
@@ -174,13 +193,22 @@
                             Người thực hiện
                         </th>
 
-                        <th class="text-center"
-                            style="width: 140px;">
+                        <th
+                            class="text-center"
+                            style="width: 130px;">
                             Hành động
                         </th>
 
+                        <th style="width: 180px;">
+                            Loại đối tượng
+                        </th>
+
                         <th>
-                            Đối tượng & Dữ liệu thay đổi
+                            Dữ liệu trước
+                        </th>
+
+                        <th>
+                            Dữ liệu sau
                         </th>
 
                         <th style="width: 180px;">
@@ -188,23 +216,22 @@
                         </th>
 
                     </tr>
-
                 </thead>
 
                 <tbody id="logTableBody">
-                    <!-- Dữ liệu JS sẽ render vào đây -->
                 </tbody>
 
             </table>
-
         </div>
 
+        <!-- Không có dữ liệu -->
+        <div
+            id="emptyState"
+            class="text-center py-5 d-none">
 
-        <!-- 3. Trạng thái không có dữ liệu -->
-        <div id="emptyState"
-             class="text-center py-5 d-none">
-
-            <div class="empty-state-icon"></div>
+            <div class="empty-state-icon">
+                Không có dữ liệu
+            </div>
 
             <h5 class="fw-bold text-secondary">
                 Không tìm thấy dữ liệu nhật ký
@@ -216,24 +243,29 @@
 
         </div>
 
+        <!-- Lỗi -->
+        <div
+            id="errorState"
+            class="text-center py-5 d-none">
 
-        <!-- 4. Trạng thái lỗi API -->
-        <div id="errorState"
-             class="text-center py-5 d-none">
-
-            <div class="error-state-icon"></div>
+            <div class="error-state-icon">
+                Lỗi
+            </div>
 
             <h5 class="fw-bold text-danger">
                 Đã có lỗi xảy ra!
             </h5>
 
-            <p id="errorMessageText"
-               class="text-muted small mb-3">
+            <p
+                id="errorMessageText"
+                class="text-muted small mb-3">
                 Không thể kết nối tới server.
             </p>
 
-            <button onclick="location.reload()"
-                    class="btn btn-sm btn-outline-danger">
+            <button
+                id="btnRetry"
+                type="button"
+                class="btn btn-sm btn-outline-danger">
                 Thử lại
             </button>
 
@@ -243,12 +275,15 @@
 
 </div>
 
+<!-- Bootstrap JS -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
 
-<!-- JS Bootstrap 5 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- JS Audit Log -->
-<script src="${pageContext.request.contextPath}/assets/js/audit-log.js"></script>
+<!-- Audit Log JS -->
+<script
+    src="${pageContext.request.contextPath}/assets/js/audit-log.js">
+</script>
 
 </body>
 </html>

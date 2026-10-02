@@ -1,9 +1,17 @@
-/* Styling cho giao diện Nhật ký thay đổi (Audit Log) */
+/* =========================================
+   S2-04 - Nhật ký thay đổi hệ thống
+   ========================================= */
+
 .audit-log-card {
     border: none;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
+
+
+/* =========================================
+   Table
+   ========================================= */
 
 .table-audit th {
     background-color: #f8f9fa;
@@ -12,9 +20,18 @@
     text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.5px;
+    vertical-align: middle;
 }
 
-/* Badge trạng thái hành động */
+.table-audit td {
+    vertical-align: middle;
+}
+
+
+/* =========================================
+   Action badges
+   ========================================= */
+
 .badge-action-create {
     background-color: #e6f4ea;
     color: #137333;
@@ -39,21 +56,75 @@
     border: 1px solid #d2e3fc;
 }
 
-/* Vùng hiển thị trạng thái Trống & Lỗi */
-.empty-state-icon, .error-state-icon {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
-}
 
-.empty-state-icon { color: #adb5bd; }
-.error-state-icon { color: #dc3545; }
+/* =========================================
+   Old / New value
+   ========================================= */
 
-.log-details-box {
+.log-value-box {
     background-color: #f8f9fa;
     border-radius: 6px;
-    padding: 6px 10px;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    border: 1px solid #e9ecef;
+    padding: 7px 10px;
+
+    font-family:
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+
     font-size: 0.85rem;
-    max-width: 320px;
-    word-break: break-all;
+
+    max-width: 300px;
+
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+
+/* =========================================
+   Empty / Error state
+   ========================================= */
+
+.empty-state-icon,
+.error-state-icon {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.empty-state-icon {
+    color: #6c757d;
+}
+
+.error-state-icon {
+    color: #dc3545;
+}
+
+
+/* =========================================
+   Filter
+   ========================================= */
+
+#searchForm .form-control,
+#searchForm .form-select {
+    min-height: 38px;
+}
+
+
+/* =========================================
+   Responsive
+   ========================================= */
+
+@media (max-width: 768px) {
+
+    .audit-log-card {
+        border-radius: 8px;
+    }
+
+    .log-value-box {
+        max-width: 220px;
+    }
+
 }
