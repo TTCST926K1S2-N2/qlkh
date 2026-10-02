@@ -208,6 +208,26 @@
                     </a>
                 </li>
 
+
+                <% if ("ADMIN".equals(role)
+                        || "MANAGER".equals(role)) { %>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
+                       class="<%= currentURI.contains("/views/admin/custom-field.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Quản lý trường tùy chỉnh
+                        </span>
+                    </a>
+                </li>
+
+                <% } %>
+
             </ul>
 
         <%
