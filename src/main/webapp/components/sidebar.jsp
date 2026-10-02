@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
     String role = (String) session.getAttribute("userRole");
@@ -10,7 +10,7 @@
     }
 
     if (userName == null || userName.isBlank()) {
-        userName = "NgÆ°á»i dĂ¹ng";
+        userName = "Người dùng";
     }
 
     String businessGroupName =
@@ -22,19 +22,19 @@
 
     switch (role) {
         case "ADMIN":
-            roleDisplayName = "Quáº£n trá»‹ há»‡ thá»‘ng";
+            roleDisplayName = "Quản trị hệ thống";
             break;
 
         case "MANAGER":
-            roleDisplayName = "Quáº£n lĂ½ kinh doanh";
+            roleDisplayName = "Quản lý kinh doanh";
             break;
 
         case "SALES":
-            roleDisplayName = "NhĂ¢n viĂªn kinh doanh";
+            roleDisplayName = "Nhân viên kinh doanh";
             break;
 
         default:
-            roleDisplayName = "KhĂ¡ch";
+            roleDisplayName = "Khách";
             break;
     }
 
@@ -56,7 +56,7 @@
 <aside class="sidebar">
 
     <!-- ========================= -->
-    <!-- THÆ¯Æ NG HIá»†U -->
+    <!-- THƯƠNG HIỆU -->
     <!-- ========================= -->
 
     <div class="sidebar-brand">
@@ -68,7 +68,7 @@
         <div class="brand-text">
 
             <div class="brand-title">
-                Há»† THá»NG QLKH
+                HỆ THỐNG QLKH
             </div>
 
             <div class="brand-subtitle">
@@ -81,7 +81,7 @@
 
 
     <!-- ========================= -->
-    <!-- THĂ”NG TIN NGÆ¯á»œI DĂ™NG -->
+    <!-- THÔNG TIN NGƯỜI DÙNG -->
     <!-- ========================= -->
 
     <% if (!"GUEST".equals(role)) { %>
@@ -109,7 +109,7 @@
                 %>
 
                     <div class="user-group">
-                        NhĂ³m: <%= businessGroupName %>
+                        Nhóm: <%= businessGroupName %>
                     </div>
 
                 <% } %>
@@ -129,11 +129,11 @@
 
 
         <!-- ========================= -->
-        <!-- Tá»”NG QUAN -->
+        <!-- TỔNG QUAN -->
         <!-- ========================= -->
 
         <div class="menu-category">
-            Tá»•ng quan
+            Tổng quan
         </div>
 
         <ul class="sidebar-menu">
@@ -149,7 +149,7 @@
                     <span class="menu-indicator"></span>
 
                     <span class="menu-text">
-                        Trang chá»§
+                        Trang chủ
                     </span>
 
                 </a>
@@ -160,7 +160,7 @@
 
 
         <!-- ========================= -->
-        <!-- QUáº¢N LĂ -->
+        <!-- QUẢN LÝ -->
         <!-- SALES / MANAGER / ADMIN -->
         <!-- ========================= -->
 
@@ -171,7 +171,7 @@
         %>
 
             <div class="menu-category">
-                Quáº£n lĂ½
+                Quản lý
             </div>
 
             <ul class="sidebar-menu">
@@ -186,7 +186,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Quáº£n lĂ½ khĂ¡ch hĂ ng
+                            Quản lý khách hàng
                         </span>
 
                     </a>
@@ -201,8 +201,8 @@
 
 
         <!-- ========================= -->
-        <!-- QUáº¢N TRá» -->
-        <!-- CHá»ˆ ADMIN -->
+        <!-- QUẢN TRỊ -->
+        <!-- CHỈ ADMIN -->
         <!-- ========================= -->
 
         <%
@@ -210,13 +210,13 @@
         %>
 
             <div class="menu-category">
-                Quáº£n trá»‹
+                Quản trị
             </div>
 
             <ul class="sidebar-menu">
 
 
-                <!-- QUáº¢N LĂ TĂ€I KHOáº¢N -->
+                <!-- QUẢN LÝ TÀI KHOẢN -->
 
                 <li>
 
@@ -228,7 +228,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Quáº£n lĂ½ tĂ i khoáº£n
+                            Quản lý tài khoản
                         </span>
 
                     </a>
@@ -237,7 +237,7 @@
 
 
                 <!-- HTQLKH-9 -->
-                <!-- PHĂ‚N QUYá»€N & NHĂ“M KINH DOANH -->
+                <!-- PHÂN QUYỀN & NHÓM KINH DOANH -->
 
                 <li>
 
@@ -249,7 +249,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            PhĂ¢n quyá»n & NhĂ³m kinh doanh
+                            Phân quyền & Nhóm kinh doanh
                         </span>
 
                     </a>
@@ -257,7 +257,7 @@
                 </li>
 
 
-                <!-- KHĂ“A TĂ€I KHOáº¢N & BĂ€N GIAO -->
+                <!-- KHÓA TÀI KHOẢN & BÀN GIAO -->
 
                 <li>
 
@@ -269,7 +269,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            KhĂ³a tĂ i khoáº£n & BĂ n giao
+                            Khóa tài khoản & Bàn giao
                         </span>
 
                     </a>
@@ -284,11 +284,11 @@
 
 
         <!-- ========================= -->
-        <!-- TĂ€I KHOáº¢N -->
+        <!-- TÀI KHOẢN -->
         <!-- ========================= -->
 
         <div class="menu-category">
-            TĂ i khoáº£n
+            Tài khoản
         </div>
 
         <ul class="sidebar-menu">
@@ -296,7 +296,7 @@
             <% if (!"GUEST".equals(role)) { %>
 
 
-                <!-- Há»’ SÆ  CĂ NHĂ‚N -->
+                <!-- HỒ SƠ CÁ NHÂN -->
 
                 <li>
 
@@ -308,15 +308,22 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Há»“ sÆ¡ cĂ¡ nhĂ¢n
+                            Hồ sơ cá nhân
                         </span>
 
                     </a>
 
                 </li>
 
+                <li>
+                    <a href="/user/avatar.jsp" class="<%= currentURI.contains("/avatar") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">&#7842;nh &#273;&#7841;i di&#7879;n</span>
+                    </a>
+                </li>
 
-                <!-- QUYá»€N & PHáº M VI Dá»® LIá»†U -->
+
+                <!-- QUYỀN & PHẠM VI DỮ LIỆU -->
 
                 <li>
 
@@ -328,7 +335,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Quyá»n & pháº¡m vi dá»¯ liá»‡u
+                            Quyền & phạm vi dữ liệu
                         </span>
 
                     </a>
@@ -336,7 +343,7 @@
                 </li>
 
 
-                <!-- Äá»”I Máº¬T KHáº¨U -->
+                <!-- ĐỔI MẬT KHẨU -->
 
                 <li>
 
@@ -348,7 +355,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Äá»•i máº­t kháº©u
+                            Đổi mật khẩu
                         </span>
 
                     </a>
@@ -356,7 +363,7 @@
                 </li>
 
 
-                <!-- ÄÄ‚NG XUáº¤T -->
+                <!-- ĐĂNG XUẤT -->
 
                 <li class="logout-item">
 
@@ -371,7 +378,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            ÄÄƒng xuáº¥t
+                            Đăng xuất
                         </span>
 
                     </a>
@@ -388,7 +395,7 @@
             <% } else { %>
 
 
-                <!-- ÄÄ‚NG NHáº¬P -->
+                <!-- ĐĂNG NHẬP -->
 
                 <li>
 
@@ -400,7 +407,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            ÄÄƒng nháº­p
+                            Đăng nhập
                         </span>
 
                     </a>
@@ -423,7 +430,7 @@
 
         <span class="system-status"></span>
 
-        Há»‡ thá»‘ng Ä‘ang hoáº¡t Ä‘á»™ng
+        Hệ thống đang hoạt động
 
     </div>
 
