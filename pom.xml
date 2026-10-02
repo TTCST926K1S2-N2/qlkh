@@ -71,6 +71,13 @@
     <version>2.0.3</version>
     <scope>runtime</scope>
 </dependency>
+    
+        <!-- S2-01: Apache POI for Excel import -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.5.1</version>
+        </dependency>
     </dependencies>
 
     <build>

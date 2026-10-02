@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Nghiệp vụ quản lý tài khoản người dùng - HTQLKH-8.
+ * Nghiá»‡p vá»¥ quáº£n lÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng - HTQLKH-8.
  */
 public class UserService {
 
@@ -49,7 +49,7 @@ public class UserService {
     }
 
     /**
-     * Lấy danh sách tài khoản có tìm kiếm, lọc và phân trang.
+     * Láº¥y danh sÃ¡ch tÃ i khoáº£n cÃ³ tÃ¬m kiáº¿m, lá»c vÃ  phÃ¢n trang.
      */
     public UserPage getUsers(
             String keyword,
@@ -118,8 +118,8 @@ public class UserService {
 
         /**
      * HTQLKH-10:
-     * Lấy toàn bộ tài khoản ACTIVE để hiển thị
-     * trong danh sách người nhận bàn giao.
+     * Láº¥y toÃ n bá»™ tÃ i khoáº£n ACTIVE Ä‘á»ƒ hiá»ƒn thá»‹
+     * trong danh sÃ¡ch ngÆ°á»i nháº­n bÃ n giao.
      */
     public List<User> getActiveUsersForHandover()
             throws SQLException {
@@ -133,7 +133,7 @@ public class UserService {
         );
     }
 /**
-     * Lấy tài khoản theo ID để hiển thị form sửa.
+     * Láº¥y tÃ i khoáº£n theo ID Ä‘á»ƒ hiá»ƒn thá»‹ form sá»­a.
      */
     public User getUserById(long userId)
             throws SQLException {
@@ -146,10 +146,10 @@ public class UserService {
     }
 
     /**
-     * Tạo tài khoản mới.
+     * Táº¡o tÃ i khoáº£n má»›i.
      *
-     * Hệ thống tự sinh mật khẩu tạm và chỉ lưu bản hash PBKDF2.
-     * Mật khẩu tạm được trả về để bước gửi email sử dụng.
+     * Há»‡ thá»‘ng tá»± sinh máº­t kháº©u táº¡m vÃ  chá»‰ lÆ°u báº£n hash PBKDF2.
+     * Máº­t kháº©u táº¡m Ä‘Æ°á»£c tráº£ vá» Ä‘á»ƒ bÆ°á»›c gá»­i email sá»­ dá»¥ng.
      */
     public CreateUserResult createUser(
             String fullName,
@@ -189,7 +189,7 @@ public class UserService {
                 null)) {
 
             return CreateUserResult.failed(
-                    "Email đã tồn tại trong hệ thống."
+                    "Email Ä‘Ã£ tá»“n táº¡i trong há»‡ thá»‘ng."
             );
         }
 
@@ -231,8 +231,31 @@ public class UserService {
     }
 
     /**
-     * Cập nhật thông tin tài khoản.
+     * Cáº­p nháº­t thÃ´ng tin tÃ i khoáº£n.
      */
+    public String validateUserForImport(
+            String fullName, String email, String role, String status)
+            throws SQLException {
+
+        String normalizedFullName = normalizeRequired(fullName);
+        String normalizedEmail = normalizeEmail(email);
+        String normalizedRole = normalizeRequired(role).toUpperCase();
+        String normalizedStatus = normalizeRequired(status).toUpperCase();
+
+        String validationMessage = validateUserInput(
+                normalizedFullName, normalizedEmail, normalizedRole, normalizedStatus);
+
+        if (validationMessage != null) {
+            return validationMessage;
+        }
+
+        if (userDAO.existsByEmail(normalizedEmail, null)) {
+            return "Email Ä‘Ã£ tá»“n táº¡i trong há»‡ thá»‘ng.";
+        }
+
+        return null;
+    }
+
     public UpdateUserResult updateUser(
             long userId,
             String fullName,
@@ -243,7 +266,7 @@ public class UserService {
 
         if (userId <= 0) {
             return UpdateUserResult.failed(
-                    "Tài khoản không hợp lệ."
+                    "TÃ i khoáº£n khÃ´ng há»£p lá»‡."
             );
         }
 
@@ -252,7 +275,7 @@ public class UserService {
 
         if (existingUser == null) {
             return UpdateUserResult.failed(
-                    "Không tìm thấy tài khoản."
+                    "KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n."
             );
         }
 
@@ -287,7 +310,7 @@ public class UserService {
                 userId)) {
 
             return UpdateUserResult.failed(
-                    "Email đã được sử dụng bởi tài khoản khác."
+                    "Email Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng bá»Ÿi tÃ i khoáº£n khÃ¡c."
             );
         }
 
@@ -314,7 +337,7 @@ public class UserService {
 
         if (!updated) {
             return UpdateUserResult.failed(
-                    "Không thể cập nhật tài khoản."
+                    "KhÃ´ng thá»ƒ cáº­p nháº­t tÃ i khoáº£n."
             );
         }
 
@@ -322,7 +345,7 @@ public class UserService {
     }
 
     /**
-     * Validate dữ liệu tạo/sửa tài khoản.
+     * Validate dá»¯ liá»‡u táº¡o/sá»­a tÃ i khoáº£n.
      */
     private String validateUserInput(
             String fullName,
@@ -331,31 +354,31 @@ public class UserService {
             String status) {
 
         if (fullName.isBlank()) {
-            return "Họ tên không được để trống.";
+            return "Há» tÃªn khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.";
         }
 
         if (fullName.length() > 255) {
-            return "Họ tên không được vượt quá 255 ký tự.";
+            return "Há» tÃªn khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 255 kÃ½ tá»±.";
         }
 
         if (email.isBlank()) {
-            return "Email không được để trống.";
+            return "Email khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.";
         }
 
         if (email.length() > 255) {
-            return "Email không được vượt quá 255 ký tự.";
+            return "Email khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 255 kÃ½ tá»±.";
         }
 
         if (!isValidEmail(email)) {
-            return "Email không đúng định dạng.";
+            return "Email khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng.";
         }
 
         if (!VALID_ROLES.contains(role)) {
-            return "Vai trò không hợp lệ.";
+            return "Vai trÃ² khÃ´ng há»£p lá»‡.";
         }
 
         if (!VALID_STATUSES.contains(status)) {
-            return "Trạng thái tài khoản không hợp lệ.";
+            return "Tráº¡ng thÃ¡i tÃ i khoáº£n khÃ´ng há»£p lá»‡.";
         }
 
         return null;
@@ -384,7 +407,7 @@ public class UserService {
     }
 
     /**
-     * Sinh mật khẩu tạm bằng SecureRandom.
+     * Sinh máº­t kháº©u táº¡m báº±ng SecureRandom.
      */
     private String generateTemporaryPassword() {
 
@@ -410,6 +433,192 @@ public class UserService {
         return password.toString();
     }
 
+
+    /**
+     * HTQLKH-44 / S2-02:
+     * Lay ho so cua nguoi dung dang dang nhap.
+     */
+    public User getProfile(long userId)
+            throws SQLException {
+
+        if (userId <= 0) {
+            return null;
+        }
+
+        return userDAO.findById(userId);
+    }
+
+    /**
+     * HTQLKH-44 / S2-02:
+     * Cap nhat ho so ca nhan.
+     *
+     * Nguoi dung chi duoc sua:
+     * - ho ten
+     * - so dien thoai
+     * - chu ky email
+     *
+     * Email, role, status va nhom khong duoc thay doi
+     * boi chuc nang nay.
+     */
+    public ProfileUpdateResult updateProfile(
+            long userId,
+            String fullName,
+            String phone,
+            String emailSignature)
+            throws SQLException {
+
+        if (userId <= 0) {
+            return ProfileUpdateResult.failed(
+                    "Tai khoan khong hop le."
+            );
+        }
+
+        User existingUser =
+                userDAO.findById(userId);
+
+        if (existingUser == null) {
+            return ProfileUpdateResult.failed(
+                    "Khong tim thay tai khoan."
+            );
+        }
+
+        String normalizedFullName =
+                normalizeRequired(fullName);
+
+        String normalizedPhone =
+                normalizePhone(phone);
+
+        String normalizedSignature =
+                emailSignature == null
+                        ? null
+                        : emailSignature.trim();
+
+        if (normalizedFullName.isBlank()) {
+            return ProfileUpdateResult.failed(
+                    "Ho ten khong duoc de trong."
+            );
+        }
+
+        if (normalizedFullName.length() > 255) {
+            return ProfileUpdateResult.failed(
+                    "Ho ten khong duoc vuot qua 255 ky tu."
+            );
+        }
+
+        if (normalizedPhone != null
+                && !isValidVietnamesePhone(
+                        normalizedPhone)) {
+
+            return ProfileUpdateResult.failed(
+                    "So dien thoai Viet Nam khong dung dinh dang."
+            );
+        }
+
+        boolean updated =
+                userDAO.updateProfile(
+                        userId,
+                        normalizedFullName,
+                        normalizedPhone,
+                        normalizedSignature
+                );
+
+        if (!updated) {
+            return ProfileUpdateResult.failed(
+                    "Khong the cap nhat ho so."
+            );
+        }
+
+        User updatedUser =
+                userDAO.findById(userId);
+
+        return ProfileUpdateResult.success(
+                updatedUser
+        );
+    }
+
+    /**
+     * Chuan hoa so dien thoai.
+     * Cho phep bo trong.
+     */
+    private String normalizePhone(
+            String phone) {
+
+        if (phone == null
+                || phone.isBlank()) {
+
+            return null;
+        }
+
+        return phone.trim()
+                .replace(" ", "")
+                .replace("-", "")
+                .replace(".", "");
+    }
+
+    /**
+     * Dinh dang so dien thoai di dong Viet Nam:
+     * 03x, 05x, 07x, 08x, 09x
+     * hoac dang quoc te +84.
+     */
+    private boolean isValidVietnamesePhone(
+            String phone) {
+
+        return phone.matches(
+                "^(0|\\+84)[35789]\\d{8}$"
+        );
+    }
+
+    /**
+     * Ket qua cap nhat ho so ca nhan.
+     */
+    public static final class ProfileUpdateResult {
+
+        private final boolean success;
+        private final String message;
+        private final User user;
+
+        private ProfileUpdateResult(
+                boolean success,
+                String message,
+                User user) {
+
+            this.success = success;
+            this.message = message;
+            this.user = user;
+        }
+
+        public static ProfileUpdateResult success(
+                User user) {
+
+            return new ProfileUpdateResult(
+                    true,
+                    null,
+                    user
+            );
+        }
+
+        public static ProfileUpdateResult failed(
+                String message) {
+
+            return new ProfileUpdateResult(
+                    false,
+                    message,
+                    null
+            );
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public User getUser() {
+            return user;
+        }
+    }
     private String normalizeRequired(
             String value) {
 
@@ -451,7 +660,7 @@ public class UserService {
     }
 
     /**
-     * Kết quả phân trang.
+     * Káº¿t quáº£ phÃ¢n trang.
      */
     public static final class UserPage {
 
@@ -497,7 +706,7 @@ public class UserService {
     }
 
     /**
-     * Kết quả tạo tài khoản.
+     * Káº¿t quáº£ táº¡o tÃ i khoáº£n.
      */
     public static final class CreateUserResult {
 
@@ -560,7 +769,7 @@ public class UserService {
     }
 
     /**
-     * Kết quả cập nhật tài khoản.
+     * Káº¿t quáº£ cáº­p nháº­t tÃ i khoáº£n.
      */
     public static final class UpdateUserResult {
 
