@@ -208,6 +208,29 @@
                     </a>
                 </li>
 
+                <% if ("ADMIN".equals(role)
+                        || "MANAGER".equals(role)) { %>
+
+                <li>
+
+                    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
+                       class="<%= currentURI.contains("/views/admin/custom-field.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Qu?n l? tr??ng t?y ch?nh
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <% } %>
+
+
             </ul>
 
         <%
@@ -291,23 +314,6 @@
 
                 </li>
 
-
-                <li>
-
-                    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
-                       class="<%= currentURI.contains("/views/admin/custom-field.jsp")
-                               ? "active"
-                               : "" %>">
-
-                        <span class="menu-indicator"></span>
-
-                        <span class="menu-text">
-                        Qu&#7843;n l&#253; tr&#432;&#7901;ng t&#249;y ch&#7881;nh
-                    </span>
-
-                    </a>
-
-                </li>
 
 <li>
                 <a

@@ -10,7 +10,10 @@
                     ? null
                     : (String) currentSession.getAttribute("userRole");
 
-    if (!"ADMIN".equalsIgnoreCase(currentRole)) {
+    if (!(
+        "ADMIN".equalsIgnoreCase(currentRole)
+        || "MANAGER".equalsIgnoreCase(currentRole)
+)) {
 
         response.sendRedirect(
                 request.getContextPath() + "/access-denied"
