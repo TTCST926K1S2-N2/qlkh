@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
     String role = (String) session.getAttribute("userRole");
@@ -156,7 +156,12 @@
 
             </li>
 
-        </ul>
+        <li class="sidebar-item">
+    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
+        <span>Quản lý trường tùy chỉnh</span>
+    </a>
+</li>
+</ul>
 
 
         <!-- ========================= -->
@@ -193,7 +198,12 @@
 
                 </li>
 
-            </ul>
+            <li class="sidebar-item">
+    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
+        <span>Quản lý trường tùy chỉnh</span>
+    </a>
+</li>
+</ul>
 
         <%
             }
@@ -276,7 +286,12 @@
 
                 </li>
 
-            </ul>
+            <li class="sidebar-item">
+    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
+        <span>Quản lý trường tùy chỉnh</span>
+    </a>
+</li>
+</ul>
 
         <%
             }
@@ -410,7 +425,12 @@
 
             <% } %>
 
-        </ul>
+        <li class="sidebar-item">
+    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
+        <span>Quản lý trường tùy chỉnh</span>
+    </a>
+</li>
+</ul>
 
     </nav>
 
