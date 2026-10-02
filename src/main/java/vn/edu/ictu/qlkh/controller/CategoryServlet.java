@@ -257,30 +257,74 @@ public class CategoryServlet extends HttpServlet {
     }
 
     private Category readCategory(
-            HttpServletRequest request) {
+            HttpServletRequest request) throws IOException {
+
+        java.util.Map<String, String> bodyParams =
+                new java.util.HashMap<>();
+
+        String contentType = request.getContentType();
+
+        if ("PUT".equalsIgnoreCase(request.getMethod())
+                && contentType != null
+                && contentType.toLowerCase()
+                        .startsWith("application/x-www-form-urlencoded")) {
+
+            StringBuilder body = new StringBuilder();
+            String line;
+
+            try (java.io.BufferedReader reader = request.getReader()) {
+                while ((line = reader.readLine()) != null) {
+                    body.append(line);
+                }
+            }
+
+            if (body.length() > 0) {
+                for (String pair : body.toString().split("&")) {
+
+                    if (pair.isEmpty()) {
+                        continue;
+                    }
+
+                    String[] parts = pair.split("=", 2);
+
+                    String key = java.net.URLDecoder.decode(
+                            parts[0],
+                            java.nio.charset.StandardCharsets.UTF_8
+                    );
+
+                    String value = parts.length > 1
+                            ? java.net.URLDecoder.decode(
+                                    parts[1],
+                                    java.nio.charset.StandardCharsets.UTF_8
+                            )
+                            : "";
+
+                    bodyParams.put(key, value);
+                }
+            }
+        }
 
         String categoryType =
-                request.getParameter("categoryType");
+                getFormValue(request, bodyParams, "categoryType");
 
         String categoryCode =
-                request.getParameter("categoryCode");
+                getFormValue(request, bodyParams, "categoryCode");
 
         String categoryName =
-                request.getParameter("categoryName");
+                getFormValue(request, bodyParams, "categoryName");
 
         String description =
-                request.getParameter("description");
+                getFormValue(request, bodyParams, "description");
 
         String statusParameter =
-                request.getParameter("status");
+                getFormValue(request, bodyParams, "status");
 
         boolean status = true;
 
         if (statusParameter != null
                 && !statusParameter.isBlank()) {
 
-            status =
-                    Boolean.parseBoolean(statusParameter);
+            status = Boolean.parseBoolean(statusParameter);
         }
 
         Category category = new Category();
@@ -294,6 +338,17 @@ public class CategoryServlet extends HttpServlet {
         return category;
     }
 
+    private String getFormValue(
+            HttpServletRequest request,
+            java.util.Map<String, String> bodyParams,
+            String name) {
+
+        if (bodyParams.containsKey(name)) {
+            return bodyParams.get(name);
+        }
+
+        return request.getParameter(name);
+    }
     private long parseId(String pathInfo) {
 
         if (pathInfo == null
