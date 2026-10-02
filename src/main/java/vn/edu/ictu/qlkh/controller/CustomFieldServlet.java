@@ -11,8 +11,12 @@ import vn.edu.ictu.qlkh.model.CustomField;
 import vn.edu.ictu.qlkh.service.CustomFieldService;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/custom-fields/*")
 public class CustomFieldServlet extends HttpServlet {
@@ -30,7 +34,7 @@ public class CustomFieldServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (!isAdmin(request)) {
+        if (!canManageCustomFields(request)) {
             sendError(
                     response,
                     HttpServletResponse.SC_FORBIDDEN,
@@ -104,7 +108,7 @@ public class CustomFieldServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (!isAdmin(request)) {
+        if (!canManageCustomFields(request)) {
             sendError(
                     response,
                     HttpServletResponse.SC_FORBIDDEN,
@@ -146,7 +150,7 @@ public class CustomFieldServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (!isAdmin(request)) {
+        if (!canManageCustomFields(request)) {
             sendError(
                     response,
                     HttpServletResponse.SC_FORBIDDEN,
@@ -159,7 +163,13 @@ public class CustomFieldServlet extends HttpServlet {
         try {
             long id = parseId(request.getPathInfo());
 
-            CustomField field = readField(request);
+            Map<String, String> formParameters =
+                    parseFormBody(request);
+
+            CustomField field =
+                    readField(
+                            request,
+                            formParameters);
             field.setId(id);
 
             customFieldService.updateField(field);
@@ -195,7 +205,7 @@ public class CustomFieldServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (!isAdmin(request)) {
+        if (!canManageCustomFields(request)) {
             sendError(
                     response,
                     HttpServletResponse.SC_FORBIDDEN,
@@ -234,7 +244,8 @@ public class CustomFieldServlet extends HttpServlet {
         }
     }
 
-    private boolean isAdmin(HttpServletRequest request) {
+    private boolean canManageCustomFields(
+            HttpServletRequest request) {
 
         HttpSession session =
                 request.getSession(false);
@@ -250,47 +261,171 @@ public class CustomFieldServlet extends HttpServlet {
             return false;
         }
 
-        return "ADMIN".equalsIgnoreCase(
-                roleObject.toString());
+        String role =
+                roleObject.toString()
+                        .trim();
+
+        return "ADMIN".equalsIgnoreCase(role)
+                || "MANAGER".equalsIgnoreCase(role);
     }
+
 
     private CustomField readField(
             HttpServletRequest request) {
 
-        CustomField field = new CustomField();
+        return readField(
+                request,
+                Map.of());
+    }
+
+
+    private CustomField readField(
+            HttpServletRequest request,
+            Map<String, String> formParameters) {
+
+        CustomField field =
+                new CustomField();
 
         field.setEntityType(
-                request.getParameter("entityType"));
+                getParameter(
+                        request,
+                        formParameters,
+                        "entityType"));
 
         field.setFieldKey(
-                request.getParameter("fieldKey"));
+                getParameter(
+                        request,
+                        formParameters,
+                        "fieldKey"));
 
         field.setFieldName(
-                request.getParameter("fieldName"));
+                getParameter(
+                        request,
+                        formParameters,
+                        "fieldName"));
 
         field.setFieldType(
-                request.getParameter("fieldType"));
+                getParameter(
+                        request,
+                        formParameters,
+                        "fieldType"));
 
         field.setRequired(
                 parseBoolean(
-                        request.getParameter("required"),
+                        getParameter(
+                                request,
+                                formParameters,
+                                "required"),
                         false));
 
         field.setStatus(
                 parseBoolean(
-                        request.getParameter("status"),
+                        getParameter(
+                                request,
+                                formParameters,
+                                "status"),
                         true));
 
         field.setDisplayOrder(
                 parseInt(
-                        request.getParameter("displayOrder"),
+                        getParameter(
+                                request,
+                                formParameters,
+                                "displayOrder"),
                         0));
 
         field.setConfig(
-                request.getParameter("config"));
+                getParameter(
+                        request,
+                        formParameters,
+                        "config"));
 
         return field;
     }
+
+
+    private String getParameter(
+            HttpServletRequest request,
+            Map<String, String> formParameters,
+            String name) {
+
+        if (formParameters != null
+                && formParameters.containsKey(name)) {
+
+            return formParameters.get(name);
+        }
+
+        return request.getParameter(name);
+    }
+
+
+    private Map<String, String> parseFormBody(
+            HttpServletRequest request)
+            throws IOException {
+
+        Map<String, String> parameters =
+                new LinkedHashMap<>();
+
+        String contentType =
+                request.getContentType();
+
+        if (contentType == null
+                || !contentType
+                        .toLowerCase()
+                        .startsWith(
+                                "application/x-www-form-urlencoded")) {
+
+            return parameters;
+        }
+
+        StringBuilder body =
+                new StringBuilder();
+
+        String line;
+
+        var reader =
+                request.getReader();
+
+        while ((line = reader.readLine()) != null) {
+            body.append(line);
+        }
+
+        if (body.length() == 0) {
+            return parameters;
+        }
+
+        String[] pairs =
+                body.toString().split("&");
+
+        for (String pair : pairs) {
+
+            if (pair.isBlank()) {
+                continue;
+            }
+
+            String[] parts =
+                    pair.split("=", 2);
+
+            String key =
+                    URLDecoder.decode(
+                            parts[0],
+                            StandardCharsets.UTF_8);
+
+            String value =
+                    parts.length > 1
+                            ? URLDecoder.decode(
+                                    parts[1],
+                                    StandardCharsets.UTF_8)
+                            : "";
+
+            parameters.put(
+                    key,
+                    value);
+        }
+
+        return parameters;
+    }
+
 
     private boolean parseBoolean(
             String value,
