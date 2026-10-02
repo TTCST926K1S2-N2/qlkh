@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
     String role = (String) session.getAttribute("userRole");
@@ -275,6 +275,20 @@
                     </a>
 
                 </li>
+            <li>
+                <a
+                    href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
+                    class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
+
+                    <span class="menu-indicator"></span>
+
+                    <span class="menu-text">
+                        Nh&#7853;t k&#253; thay &#273;&#7893;i
+                    </span>
+
+                </a>
+            </li>
+
 
             </ul>
 

@@ -1,177 +1,335 @@
+﻿* {
+    box-sizing: border-box;
+}
 
-.audit-log-card {
-
-    border: none;
-
-    border-radius: 12px;
-
-    box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.08);
-
+body {
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f7fb;
+    color: #162033;
 }
 
 
-/* Tiêu đề */
+/* =========================
+   PAGE LAYOUT
+========================= */
 
-.page-title {
+.page-content {
+    flex: 1;
+    min-width: 0;
+    width: calc(100% - 270px);
+    min-height: 100vh;
+    margin-left: 0;
+}
 
+.page-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e4eaf2;
+    padding: 24px 40px;
+}
+
+.breadcrumb {
+    margin-bottom: 8px;
+    color: #2f91d0;
+    font-size: 13px;
     font-weight: 700;
+    letter-spacing: 0.7px;
+}
 
-    color: #212529;
+.page-header h1 {
+    margin: 0 0 6px;
+    color: #10233d;
+    font-size: 28px;
+}
 
+.page-header p {
+    margin: 0;
+    color: #718096;
+    font-size: 14px;
+}
+
+.main-content {
+    max-width: 1400px;
+    margin: 32px auto;
+    padding: 0 30px 40px;
 }
 
 
-/* Table */
+/* =========================
+   FILTER
+========================= */
+
+.filter-card,
+.audit-log-card {
+    margin-bottom: 24px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e0e7ef;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(180px, 1.4fr)
+        minmax(160px, 1.1fr)
+        minmax(150px, 0.9fr)
+        minmax(150px, 0.8fr)
+        minmax(150px, 0.8fr);
+
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group label {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #162033;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #3196d3;
+    box-shadow: 0 0 0 3px rgba(49, 150, 211, 0.12);
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+.btn {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #3196d3;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #247fb5;
+}
+
+.btn-light {
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+
+/* =========================
+   TABLE
+========================= */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
 
 .table-audit {
-
-    vertical-align: middle;
-
+    width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
 }
-
 
 .table-audit th {
-
-    background-color: #f8f9fa;
-
-    color: #495057;
-
-    font-weight: 600;
-
+    padding: 13px 12px;
+    background: #f8fafc;
+    color: #475569;
+    border-bottom: 1px solid #dbe3ec;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
     text-transform: uppercase;
-
-    font-size: 0.8rem;
-
-    letter-spacing: 0.4px;
-
     white-space: nowrap;
+}
 
+.table-audit td {
+    padding: 13px 12px;
+    color: #334155;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.table-audit tbody tr:hover {
+    background: #f8fbfe;
 }
 
 
-.table-audit td {
+/* =========================
+   BADGES
+========================= */
 
-    font-size: 0.9rem;
-
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .badge-action-create {
-
-    background-color: #e6f4ea;
-
+    background: #e6f4ea;
     color: #137333;
-
-    border: 1px solid #ceebd6;
-
 }
 
-
 .badge-action-update {
-
-    background-color: #fef7e0;
-
-    color: #b06000;
-
-    border: 1px solid #fde293;
-
+    background: #fff4d6;
+    color: #9a6700;
 }
 
 .badge-action-delete {
-
-    background-color: #fce8e6;
-
+    background: #fde8e7;
     color: #c5221f;
-
-    border: 1px solid #fad2cf;
-
 }
 
 .badge-action-login {
-
-    background-color: #e8f0fe;
-
+    background: #e8f0fe;
     color: #1a73e8;
-
-    border: 1px solid #d2e3fc;
-
 }
 
 .badge-action-default {
-
-    background-color: #f1f3f5;
-
-    color: #495057;
-
-    border: 1px solid #dee2e6;
-
+    background: #eef2f6;
+    color: #475569;
 }
+
+
+/* =========================
+   OLD / NEW VALUE
+========================= */
 
 .log-value-box {
-
-    background-color: #f8f9fa;
-
-    border-radius: 6px;
-
-    padding: 7px 10px;
-
-    font-family:
-        SFMono-Regular,
-        Menlo,
-        Monaco,
-        Consolas,
-        monospace;
-
-    font-size: 0.82rem;
-
+    min-width: 150px;
+    max-width: 320px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #334155;
+    font-family: Consolas, monospace;
+    font-size: 12px;
     line-height: 1.5;
-
-    min-width: 160px;
-
-    max-width: 300px;
-
-    word-break: break-word;
-
+    overflow-wrap: anywhere;
 }
 
-#loadingState,
-#emptyState,
-#errorState {
 
-    min-height: 220px;
+/* =========================
+   STATES
+========================= */
 
+.state-box {
+    min-height: 240px;
     display: flex;
-
     flex-direction: column;
-
-    justify-content: center;
-
     align-items: center;
-
+    justify-content: center;
+    color: #718096;
+    text-align: center;
 }
 
-#loadingState.d-none,
-#emptyState.d-none,
-#errorState.d-none {
-
+.hidden,
+.d-none {
     display: none !important;
+}
 
+.spinner {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 12px;
+    border: 4px solid #dbeafe;
+    border-top-color: #3196d3;
+    border-radius: 50%;
+    animation: audit-spin 0.8s linear infinite;
+}
+
+@keyframes audit-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-title {
+    color: #c5221f;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1150px) {
+
+    .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
 
-    .audit-log-card {
-
-        border-radius: 8px;
-
+    body {
+        display: block;
     }
 
-    .log-value-box {
-
-        min-width: 120px;
-
-        max-width: 220px;
-
+    .page-content {
+        width: 100%;
+        margin-left: 0;
     }
 
+    .page-header {
+        padding: 22px 18px;
+    }
+
+    .main-content {
+        margin-top: 20px;
+        padding: 0 14px 30px;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-actions {
+        flex-direction: column-reverse;
+    }
+
+    .filter-actions .btn {
+        width: 100%;
+    }
 }
+
