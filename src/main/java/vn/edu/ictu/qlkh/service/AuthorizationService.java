@@ -68,7 +68,8 @@ public class AuthorizationService {
 
         return matchesPath(path, "/users")
                 || matchesPath(path, "/roles")
-                || matchesPath(path, "/lock-transfer");
+                || matchesPath(path, "/lock-transfer")
+                || matchesPath(path, "/api/audit-logs");
     }
 
     /**
