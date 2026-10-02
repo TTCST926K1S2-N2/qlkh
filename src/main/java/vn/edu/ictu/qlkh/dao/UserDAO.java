@@ -707,6 +707,34 @@ public class UserDAO {
         }
     }
     /**
+     * Lay duong dan avatar hien tai cua nguoi dung.
+     */
+    public String getAvatarByUserId(long userId)
+            throws SQLException {
+
+        String sql =
+                "SELECT avatar FROM users WHERE id = ?";
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setLong(1, userId);
+
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getString("avatar");
+                }
+            }
+        }
+
+        return null;
+    }
+    /**
      * Chuyá»ƒn dá»¯ liá»‡u ResultSet thÃ nh User.
      *
      * DÃ¹ng chung cho findByEmail()

@@ -111,6 +111,41 @@ public final class FileUploadUtil {
         );
     }
 
+    public static void deleteAvatarFiles(
+            String uploadPath,
+            String avatarUrl) {
+
+        if (avatarUrl == null || avatarUrl.isBlank()) {
+            return;
+        }
+
+        String fileName =
+                new File(avatarUrl).getName();
+
+        File avatarFile =
+                new File(uploadPath, fileName);
+
+        if (avatarFile.exists()) {
+            avatarFile.delete();
+        }
+
+        int dotIndex =
+                fileName.lastIndexOf('.');
+
+        if (dotIndex > 0) {
+            String thumbnailName =
+                    fileName.substring(0, dotIndex)
+                            + "-thumb"
+                            + fileName.substring(dotIndex);
+
+            File thumbnailFile =
+                    new File(uploadPath, thumbnailName);
+
+            if (thumbnailFile.exists()) {
+                thumbnailFile.delete();
+            }
+        }
+    }
     private static BufferedImage cropSquare(
             BufferedImage source
     ) {

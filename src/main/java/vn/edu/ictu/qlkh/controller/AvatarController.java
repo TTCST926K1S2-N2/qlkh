@@ -97,6 +97,9 @@ public class AvatarController extends HttpServlet {
                 );
             }
 
+            String oldAvatarUrl =
+                    userDAO.getAvatarByUserId(userId);
+
             FileUploadUtil.UploadResult result =
                     FileUploadUtil.saveAvatar(
                             filePart,
@@ -111,6 +114,10 @@ public class AvatarController extends HttpServlet {
                     );
 
             if (!updated) {
+                FileUploadUtil.deleteAvatarFiles(
+                        uploadPath,
+                        result.avatarUrl()
+                );
                 response.setStatus(
                         HttpServletResponse.SC_NOT_FOUND
                 );
@@ -119,6 +126,11 @@ public class AvatarController extends HttpServlet {
                 );
                 return;
             }
+
+            FileUploadUtil.deleteAvatarFiles(
+                    uploadPath,
+                    oldAvatarUrl
+            );
 
             response.setStatus(
                     HttpServletResponse.SC_OK
