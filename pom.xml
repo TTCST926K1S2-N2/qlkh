@@ -104,7 +104,7 @@
         <version>2.2</version>
         <configuration>
           <port>8080</port>
-          <path>/</path>
+          <path>qlkh</path>
         </configuration>
       </plugin>
 

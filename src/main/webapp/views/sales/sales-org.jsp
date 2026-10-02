@@ -25,11 +25,23 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
         }
         /* CSS cho Bảng danh sách */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; font-size: 14px; }
-        td { font-size: 14px; color: #333; }
-        tr:hover { background-color: #f1f2f6; }
+       /* CSS cho Cấu trúc cây (Tree View) */
+        .tree-container { padding: 10px; background: #fff; border-radius: 8px; width: 100%; box-sizing: border-box; }
+        .tree, .tree ul { list-style-type: none; margin: 0; padding: 0; }
+        .tree ul { padding-left: 30px; border-left: 1px dashed #bdc3c7; margin-left: 10px; margin-top: 5px; }
+        .tree li { margin: 10px 0; }
+        .tree-node { display: flex; align-items: center; padding: 10px 15px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; transition: background 0.2s; }
+        .tree-node:hover { background-color: #f1f2f6; }
+        .caret { cursor: pointer; user-select: none; width: 20px; height: 20px; display: inline-block; text-align: center; margin-right: 10px; font-weight: bold; color: #2c3e50; }
+        .caret::before { content: "\25B6"; display: inline-block; transition: transform 0.2s; }
+        .caret-down::before { transform: rotate(90deg); }
+        .caret.empty::before { content: "\25CF"; font-size: 10px; color: #95a5a6; cursor: default; } /* Nút không có con */
+        .node-title { flex-grow: 1; font-weight: 500; color: #2c3e50; font-size: 15px; }
+        .node-actions { display: flex; gap: 5px; margin-left: 15px; }
+        .btn-add-emp { background-color: #8e44ad; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-add-emp:hover { background-color: #9b59b6; }
+        .nested { display: none; }
+        .active-tree { display: block; }
         
         /* CSS cho Nút Thao tác & Trạng thái */
         .btn-edit { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
@@ -53,54 +65,12 @@
         </div>
         
         <div class="content-box">
-            <table>
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Mã đơn vị</th>
-                        <th>Tên đơn vị</th>
-                        <th>Đơn vị cha</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dữ liệu mẫu (Tĩnh) để test UI -->
-                    <tr>
-                        <td>1</td>
-                        <td>KV_MB</td>
-                        <td>Khu vực Miền Bắc</td>
-                        <td>-</td>
-                        <td><span class="status active">Hoạt động</span></td>
-                        <td>
-                            <button class="btn-edit">Sửa</button>
-                            <button class="btn-delete">Xóa</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>CN_HN</td>
-                        <td>Chi nhánh Hà Nội</td>
-                        <td>Khu vực Miền Bắc</td>
-                        <td><span class="status active">Hoạt động</span></td>
-                        <td>
-                            <button class="btn-edit">Sửa</button>
-                            <button class="btn-delete">Xóa</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>KV_MN</td>
-                        <td>Khu vực Miền Nam</td>
-                        <td>-</td>
-                        <td><span class="status inactive">Tạm ngừng</span></td>
-                        <td>
-                            <button class="btn-edit">Sửa</button>
-                            <button class="btn-delete">Xóa</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Container trống: JS sẽ lấy dữ liệu từ API và tự động vẽ cây vào đây -->
+            <div id="treeContainer" class="tree-container">
+                <div style="text-align: center; padding: 20px; color: #7f8c8d;">
+                    Đang tải cấu trúc cây từ Backend...
+                </div>
+            </div>
         </div>
     </div>
     <!-- Khu vực Modal Form Thêm/Sửa -->
@@ -124,10 +94,28 @@
                         <label>Đơn vị cha</label>
                         <select id="parentId" name="parentId">
                             <option value="">-- Không có (Đơn vị gốc) --</option>
-                            <option value="1">Khu vực Miền Bắc</option>
-                            <option value="3">Khu vực Miền Nam</option>
+                            <!-- Dữ liệu Đơn vị cha sẽ được đổ từ API của Backend -->
                         </select>
                     </div>
+                    
+                    <!-- Bổ sung trường Trưởng nhóm (Yêu cầu số 4) -->
+                    <div class="form-group">
+                        <label>Trưởng nhóm <span style="color:red">*</span></label>
+                        <select id="leaderId" name="leaderId" required>
+                            <option value="">-- Chọn trưởng nhóm --</option>
+                            <!-- Dữ liệu Trưởng nhóm sẽ được đổ từ API -->
+                        </select>
+                    </div>
+
+                    <!-- Bổ sung trường Khu vực địa lý (Yêu cầu số 6) -->
+                    <div class="form-group">
+                        <label>Khu vực địa lý <span style="color:red">*</span></label>
+                        <select id="regionId" name="regionId" required>
+                            <option value="">-- Chọn khu vực --</option>
+                            <!-- Dữ liệu Khu vực sẽ được đổ từ API -->
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label>Trạng thái</label>
                         <select id="status" name="status">
@@ -237,6 +225,66 @@
                 }
             };
         });
+        // ==========================================
+        // KHU VỰC XỬ LÝ CẤU TRÚC CÂY TỔ CHỨC
+        // ==========================================
+        
+        // 1. Giả lập dữ liệu JSON trả về từ API Backend (Khi có API thật sẽ thay bằng fetch)
+        const mockApiData = [
+            { id: 1, code: "KV_MB", name: "Khu vực Miền Bắc", status: 1, children: [
+                { id: 2, code: "CN_HN", name: "Chi nhánh Hà Nội", status: 1, children: [] }
+            ]},
+            { id: 3, code: "KV_MN", name: "Khu vực Miền Nam", status: 0, children: [] }
+        ];
+
+        // 2. Hàm đệ quy vẽ HTML cho Cây
+        function renderTree(data) {
+            if (!data || data.length === 0) return "";
+            let html = '<ul class="tree">';
+            data.forEach(item => {
+                const hasChild = item.children && item.children.length > 0;
+                const statusHtml = item.status === 1 ? '<span class="status active">Hoạt động</span>' : '<span class="status inactive">Tạm ngừng</span>';
+                const caretHtml = hasChild ? '<span class="caret"></span>' : '<span class="caret empty"></span>';
+                
+                html += `
+                    <li>
+                        <div class="tree-node">
+                            ${caretHtml}
+                            <span class="node-title">${item.code} - ${item.name}</span>
+                            ${statusHtml}
+                            <div class="node-actions">
+                                <button class="btn-add-emp" onclick="addEmployee(${item.id})">+ Thêm nhân viên</button>
+                                <button class="btn-edit" onclick="editOrg(${item.id})">Sửa</button>
+                                <button class="btn-delete" onclick="deleteOrg(${item.id})">Xóa</button>
+                            </div>
+                        </div>
+                        ${hasChild ? `<div class="nested">${renderTree(item.children)}</div>` : ""}
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        // 3. Đổ dữ liệu vào giao diện
+        document.getElementById("treeContainer").innerHTML = renderTree(mockApiData);
+
+        // 4. Bắt sự kiện click để Mở/Đóng các nhánh cây
+        document.getElementById("treeContainer").addEventListener("click", function(e) {
+            if (e.target.classList.contains("caret") && !e.target.classList.contains("empty")) {
+                e.target.parentElement.nextElementSibling.classList.toggle("active-tree");
+                e.target.classList.toggle("caret-down");
+            }
+        });
+
+        // 5. Các hàm chờ tích hợp API (Giải quyết yêu cầu 5, 8, 9 của Jira)
+        function addEmployee(id) { alert("Chức năng: Mở popup chọn nhân viên gán vào nhóm ID " + id); }
+        function editOrg(id) { alert("Chức năng: Lấy dữ liệu ID " + id + " từ API và mở Form Sửa"); }
+        function deleteOrg(id) { 
+            if(confirm("Bạn có chắc chắn muốn xóa đơn vị này?")) {
+                alert("Đã gọi API xóa ID " + id + ". Chờ BE trả kết quả thành công mới tải lại cây.");
+            }
+        }
     </script>
 </body>
 </html>
