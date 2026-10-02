@@ -1,33 +1,34 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Danh mục dùng chung - HỆ THỐNG QLKH</title>
     <style>
-        body { 
-            margin: 0; padding: 0; display: flex; justify-content: center; 
-            background-color: #f4f6f9; font-family: Arial, sans-serif; 
+        body {
+            margin: 0; padding: 0; display: flex; justify-content: flex-start; min-height: 100vh; width: 100%;
+            background-color: #f4f6f9; font-family: Arial, sans-serif;
         }
         /* Căn giữa và giới hạn khung 1000px đồng bộ với S2-06 */
-        .main-content { 
-            padding: 30px; width: 100%; max-width: 1000px; box-sizing: border-box; 
+        .main-content {
+            flex: 1; min-width: 0; padding: 30px; width: auto; max-width: none; box-sizing: border-box;
         }
-        .page-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px; 
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px;
         }
         .page-header h2 { margin: 0; color: #2c3e50; }
         .btn-add { background-color: #2ecc71; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; border: none; cursor: pointer; }
         .btn-add:hover { background-color: #27ae60; }
-        .content-box { 
-            background: #fff; padding: 20px; border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        .content-box {
+            background: #fff; padding: 20px; border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; font-size: 14px; }
         td { font-size: 14px; color: #333; }
-        
+
         /* CSS cho Nút Thao tác & Trạng thái */
         .btn-edit { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .btn-delete { background-color: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-left: 5px;}
@@ -47,7 +48,7 @@
             <h2>Quản lý danh mục dùng chung</h2>
             <button id="btnAdd" class="btn-add" onclick="openModal('create')">+ Thêm danh mục mới</button>
         </div>
-        
+
         <div class="content-box">
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
                 <input
@@ -105,7 +106,7 @@
                 <h3 id="modalTitle" style="margin: 0; color: #2c3e50;">Thêm mới danh mục</h3>
                 <span class="close" onclick="closeModal()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
             </div>
-            
+
             <form id="categoryForm">
                 <!-- Thẻ ẩn lưu ID để phân biệt Thêm hay Sửa -->
                 <input type="hidden" id="catId" name="catId">
@@ -114,12 +115,12 @@
                     <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Mã danh mục <span style="color: red;">*</span></label>
                     <input type="text" id="catCode" maxlength="50" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
                 </div>
-                
+
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Tên danh mục <span style="color: red;">*</span></label>
                     <input type="text" id="catName" maxlength="255" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
                 </div>
-                
+
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Loại danh mục <span style="color: red;">*</span></label>
                     <!-- Chuẩn hóa Value Type theo chuẩn Backend (Yêu cầu 5) -->
@@ -135,7 +136,7 @@
                     <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Mô tả</label>
                     <textarea id="catDesc" rows="3" maxlength="500" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
                 </div>
-                
+
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Trạng thái</label>
                     <select id="catStatus" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
@@ -143,7 +144,7 @@
                         <option value="false">Tạm ngừng</option>
                     </select>
                 </div>
-                
+
                 <div style="text-align: right;">
                     <button type="button" onclick="closeModal()" style="padding: 8px 15px; border: none; background-color: #95a5a6; color: white; border-radius: 4px; cursor: pointer; margin-right: 10px;">Hủy</button>
                     <button type="submit" style="padding: 8px 15px; border: none; background-color: #3498db; color: white; border-radius: 4px; cursor: pointer;">Lưu thông tin</button>
@@ -239,24 +240,24 @@
 
             return `
                 <tr>
-                    <td>${index + 1}</td>
-                    <td>${escapeHtml(cat.categoryCode)}</td>
-                    <td>${escapeHtml(cat.categoryName)}</td>
-                    <td>${escapeHtml(typeName(cat.categoryType))}</td>
-                    <td>${escapeHtml(cat.description || "")}</td>
-                    <td>${statusHtml}</td>
+                    <td>\${index + 1}</td>
+                    <td>\${escapeHtml(cat.categoryCode)}</td>
+                    <td>\${escapeHtml(cat.categoryName)}</td>
+                    <td>\${escapeHtml(typeName(cat.categoryType))}</td>
+                    <td>\${escapeHtml(cat.description || "")}</td>
+                    <td>\${statusHtml}</td>
                     <td>
                         <button
                             type="button"
                             class="btn-edit"
-                            onclick="openModal('edit', ${Number(cat.id)})">
+                            onclick="openModal('edit', \${Number(cat.id)})">
                             Sửa
                         </button>
 
                         <button
                             type="button"
                             class="btn-delete"
-                            onclick="deleteCategory(${Number(cat.id)})">
+                            onclick="deleteCategory(\${Number(cat.id)})">
                             Xóa
                         </button>
                     </td>
@@ -277,7 +278,7 @@
         filterType.innerHTML =
             '<option value="">Tất cả loại</option>' +
             types.map(type =>
-                `<option value="${escapeHtml(type)}">${escapeHtml(typeName(type))}</option>`
+                `<option value="\${escapeHtml(type)}">\${escapeHtml(typeName(type))}</option>`
             ).join("");
 
         if (types.includes(current)) {

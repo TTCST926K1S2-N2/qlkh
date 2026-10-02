@@ -192,6 +192,21 @@
                     </a>
 
                 </li>
+                <!-- DANH MỤC DÙNG CHUNG -->
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/common-categories.jsp"
+                       class="<%= currentURI.contains("/views/sales/common-categories.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Danh mục dùng chung
+                        </span>
+
+                    </a>
+                </li>
 
             </ul>
 
