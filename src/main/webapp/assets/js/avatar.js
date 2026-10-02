@@ -55,5 +55,31 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage(error.textContent,"error");
     }finally{uploadBtn.textContent="Tải ảnh đại diện";}
   });
+  async function loadCurrentAvatar(){
+    try{
+      const response=await fetch(form.action,{
+        method:"GET",
+        credentials:"same-origin"
+      });
+      const result=await response.json().catch(()=>null);
+
+      if(!response.ok||!result||result.success!==true||!result.avatarUrl){
+        return;
+      }
+
+      const url=result.avatarUrl;
+      preview.src=/^https?:\/\//i.test(url)
+        ? url
+        : context+(url.startsWith("/")?url:"/"+url);
+
+      preview.hidden=false;
+      placeholder.hidden=true;
+    }catch(ex){
+      console.error("Cannot load avatar",ex);
+    }
+  }
+
+  loadCurrentAvatar();
+
   window.addEventListener("beforeunload",()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);});
 });
