@@ -151,140 +151,123 @@
         .btn-save:hover { background-color: #2980b9; }
     </style>
 
-    <!-- Script xử lý Đóng/Mở Modal -->
-    <script>
-        const modal = document.getElementById("salesOrgModal");
-        const btnAdd = document.getElementById("btnAdd");
-        const spanClose = document.getElementsByClassName("close-btn")[0];
-        const btnCancel = document.querySelector(".btn-cancel");
-
-        // Mở modal khi bấm Thêm mới
-        btnAdd.onclick = function() {
-            document.getElementById("modalTitle").innerText = "Thêm mới đơn vị";
-            document.getElementById("salesOrgForm").reset();
-            modal.style.display = "block";
-        }
-
-        // Tắt modal khi bấm nút X hoặc Hủy
-        spanClose.onclick = function() { modal.style.display = "none"; }
-        btnCancel.onclick = function() { modal.style.display = "none"; }
-
-        // Tắt modal khi click ra ngoài vùng xám
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-        // Lấy đối tượng form
+    <!-- Script xử lý giao diện S2-06 -->
+<script>
+    const modal = document.getElementById("salesOrgModal");
+    const btnAdd = document.getElementById("btnAdd");
+    const spanClose = document.querySelector(".close-btn");
+    const btnCancel = document.querySelector(".btn-cancel");
     const form = document.getElementById("salesOrgForm");
-    
-    // Xử lý sự kiện khi bấm nút "Lưu thông tin" (submit form)
-    form.onsubmit = function(event) {
-        // 1. Ngăn chặn hành vi tự động tải lại trang (reload) mặc định của HTML
-        event.preventDefault();
+    const treeContainer = document.getElementById("treeContainer");
 
-        // 2. Lấy giá trị người dùng nhập và xóa khoảng trắng thừa ở 2 đầu (trim)
-        const orgCode = document.getElementById("orgCode").value.trim();
-        const orgName = document.getElementById("orgName").value.trim();
+    const orgCodeInput = document.getElementById("orgCode");
+    const orgNameInput = document.getElementById("orgName");
+    const parentSelect = document.getElementById("parentId");
+    const leaderSelect = document.getElementById("leaderId");
+    const regionSelect = document.getElementById("regionId");
 
-        // 3. Thực hiện Validate (Kiểm tra dữ liệu)
-        if (orgCode === "") {
-            alert("Lỗi: Vui lòng nhập Mã đơn vị!");
-            document.getElementById("orgCode").focus(); // Trỏ con trỏ chuột lại ô bị lỗi
-            return false;
-        }
+    function showBackendUnavailable() {
+        treeContainer.innerHTML = `
+            <div style="
+                padding: 32px 20px;
+                text-align: center;
+                color: #6c757d;
+                border: 1px dashed #ced4da;
+                border-radius: 6px;
+                background: #f8f9fa;">
+                <strong>Chưa có dữ liệu cơ cấu tổ chức</strong>
+                <div style="margin-top:8px">
+                    Chức năng đang chờ API quản lý cơ cấu tổ chức từ Backend.
+                </div>
+            </div>
+        `;
+    }
 
-        // Validate độ dài của Mã đơn vị (Giả sử tối đa 20 ký tự)
-        if (orgCode.length > 20) {
-            alert("Lỗi: Mã đơn vị không được vượt quá 20 ký tự!");
-            document.getElementById("orgCode").focus();
-            return false;
-        }
+    function openCreateModal() {
+        form.reset();
 
-        if (orgName === "") {
-            alert("Lỗi: Vui lòng nhập Tên đơn vị!");
-            document.getElementById("orgName").focus();
-            return false;
-        }
+        document.getElementById("modalTitle").innerText =
+            "Thêm mới đơn vị";
 
-        // 4. Nếu vượt qua toàn bộ các bước kiểm tra -> Thành công
-        // (Đến bước ghép Backend, chúng ta sẽ viết code gọi API AJAX ở đúng vị trí này)
-        alert("Dữ liệu hợp lệ! Đang chuẩn bị gọi API lưu thông tin:\n- Mã: " + orgCode + "\n- Tên: " + orgName);
-        
-        // Mô phỏng việc lưu thành công: đóng Modal và làm sạch form
+        modal.style.display = "block";
+        orgCodeInput.focus();
+    }
+
+    function closeModal() {
         modal.style.display = "none";
         form.reset();
-    };
-    // Bắt sự kiện click cho các nút Xóa trên bảng
-        const deleteButtons = document.querySelectorAll('.btn-delete');
-        deleteButtons.forEach(button => {
-            button.onclick = function() {
-                const confirmDelete = confirm("Bạn có chắc chắn muốn xóa danh mục này không? Thao tác này không thể hoàn tác.");
-                if (confirmDelete) {
-                    alert("Đã xác nhận! Sẽ gọi API để xóa danh mục khỏi cơ sở dữ liệu.");
-                }
-            };
-        });
-        // ==========================================
-        // KHU VỰC XỬ LÝ CẤU TRÚC CÂY TỔ CHỨC
-        // ==========================================
-        
-        // 1. Giả lập dữ liệu JSON trả về từ API Backend (Khi có API thật sẽ thay bằng fetch)
-        const mockApiData = [
-            { id: 1, code: "KV_MB", name: "Khu vực Miền Bắc", status: 1, children: [
-                { id: 2, code: "CN_HN", name: "Chi nhánh Hà Nội", status: 1, children: [] }
-            ]},
-            { id: 3, code: "KV_MN", name: "Khu vực Miền Nam", status: 0, children: [] }
-        ];
+    }
 
-        // 2. Hàm đệ quy vẽ HTML cho Cây
-        function renderTree(data) {
-            if (!data || data.length === 0) return "";
-            let html = '<ul class="tree">';
-            data.forEach(item => {
-                const hasChild = item.children && item.children.length > 0;
-                const statusHtml = item.status === 1 ? '<span class="status active">Hoạt động</span>' : '<span class="status inactive">Tạm ngừng</span>';
-                const caretHtml = hasChild ? '<span class="caret"></span>' : '<span class="caret empty"></span>';
-                
-                html += `
-                    <li>
-                        <div class="tree-node">
-                            ${caretHtml}
-                            <span class="node-title">${item.code} - ${item.name}</span>
-                            ${statusHtml}
-                            <div class="node-actions">
-                                <button class="btn-add-emp" onclick="addEmployee(${item.id})">+ Thêm nhân viên</button>
-                                <button class="btn-edit" onclick="editOrg(${item.id})">Sửa</button>
-                                <button class="btn-delete" onclick="deleteOrg(${item.id})">Xóa</button>
-                            </div>
-                        </div>
-                        ${hasChild ? `<div class="nested">${renderTree(item.children)}</div>` : ""}
-                    </li>
-                `;
-            });
-            html += '</ul>';
-            return html;
+    btnAdd.addEventListener("click", openCreateModal);
+    spanClose.addEventListener("click", closeModal);
+    btnCancel.addEventListener("click", closeModal);
+
+    window.addEventListener("click", function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    function validateForm() {
+        const orgCode = orgCodeInput.value.trim();
+        const orgName = orgNameInput.value.trim();
+
+        if (!orgCode) {
+            alert("Vui lòng nhập Mã đơn vị.");
+            orgCodeInput.focus();
+            return false;
         }
 
-        // 3. Đổ dữ liệu vào giao diện
-        document.getElementById("treeContainer").innerHTML = renderTree(mockApiData);
-
-        // 4. Bắt sự kiện click để Mở/Đóng các nhánh cây
-        document.getElementById("treeContainer").addEventListener("click", function(e) {
-            if (e.target.classList.contains("caret") && !e.target.classList.contains("empty")) {
-                e.target.parentElement.nextElementSibling.classList.toggle("active-tree");
-                e.target.classList.toggle("caret-down");
-            }
-        });
-
-        // 5. Các hàm chờ tích hợp API (Giải quyết yêu cầu 5, 8, 9 của Jira)
-        function addEmployee(id) { alert("Chức năng: Mở popup chọn nhân viên gán vào nhóm ID " + id); }
-        function editOrg(id) { alert("Chức năng: Lấy dữ liệu ID " + id + " từ API và mở Form Sửa"); }
-        function deleteOrg(id) { 
-            if(confirm("Bạn có chắc chắn muốn xóa đơn vị này?")) {
-                alert("Đã gọi API xóa ID " + id + ". Chờ BE trả kết quả thành công mới tải lại cây.");
-            }
+        if (orgCode.length > 20) {
+            alert("Mã đơn vị không được vượt quá 20 ký tự.");
+            orgCodeInput.focus();
+            return false;
         }
-    </script>
+
+        if (!orgName) {
+            alert("Vui lòng nhập Tên đơn vị.");
+            orgNameInput.focus();
+            return false;
+        }
+
+        if (!leaderSelect.value) {
+            alert("Vui lòng chọn Trưởng nhóm.");
+            leaderSelect.focus();
+            return false;
+        }
+
+        if (!regionSelect.value) {
+            alert("Vui lòng chọn Khu vực địa lý.");
+            regionSelect.focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        alert(
+            "Chưa thể lưu dữ liệu vì API Backend S2-06 " +
+            "chưa được cung cấp."
+        );
+    });
+
+    /*
+     * Không sử dụng dữ liệu hard-code hoặc mock.
+     * Các danh sách này sẽ được tải từ Backend
+     * khi API S2-06 được cung cấp.
+     */
+    parentSelect.disabled = true;
+    leaderSelect.disabled = true;
+    regionSelect.disabled = true;
+
+    showBackendUnavailable();
+</script>
 </body>
 </html>
