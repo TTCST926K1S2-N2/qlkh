@@ -112,7 +112,9 @@ public class CategoryDAO {
                 """;
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(
+                     sql,
+                     java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setString(1, category.getCategoryType());
             statement.setString(2, category.getCategoryCode());
@@ -120,10 +122,27 @@ public class CategoryDAO {
             statement.setString(4, category.getDescription());
             statement.setBoolean(5, category.isStatus());
 
-            return statement.executeUpdate() > 0;
+            int affectedRows = statement.executeUpdate();
+
+            if (affectedRows == 0) {
+                return false;
+            }
+
+            try (ResultSet generatedKeys =
+                         statement.getGeneratedKeys()) {
+
+                if (!generatedKeys.next()) {
+                    throw new SQLException(
+                            "Không lấy được ID danh mục sau khi thêm."
+                    );
+                }
+
+                category.setId(generatedKeys.getLong(1));
+            }
+
+            return true;
         }
     }
-
     public boolean update(Category category) throws SQLException {
 
         String sql = """
