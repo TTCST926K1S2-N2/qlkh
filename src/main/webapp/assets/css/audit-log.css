@@ -1,70 +1,118 @@
-/* =========================================
-   S2-04 - Nhật ký thay đổi hệ thống
-   ========================================= */
 
 .audit-log-card {
+
     border: none;
+
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.08);
+
 }
 
 
-/* =========================================
-   Table
-   ========================================= */
+/* Tiêu đề */
+
+.page-title {
+
+    font-weight: 700;
+
+    color: #212529;
+
+}
+
+
+/* Table */
+
+.table-audit {
+
+    vertical-align: middle;
+
+}
+
 
 .table-audit th {
+
     background-color: #f8f9fa;
+
     color: #495057;
+
     font-weight: 600;
+
     text-transform: uppercase;
+
     font-size: 0.8rem;
-    letter-spacing: 0.5px;
-    vertical-align: middle;
+
+    letter-spacing: 0.4px;
+
+    white-space: nowrap;
+
 }
+
 
 .table-audit td {
-    vertical-align: middle;
+
+    font-size: 0.9rem;
+
 }
-
-
-/* =========================================
-   Action badges
-   ========================================= */
 
 .badge-action-create {
+
     background-color: #e6f4ea;
+
     color: #137333;
+
     border: 1px solid #ceebd6;
+
 }
 
+
 .badge-action-update {
+
     background-color: #fef7e0;
+
     color: #b06000;
+
     border: 1px solid #fde293;
+
 }
 
 .badge-action-delete {
+
     background-color: #fce8e6;
+
     color: #c5221f;
+
     border: 1px solid #fad2cf;
+
 }
 
 .badge-action-login {
+
     background-color: #e8f0fe;
+
     color: #1a73e8;
+
     border: 1px solid #d2e3fc;
+
 }
 
+.badge-action-default {
 
-/* =========================================
-   Old / New value
-   ========================================= */
+    background-color: #f1f3f5;
+
+    color: #495057;
+
+    border: 1px solid #dee2e6;
+
+}
 
 .log-value-box {
+
     background-color: #f8f9fa;
+
     border-radius: 6px;
-    border: 1px solid #e9ecef;
+
     padding: 7px 10px;
 
     font-family:
@@ -74,57 +122,56 @@
         Consolas,
         monospace;
 
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+
+    line-height: 1.5;
+
+    min-width: 160px;
 
     max-width: 300px;
 
     word-break: break-word;
-    white-space: pre-wrap;
+
 }
 
+#loadingState,
+#emptyState,
+#errorState {
 
-/* =========================================
-   Empty / Error state
-   ========================================= */
+    min-height: 220px;
 
-.empty-state-icon,
-.error-state-icon {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
 }
 
-.empty-state-icon {
-    color: #6c757d;
+#loadingState.d-none,
+#emptyState.d-none,
+#errorState.d-none {
+
+    display: none !important;
+
 }
-
-.error-state-icon {
-    color: #dc3545;
-}
-
-
-/* =========================================
-   Filter
-   ========================================= */
-
-#searchForm .form-control,
-#searchForm .form-select {
-    min-height: 38px;
-}
-
-
-/* =========================================
-   Responsive
-   ========================================= */
 
 @media (max-width: 768px) {
 
     .audit-log-card {
+
         border-radius: 8px;
+
     }
 
     .log-value-box {
+
+        min-width: 120px;
+
         max-width: 220px;
+
     }
 
 }
