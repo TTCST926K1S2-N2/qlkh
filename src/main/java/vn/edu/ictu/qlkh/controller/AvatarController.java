@@ -25,6 +25,54 @@ public class AvatarController extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
 
     @Override
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+
+        HttpSession session = request.getSession(false);
+        Long userId = getSessionUserId(session);
+
+        if (userId == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(
+                    "{\"success\":false,\"message\":\"Unauthorized.\"}"
+            );
+            return;
+        }
+
+        try {
+            String avatarUrl =
+                    userDAO.getAvatarByUserId(userId);
+
+            response.setStatus(HttpServletResponse.SC_OK);
+
+            if (avatarUrl == null || avatarUrl.isBlank()) {
+                response.getWriter().write(
+                        "{\"success\":true,\"avatarUrl\":null}"
+                );
+            } else {
+                response.getWriter().write(
+                        "{\"success\":true,\"avatarUrl\":\""
+                                + avatarUrl
+                                + "\"}"
+                );
+            }
+
+        } catch (SQLException e) {
+            response.setStatus(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            );
+            response.getWriter().write(
+                    "{\"success\":false,\"message\":\"Cannot load avatar.\"}"
+            );
+        }
+    }
+
+    @Override
     protected void doPost(
             HttpServletRequest request,
             HttpServletResponse response)

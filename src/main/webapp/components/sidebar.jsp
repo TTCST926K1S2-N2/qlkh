@@ -316,7 +316,7 @@
                 </li>
 
                 <li>
-                    <a href="/user/avatar.jsp" class="<%= currentURI.contains("/avatar") ? "active" : "" %>">
+                    <a href="${pageContext.request.contextPath}/user/avatar.jsp" class="<%= currentURI.contains("/avatar") ? "active" : "" %>">
                         <span class="menu-indicator"></span>
                         <span class="menu-text">&#7842;nh &#273;&#7841;i di&#7879;n</span>
                     </a>
