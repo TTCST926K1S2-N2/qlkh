@@ -1,3 +1,4 @@
+console.log("S208_FIX4_LOADED");
 ﻿(function () {
 
     "use strict";
@@ -437,57 +438,112 @@
     }
 
 
-    function openEditForm(id) {
+    async function openEditForm(id) {
 
-        const field =
-            fields.find(function (item) {
-                return Number(item.id) === Number(id);
-            });
+        console.log("S208_FIX4_OPEN_EDIT", id);
 
-        if (!field) {
-            return;
-        }
-
-        editingId.value =
-            field.id;
-
-        fieldName.value =
-            field.fieldName || "";
-
-        fieldCode.value =
-            field.fieldKey || "";
-
-        fieldType.value =
-            field.fieldType || "";
-
-        fieldTarget.value =
-            field.entityType || "";
-
-        fieldRequired.checked =
-            Boolean(field.required);
-
-        fieldConfig.value =
-            field.config || "";
-
-        displayOrder.value =
-            Number(field.displayOrder || 0);
-
-        fieldStatus.value =
-            String(Boolean(field.status));
-
-        modalTitle.textContent =
-            "Chỉnh sửa trường tùy chỉnh";
-
+        hidePageMessage();
         clearFormError();
 
-        updateConfigVisibility();
+        try {
 
-        modal.classList.add("show");
+            const field = await request(
+                API + "/" + id + "?_=" + Date.now(),
+                {
+                    cache: "no-store"
+                }
+            );
 
-        modal.setAttribute(
-            "aria-hidden",
-            "false"
-        );
+            if (!field) {
+                throw new Error(
+                    "Kh\u00f4ng t\u00ecm th\u1ea5y tr\u01b0\u1eddng t\u00f9y ch\u1ec9nh."
+                );
+            }
+
+            editingId.value =
+                String(field.id || id);
+
+            fieldName.value =
+                field.fieldName || "";
+
+            fieldCode.value =
+                field.fieldKey || "";
+
+            fieldType.value =
+                String(field.fieldType || "")
+                    .trim()
+                    .toUpperCase();
+
+            let entityType =
+                String(field.entityType || "")
+                    .trim()
+                    .toUpperCase();
+
+            if (entityType === "LEAD") {
+                entityType = "OPPORTUNITY";
+            }
+
+            fieldTarget.value =
+                entityType;
+
+            fieldRequired.checked =
+                field.required === true
+                || field.required === 1
+                || String(field.required)
+                    .toLowerCase() === "true";
+
+            fieldConfig.value =
+                field.config || "";
+
+            displayOrder.value =
+                String(
+                    Number(field.displayOrder || 0)
+                );
+
+            const active =
+                field.status === true
+                || field.status === 1
+                || String(field.status)
+                    .toLowerCase() === "true";
+
+            fieldStatus.value =
+                active ? "true" : "false";
+
+            /*
+             * Dung HTML entities de tuyet doi
+             * khong bi loi encoding.
+             */
+            modalTitle.innerHTML =
+                "Ch&#7881;nh s&#7917;a tr&#432;&#7901;ng t&#249;y ch&#7881;nh";
+
+            updateConfigVisibility();
+
+            modal.classList.add("show");
+
+            modal.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            console.log(
+                "S208_FIX4_ENTITY",
+                field.entityType,
+                fieldTarget.value
+            );
+
+        } catch (error) {
+
+            console.error(
+                "S208_FIX4_OPEN_ERROR",
+                error
+            );
+
+            showPageMessage(
+                error.message
+                || "Kh\u00f4ng th\u1ec3 t\u1ea3i th\u00f4ng tin tr\u01b0\u1eddng t\u00f9y ch\u1ec9nh.",
+                true
+            );
+        }
     }
 
 
@@ -625,6 +681,7 @@
         event.preventDefault();
 
         hidePageMessage();
+        clearFormError();
 
         if (!validateForm()) {
             return;
@@ -635,32 +692,110 @@
                 ? Number(editingId.value)
                 : null;
 
+        const entityType =
+            String(fieldTarget.value || "")
+                .trim()
+                .toUpperCase();
+
+        if (!entityType) {
+
+            showFormError(
+                "\u0110\u1ed1i t\u01b0\u1ee3ng \u00e1p d\u1ee5ng kh\u00f4ng \u0111\u01b0\u1ee3c \u0111\u1ec3 tr\u1ed1ng."
+            );
+
+            return;
+        }
+
         const payload =
-            buildPayload();
+            new URLSearchParams();
+
+        payload.set(
+            "entityType",
+            entityType
+        );
+
+        payload.set(
+            "fieldKey",
+            fieldCode.value.trim()
+        );
+
+        payload.set(
+            "fieldName",
+            fieldName.value.trim()
+        );
+
+        payload.set(
+            "fieldType",
+            String(fieldType.value || "")
+                .trim()
+                .toUpperCase()
+        );
+
+        payload.set(
+            "required",
+            String(fieldRequired.checked)
+        );
+
+        payload.set(
+            "status",
+            fieldStatus.value
+        );
+
+        payload.set(
+            "displayOrder",
+            String(
+                Number(displayOrder.value || 0)
+            )
+        );
+
+        payload.set(
+            "config",
+            fieldType.value === "SELECT"
+                ? fieldConfig.value.trim()
+                : ""
+        );
+
+        console.log(
+            "S208_FIX4_PAYLOAD",
+            payload.toString()
+        );
 
         saveFieldButton.disabled = true;
 
         saveFieldButton.textContent =
-            "Đang lưu...";
+            "\u0110ang l\u01b0u...";
 
         try {
 
             if (currentId) {
 
+                /*
+                 * BE dung request.getParameter().
+                 * Query string dam bao Tomcat doc
+                 * duoc parameter ca voi PUT.
+                 */
+                const updateUrl =
+                    API
+                    + "/"
+                    + currentId
+                    + "?"
+                    + payload.toString();
+
+                console.log(
+                    "S208_FIX4_UPDATE_URL",
+                    updateUrl
+                );
+
                 await request(
-                    API + "/" + currentId,
+                    updateUrl,
                     {
                         method: "PUT",
-                        headers: {
-                            "Content-Type":
-                                "application/x-www-form-urlencoded;charset=UTF-8"
-                        },
-                        body: payload.toString()
+                        cache: "no-store"
                     }
                 );
 
                 showPageMessage(
-                    "Cập nhật trường tùy chỉnh thành công.",
+                    "C\u1eadp nh\u1eadt tr\u01b0\u1eddng t\u00f9y ch\u1ec9nh th\u00e0nh c\u00f4ng.",
                     false
                 );
 
@@ -670,16 +805,22 @@
                     API,
                     {
                         method: "POST",
+
                         headers: {
                             "Content-Type":
                                 "application/x-www-form-urlencoded;charset=UTF-8"
                         },
-                        body: payload.toString()
+
+                        body:
+                            payload.toString(),
+
+                        cache:
+                            "no-store"
                     }
                 );
 
                 showPageMessage(
-                    "Thêm trường tùy chỉnh thành công.",
+                    "Th\u00eam tr\u01b0\u1eddng t\u00f9y ch\u1ec9nh th\u00e0nh c\u00f4ng.",
                     false
                 );
             }
@@ -690,8 +831,14 @@
 
         } catch (error) {
 
+            console.error(
+                "S208_FIX4_SAVE_ERROR",
+                error
+            );
+
             showFormError(
                 error.message
+                || "C\u00f3 l\u1ed7i x\u1ea3y ra."
             );
 
         } finally {
@@ -699,7 +846,7 @@
             saveFieldButton.disabled = false;
 
             saveFieldButton.textContent =
-                "Lưu trường";
+                "L\u01b0u tr\u01b0\u1eddng";
         }
     }
 

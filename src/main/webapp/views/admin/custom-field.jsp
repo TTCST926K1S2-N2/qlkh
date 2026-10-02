@@ -443,7 +443,7 @@
 
 
 <script
-    src="${pageContext.request.contextPath}/assets/js/custom-field.js">
+    src="${pageContext.request.contextPath}/assets/js/custom-field.js?v=S208_FIX4">
 </script>
 
 </body>
