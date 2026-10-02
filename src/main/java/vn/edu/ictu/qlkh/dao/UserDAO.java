@@ -13,14 +13,14 @@ import java.time.LocalDateTime;
 public class UserDAO {
 
     /**
-     * Tìm người dùng theo email.
+     * TÃ¬m ngÆ°á»i dÃ¹ng theo email.
      *
      * HTQLKH-1:
-     * Dùng cho chức năng đăng nhập.
+     * DÃ¹ng cho chá»©c nÄƒng Ä‘Äƒng nháº­p.
      *
      * HTQLKH-3:
-     * Dùng để xác định tài khoản khi người dùng
-     * yêu cầu đặt lại mật khẩu.
+     * DÃ¹ng Ä‘á»ƒ xÃ¡c Ä‘á»‹nh tÃ i khoáº£n khi ngÆ°á»i dÃ¹ng
+     * yÃªu cáº§u Ä‘áº·t láº¡i máº­t kháº©u.
      */
     public User findByEmail(String email)
             throws SQLException {
@@ -30,6 +30,8 @@ public class UserDAO {
                        email,
                        password_hash,
                        full_name,
+                       phone,
+                       email_signature,
                        role,
                        status,
                        failed_login_attempts,
@@ -64,13 +66,13 @@ public class UserDAO {
 
     /**
      * HTQLKH-4:
-     * Tìm người dùng theo userId trong session.
+     * TÃ¬m ngÆ°á»i dÃ¹ng theo userId trong session.
      *
-     * Khi người dùng đã đăng nhập,
-     * LoginServlet lưu userId vào HttpSession.
+     * Khi ngÆ°á»i dÃ¹ng Ä‘Ã£ Ä‘Äƒng nháº­p,
+     * LoginServlet lÆ°u userId vÃ o HttpSession.
      *
-     * ChangePasswordService sử dụng userId này
-     * để lấy đúng tài khoản đang đổi mật khẩu.
+     * ChangePasswordService sá»­ dá»¥ng userId nÃ y
+     * Ä‘á»ƒ láº¥y Ä‘Ãºng tÃ i khoáº£n Ä‘ang Ä‘á»•i máº­t kháº©u.
      */
     public User findById(long userId)
             throws SQLException {
@@ -80,6 +82,8 @@ public class UserDAO {
                        email,
                        password_hash,
                        full_name,
+                       phone,
+                       email_signature,
                        role,
                        status,
                        failed_login_attempts,
@@ -114,8 +118,8 @@ public class UserDAO {
 
     /**
      * HTQLKH-1:
-     * Cập nhật số lần đăng nhập sai
-     * và thời gian khóa.
+     * Cáº­p nháº­t sá»‘ láº§n Ä‘Äƒng nháº­p sai
+     * vÃ  thá»i gian khÃ³a.
      */
     public void updateLoginFailureState(
             long userId,
@@ -169,8 +173,8 @@ public class UserDAO {
 
     /**
      * HTQLKH-1:
-     * Reset trạng thái đăng nhập sai
-     * sau khi đăng nhập thành công.
+     * Reset tráº¡ng thÃ¡i Ä‘Äƒng nháº­p sai
+     * sau khi Ä‘Äƒng nháº­p thÃ nh cÃ´ng.
      */
     public void resetLoginFailures(
             long userId)
@@ -200,16 +204,16 @@ public class UserDAO {
 
     /**
      * HTQLKH-3 + HTQLKH-4:
-     * Cập nhật mật khẩu mới cho người dùng.
+     * Cáº­p nháº­t máº­t kháº©u má»›i cho ngÆ°á»i dÃ¹ng.
      *
-     * Connection được truyền từ Service
-     * để thao tác cập nhật có thể nằm
+     * Connection Ä‘Æ°á»£c truyá»n tá»« Service
+     * Ä‘á»ƒ thao tÃ¡c cáº­p nháº­t cÃ³ thá»ƒ náº±m
      * trong transaction.
      *
-     * Khi đổi mật khẩu thành công:
-     * - cập nhật password_hash
+     * Khi Ä‘á»•i máº­t kháº©u thÃ nh cÃ´ng:
+     * - cáº­p nháº­t password_hash
      * - reset failed_login_attempts
-     * - bỏ trạng thái khóa tài khoản
+     * - bá» tráº¡ng thÃ¡i khÃ³a tÃ i khoáº£n
      */
     public boolean updatePassword(
             Connection connection,
@@ -243,10 +247,10 @@ public class UserDAO {
     }
     /**
      * HTQLKH-8:
-     * Lấy danh sách tài khoản có tìm kiếm, lọc và phân trang.
+     * Láº¥y danh sÃ¡ch tÃ i khoáº£n cÃ³ tÃ¬m kiáº¿m, lá»c vÃ  phÃ¢n trang.
      *
-     * Schema hiện tại chưa có quan hệ nhóm kinh doanh.
-     * Việc gán/lưu nhóm thuộc HTQLKH-9 nên không xử lý group tại đây.
+     * Schema hiá»‡n táº¡i chÆ°a cÃ³ quan há»‡ nhÃ³m kinh doanh.
+     * Viá»‡c gÃ¡n/lÆ°u nhÃ³m thuá»™c HTQLKH-9 nÃªn khÃ´ng xá»­ lÃ½ group táº¡i Ä‘Ã¢y.
      */
     public java.util.List<User> findUsers(
             String keyword,
@@ -268,6 +272,8 @@ public class UserDAO {
                        email,
                        password_hash,
                        full_name,
+                       phone,
+                       email_signature,
                        role,
                        status,
                        failed_login_attempts,
@@ -345,8 +351,8 @@ public class UserDAO {
 
     /**
      * HTQLKH-8:
-     * Đếm số tài khoản theo điều kiện tìm kiếm/lọc.
-     * Dùng để tính tổng số trang.
+     * Äáº¿m sá»‘ tÃ i khoáº£n theo Ä‘iá»u kiá»‡n tÃ¬m kiáº¿m/lá»c.
+     * DÃ¹ng Ä‘á»ƒ tÃ­nh tá»•ng sá»‘ trang.
      */
     public int countUsers(
             String keyword,
@@ -420,7 +426,7 @@ public class UserDAO {
 
     /**
      * HTQLKH-8:
-     * Tạo tài khoản mới.
+     * Táº¡o tÃ i khoáº£n má»›i.
      */
     public long createUser(User user)
             throws SQLException {
@@ -476,7 +482,7 @@ public class UserDAO {
 
             if (affectedRows != 1) {
                 throw new SQLException(
-                        "Không thể tạo tài khoản."
+                        "KhÃ´ng thá»ƒ táº¡o tÃ i khoáº£n."
                 );
             }
 
@@ -490,15 +496,15 @@ public class UserDAO {
         }
 
         throw new SQLException(
-                "Không lấy được ID tài khoản vừa tạo."
+                "KhÃ´ng láº¥y Ä‘Æ°á»£c ID tÃ i khoáº£n vá»«a táº¡o."
         );
     }
 
     /**
      * HTQLKH-8:
-     * Cập nhật thông tin cơ bản của tài khoản.
+     * Cáº­p nháº­t thÃ´ng tin cÆ¡ báº£n cá»§a tÃ i khoáº£n.
      *
-     * Không cập nhật password tại đây.
+     * KhÃ´ng cáº­p nháº­t password táº¡i Ä‘Ã¢y.
      */
     public boolean updateUser(User user)
             throws SQLException {
@@ -547,9 +553,50 @@ public class UserDAO {
         }
     }
 
+
+    /**
+     * HTQLKH-44 / S2-02:
+     * Cap nhat ho so ca nhan.
+     *
+     * Chi cho phep cap nhat:
+     * - ho ten
+     * - so dien thoai
+     * - chu ky email
+     *
+     * Khong cap nhat email, role, status hoac nhom.
+     */
+    public boolean updateProfile(
+            long userId,
+            String fullName,
+            String phone,
+            String emailSignature)
+            throws SQLException {
+
+        String sql = """
+                UPDATE users
+                SET full_name = ?,
+                    phone = ?,
+                    email_signature = ?
+                WHERE id = ?
+                """;
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setString(1, fullName);
+            statement.setString(2, phone);
+            statement.setString(3, emailSignature);
+            statement.setLong(4, userId);
+
+            return statement.executeUpdate() == 1;
+        }
+    }
     /**
      * HTQLKH-8:
-     * Kiểm tra email đã được tài khoản khác sử dụng hay chưa.
+     * Kiá»ƒm tra email Ä‘Ã£ Ä‘Æ°á»£c tÃ i khoáº£n khÃ¡c sá»­ dá»¥ng hay chÆ°a.
      */
     public boolean existsByEmail(
             String email,
@@ -605,7 +652,7 @@ public class UserDAO {
     }
 
     /**
-     * Gán tham số cho PreparedStatement.
+     * GÃ¡n tham sá»‘ cho PreparedStatement.
      */
     private void setParameters(
             PreparedStatement statement,
@@ -636,10 +683,10 @@ public class UserDAO {
         }
     }
     /**
-     * Chuyển dữ liệu ResultSet thành User.
+     * Chuyá»ƒn dá»¯ liá»‡u ResultSet thÃ nh User.
      *
-     * Dùng chung cho findByEmail()
-     * và findById() để tránh lặp code.
+     * DÃ¹ng chung cho findByEmail()
+     * vÃ  findById() Ä‘á»ƒ trÃ¡nh láº·p code.
      */
     private User mapUser(
             ResultSet resultSet)
@@ -666,6 +713,14 @@ public class UserDAO {
                 resultSet.getString(
                         "full_name"
                 )
+        );
+
+        user.setPhone(
+                resultSet.getString("phone")
+        );
+
+        user.setEmailSignature(
+                resultSet.getString("email_signature")
         );
 
         user.setRole(
