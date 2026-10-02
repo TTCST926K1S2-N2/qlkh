@@ -208,11 +208,11 @@
                     </a>
                 </li>
 
+
                 <% if ("ADMIN".equals(role)
                         || "MANAGER".equals(role)) { %>
 
                 <li>
-
                     <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
                        class="<%= currentURI.contains("/views/admin/custom-field.jsp")
                                ? "active"
@@ -223,13 +223,10 @@
                         <span class="menu-text">
                             Quản lý trường tùy chỉnh
                         </span>
-
                     </a>
-
                 </li>
 
                 <% } %>
-
 
             </ul>
 
@@ -313,9 +310,7 @@
                     </a>
 
                 </li>
-
-
-<li>
+            <li>
                 <a
                     href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
                     class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
@@ -323,8 +318,8 @@
                     <span class="menu-indicator"></span>
 
                     <span class="menu-text">
-                            Nhật ký thay đổi
-                        </span>
+                        Nh&#7853;t k&#253; thay &#273;&#7893;i
+                    </span>
 
                 </a>
             </li>
