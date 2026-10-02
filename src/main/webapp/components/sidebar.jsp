@@ -221,7 +221,7 @@
                         <span class="menu-indicator"></span>
 
                         <span class="menu-text">
-                            Qu?n l? tr??ng t?y ch?nh
+                            Quản lý trường tùy chỉnh
                         </span>
 
                     </a>
@@ -323,8 +323,8 @@
                     <span class="menu-indicator"></span>
 
                     <span class="menu-text">
-                        Nh&#7853;t k&#253; thay &#273;&#7893;i
-                    </span>
+                            Nhật ký thay đổi
+                        </span>
 
                 </a>
             </li>
