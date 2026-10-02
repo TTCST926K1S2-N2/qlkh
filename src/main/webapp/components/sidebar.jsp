@@ -156,12 +156,7 @@
 
             </li>
 
-        <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
-        <span>Quản lý trường tùy chỉnh</span>
-    </a>
-</li>
-</ul>
+        </ul>
 
 
         <!-- ========================= -->
@@ -197,13 +192,23 @@
                     </a>
 
                 </li>
+                <!-- DANH MỤC DÙNG CHUNG -->
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/common-categories.jsp"
+                       class="<%= currentURI.contains("/views/sales/common-categories.jsp")
+                               ? "active"
+                               : "" %>">
 
-            <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
-        <span>Quản lý trường tùy chỉnh</span>
-    </a>
-</li>
-</ul>
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Danh mục dùng chung
+                        </span>
+
+                    </a>
+                </li>
+
+            </ul>
 
         <%
             }
@@ -285,13 +290,37 @@
                     </a>
 
                 </li>
+            <li>
+                <a
+                    href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
+                    class="<%= currentURI.contains("/views/admin/custom-field.jsp") ? "active" : "" %>">
 
-            <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
-        <span>Quản lý trường tùy chỉnh</span>
-    </a>
-</li>
-</ul>
+                    <span class="menu-indicator"></span>
+
+                    <span class="menu-text">
+                        Qu?n l? tr??ng t?y ch?nh
+                    </span>
+
+                </a>
+            </li>
+
+
+            <li>
+                <a
+                    href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
+                    class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
+
+                    <span class="menu-indicator"></span>
+
+                    <span class="menu-text">
+                        Nh&#7853;t k&#253; thay &#273;&#7893;i
+                    </span>
+
+                </a>
+            </li>
+
+
+            </ul>
 
         <%
             }
@@ -315,7 +344,7 @@
 
                 <li>
 
-                    <a href="${pageContext.request.contextPath}/profile"
+                    <a href="${pageContext.request.contextPath}/user/profile.jsp"
                        class="<%= currentURI.contains("/profile")
                                ? "active"
                                : "" %>">
@@ -328,6 +357,13 @@
 
                     </a>
 
+                </li>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/user/avatar.jsp" class="<%= currentURI.contains("/avatar") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">&#7842;nh &#273;&#7841;i di&#7879;n</span>
+                    </a>
                 </li>
 
 
@@ -425,12 +461,7 @@
 
             <% } %>
 
-        <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp" class="sidebar-link">
-        <span>Quản lý trường tùy chỉnh</span>
-    </a>
-</li>
-</ul>
+        </ul>
 
     </nav>
 
