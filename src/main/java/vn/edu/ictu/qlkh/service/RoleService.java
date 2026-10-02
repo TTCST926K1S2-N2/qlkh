@@ -114,6 +114,23 @@ public class RoleService {
             Long groupId
     ) throws SQLException {
 
+        updateRoleAndGroup(
+                currentAdminUserId,
+                null,
+                targetUserId,
+                roleCodes,
+                groupId
+        );
+    }
+
+    public void updateRoleAndGroup(
+            long currentAdminUserId,
+            String auditUsername,
+            long targetUserId,
+            Collection<String> roleCodes,
+            Long groupId
+    ) throws SQLException {
+
         validateUserIds(
                 currentAdminUserId,
                 targetUserId
@@ -159,9 +176,33 @@ public class RoleService {
          * RoleDAO đồng thời cập nhật users.role bằng role chính
          * để tương thích với Login/Menu/Authorization hiện tại.
          */
+        String oldValue = null;
+
+        if (auditUsername != null
+                && !auditUsername.isBlank()) {
+
+            List<String> oldRoleCodes =
+                    roleDAO.findAllByUserId(targetUserId)
+                            .stream()
+                            .filter(role ->
+                                    role != null
+                                            && role.getCode() != null)
+                            .map(Role::getCode)
+                            .sorted()
+                            .toList();
+
+            oldValue =
+                    String.join(
+                            ",",
+                            oldRoleCodes
+                    );
+        }
+
         roleDAO.replaceUserRoles(
                 targetUserId,
-                normalizedRoles
+                normalizedRoles,
+                auditUsername,
+                oldValue
         );
 
         /*
