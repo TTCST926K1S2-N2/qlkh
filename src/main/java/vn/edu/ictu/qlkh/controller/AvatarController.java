@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import vn.edu.ictu.qlkh.dao.UserDAO;
 import vn.edu.ictu.qlkh.util.FileUploadUtil;
+import vn.edu.ictu.qlkh.util.AvatarStorage;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -135,17 +136,10 @@ public class AvatarController extends HttpServlet {
             }
 
             String uploadPath =
-                    getServletContext().getRealPath(
-                            "/uploads/avatars"
-                    );
+                    AvatarStorage.getDirectory()
+                            .getAbsolutePath();
 
-            if (uploadPath == null) {
-                throw new IOException(
-                        "Không xác định được thư mục lưu avatar."
-                );
-            }
-
-            String oldAvatarUrl =
+String oldAvatarUrl =
                     userDAO.getAvatarByUserId(userId);
 
             FileUploadUtil.UploadResult result =
