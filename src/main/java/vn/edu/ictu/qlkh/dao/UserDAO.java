@@ -682,6 +682,58 @@ public class UserDAO {
             }
         }
     }
+
+    /**
+     * Cap nhat duong dan avatar cua nguoi dung.
+     */
+    public boolean updateAvatar(
+            long userId,
+            String avatarUrl)
+            throws SQLException {
+
+        String sql =
+                "UPDATE users SET avatar = ? WHERE id = ?";
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setString(1, avatarUrl);
+            statement.setLong(2, userId);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+    /**
+     * Lay duong dan avatar hien tai cua nguoi dung.
+     */
+    public String getAvatarByUserId(long userId)
+            throws SQLException {
+
+        String sql =
+                "SELECT avatar FROM users WHERE id = ?";
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setLong(1, userId);
+
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getString("avatar");
+                }
+            }
+        }
+
+        return null;
+    }
     /**
      * Chuyá»ƒn dá»¯ liá»‡u ResultSet thÃ nh User.
      *
