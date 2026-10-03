@@ -192,6 +192,76 @@
                     </a>
 
                 </li>
+                <!-- DANH MỤC DÙNG CHUNG -->
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/common-categories.jsp"
+                       class="<%= currentURI.contains("/views/sales/common-categories.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Danh mục dùng chung
+                        </span>
+
+                    </a>
+                </li>
+                                <li>
+                    <a href="${pageContext.request.contextPath}/views/product/product-service.jsp"
+                       class="<%= currentURI.contains("/views/product/product-service.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Sản phẩm / Dịch vụ & Bảng giá
+                        </span>
+
+                    </a>
+                </li>
+
+                <% if ("MANAGER".equals(role) || "ADMIN".equals(role)) { %>
+
+                <li>
+
+                    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp"
+                       class="<%= currentURI.contains("/views/admin/pipeline-stages.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Cấu hình Pipeline bán hàng
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <% } %>
+
+
+                <% if ("ADMIN".equals(role)
+                        || "MANAGER".equals(role)) { %>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
+                       class="<%= currentURI.contains("/views/admin/custom-field.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Quản lý trường tùy chỉnh
+                        </span>
+                    </a>
+                </li>
+
+                <% } %>
 
             </ul>
 
@@ -275,6 +345,20 @@
                     </a>
 
                 </li>
+            <li>
+                <a
+                    href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
+                    class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
+
+                    <span class="menu-indicator"></span>
+
+                    <span class="menu-text">
+                        Nh&#7853;t k&#253; thay &#273;&#7893;i
+                    </span>
+
+                </a>
+            </li>
+
 
             </ul>
 
