@@ -651,7 +651,7 @@
             reasonTypeField.hidden =
                 false;
 
-            reasonTypeText.value =
+            reasonType.value =
                 won
                     ? 'Lý do thắng'
                     : 'Lý do thua';
@@ -710,7 +710,7 @@
             reasonTypeField.hidden =
                 false;
 
-            reasonTypeText.value =
+            reasonType.value =
                 won
                     ? 'Lý do thắng'
                     : 'Lý do thua';
