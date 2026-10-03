@@ -11,8 +11,11 @@ import vn.edu.ictu.qlkh.model.Stage;
 import vn.edu.ictu.qlkh.service.StageService;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @WebServlet("/stages/*")
 public class StageServlet extends HttpServlet {
@@ -30,53 +33,63 @@ public class StageServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
+        prepareResponse(request, response);
 
-        if (!isAdmin(request)) {
-            response.sendError(
+        if (!canManageStages(request)) {
+            sendError(
+                    response,
                     HttpServletResponse.SC_FORBIDDEN,
-                    "Bạn không có quyền thực hiện chức năng này."
+                    "Bạn không có quyền quản lý pipeline."
             );
             return;
         }
 
-        String pathInfo = request.getPathInfo();
-
         try {
+            String pathInfo = request.getPathInfo();
+
             if (pathInfo == null || "/".equals(pathInfo)) {
-                writeStages(response, stageService.getAllStages());
-                return;
-            }
-
-            Long id = parseLong(
-                    pathInfo.substring(1)
-            );
-
-            if (id == null) {
-                response.sendError(
-                        HttpServletResponse.SC_BAD_REQUEST,
-                        "ID stage không hợp lệ."
+                writeStages(
+                        response,
+                        stageService.getAllStages()
                 );
                 return;
             }
 
-            Stage stage = stageService.getStageById(id);
+            Long id = parseId(pathInfo);
+
+            if (id == null) {
+                sendError(
+                        response,
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        "ID giai đoạn không hợp lệ."
+                );
+                return;
+            }
+
+            Stage stage =
+                    stageService.getStageById(id);
 
             if (stage == null) {
-                response.sendError(
+                sendError(
+                        response,
                         HttpServletResponse.SC_NOT_FOUND,
-                        "Không tìm thấy stage."
+                        "Không tìm thấy giai đoạn."
                 );
                 return;
             }
 
             writeStage(response, stage);
 
+        } catch (IllegalArgumentException e) {
+            sendError(
+                    response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    e.getMessage()
+            );
+
         } catch (SQLException e) {
             throw new ServletException(
-                    "Không thể tải stage.",
+                    "Không thể tải giai đoạn.",
                     e
             );
         }
@@ -88,21 +101,20 @@ public class StageServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
+        prepareResponse(request, response);
 
-        if (!isAdmin(request)) {
-            response.sendError(
+        if (!canManageStages(request)) {
+            sendError(
+                    response,
                     HttpServletResponse.SC_FORBIDDEN,
-                    "Bạn không có quyền thực hiện chức năng này."
+                    "Bạn không có quyền quản lý pipeline."
             );
             return;
         }
 
-        Stage stage = readStage(request);
-
         try {
+            Stage stage = readStage(request);
+
             stageService.addStage(stage);
 
             response.setStatus(
@@ -112,16 +124,15 @@ public class StageServlet extends HttpServlet {
             writeStage(response, stage);
 
         } catch (IllegalArgumentException e) {
-
-            response.sendError(
+            sendError(
+                    response,
                     HttpServletResponse.SC_BAD_REQUEST,
                     e.getMessage()
             );
 
         } catch (SQLException e) {
-
             throw new ServletException(
-                    "Không thể thêm stage.",
+                    "Không thể thêm giai đoạn.",
                     e
             );
         }
@@ -133,48 +144,59 @@ public class StageServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
+        prepareResponse(request, response);
 
-        if (!isAdmin(request)) {
-            response.sendError(
+        if (!canManageStages(request)) {
+            sendError(
+                    response,
                     HttpServletResponse.SC_FORBIDDEN,
-                    "Bạn không có quyền thực hiện chức năng này."
+                    "Bạn không có quyền quản lý pipeline."
             );
             return;
         }
 
-        Long id = parseLong(
-                getIdFromPath(request)
-        );
+        Long id =
+                parseId(request.getPathInfo());
 
         if (id == null) {
-            response.sendError(
+            sendError(
+                    response,
                     HttpServletResponse.SC_BAD_REQUEST,
-                    "ID stage không hợp lệ."
+                    "ID giai đoạn không hợp lệ."
             );
             return;
         }
 
-        Stage stage = readStage(request);
-        stage.setId(id);
-
         try {
+            Stage existing =
+                    stageService.getStageById(id);
+
+            if (existing == null) {
+                sendError(
+                        response,
+                        HttpServletResponse.SC_NOT_FOUND,
+                        "Không tìm thấy giai đoạn."
+                );
+                return;
+            }
+
+            Stage stage = readStage(request);
+            stage.setId(id);
+
             stageService.updateStage(stage);
+
             writeStage(response, stage);
 
         } catch (IllegalArgumentException e) {
-
-            response.sendError(
+            sendError(
+                    response,
                     HttpServletResponse.SC_BAD_REQUEST,
                     e.getMessage()
             );
 
         } catch (SQLException e) {
-
             throw new ServletException(
-                    "Không thể cập nhật stage.",
+                    "Không thể cập nhật giai đoạn.",
                     e
             );
         }
@@ -186,52 +208,91 @@ public class StageServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
+        prepareResponse(request, response);
 
-        if (!isAdmin(request)) {
-            response.sendError(
+        if (!canManageStages(request)) {
+            sendError(
+                    response,
                     HttpServletResponse.SC_FORBIDDEN,
-                    "Bạn không có quyền thực hiện chức năng này."
+                    "Bạn không có quyền quản lý pipeline."
             );
             return;
         }
 
-        Long id = parseLong(
-                getIdFromPath(request)
-        );
+        Long id =
+                parseId(request.getPathInfo());
 
         if (id == null) {
-            response.sendError(
+            sendError(
+                    response,
                     HttpServletResponse.SC_BAD_REQUEST,
-                    "ID stage không hợp lệ."
+                    "ID giai đoạn không hợp lệ."
             );
             return;
         }
 
         try {
-            stageService.deleteStage(id);
+            Stage existing =
+                    stageService.getStageById(id);
+
+            if (existing == null) {
+                sendError(
+                        response,
+                        HttpServletResponse.SC_NOT_FOUND,
+                        "Không tìm thấy giai đoạn."
+                );
+                return;
+            }
+
+            stageService.deactivateStage(id);
+
             response.setStatus(
                     HttpServletResponse.SC_NO_CONTENT
             );
 
         } catch (IllegalArgumentException e) {
-
-            response.sendError(
-                    HttpServletResponse.SC_NOT_FOUND,
+            sendError(
+                    response,
+                    HttpServletResponse.SC_BAD_REQUEST,
                     e.getMessage()
             );
 
         } catch (SQLException e) {
-
             throw new ServletException(
-                    "Không thể xóa stage.",
+                    "Không thể ngừng hoạt động giai đoạn.",
                     e
             );
         }
     }
 
-    private Stage readStage(HttpServletRequest request) {
+    private Stage readStage(
+            HttpServletRequest request)
+            throws IOException {
+
+        String contentType =
+                request.getContentType();
+
+        if (contentType != null
+                && contentType
+                .toLowerCase()
+                .contains("application/json")) {
+
+            String body =
+                    request.getReader()
+                            .lines()
+                            .reduce(
+                                    "",
+                                    (a, b) -> a + b
+                            );
+
+            if (body.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Request body không được để trống."
+                );
+            }
+
+            return readJsonStage(body);
+        }
 
         Stage stage = new Stage();
 
@@ -243,50 +304,225 @@ public class StageServlet extends HttpServlet {
                 request.getParameter("code")
         );
 
+        stage.setStageOrder(
+                parseInt(
+                        request.getParameter(
+                                "stageOrder"
+                        )
+                )
+        );
+
+        stage.setWinProbability(
+                parseDecimal(
+                        request.getParameter(
+                                "winProbability"
+                        )
+                )
+        );
+
+        stage.setExitCondition(
+                request.getParameter(
+                        "exitCondition"
+                )
+        );
+
         stage.setStatus(
                 request.getParameter("status")
         );
 
         stage.setDescription(
-                request.getParameter("description")
+                request.getParameter(
+                        "description"
+                )
         );
 
         return stage;
     }
 
-    private String getIdFromPath(
-            HttpServletRequest request) {
+    private Stage readJsonStage(String json) {
 
-        String pathInfo = request.getPathInfo();
+        Stage stage = new Stage();
 
-        if (pathInfo == null
-                || "/".equals(pathInfo)
-                || pathInfo.length() <= 1) {
+        stage.setName(
+                extractString(json, "name")
+        );
+
+        stage.setCode(
+                extractString(json, "code")
+        );
+
+        stage.setStageOrder(
+                extractInt(json, "stageOrder")
+        );
+
+        stage.setWinProbability(
+                extractDecimal(
+                        json,
+                        "winProbability"
+                )
+        );
+
+        stage.setExitCondition(
+                extractString(
+                        json,
+                        "exitCondition"
+                )
+        );
+
+        stage.setStatus(
+                extractString(json, "status")
+        );
+
+        stage.setDescription(
+                extractString(
+                        json,
+                        "description"
+                )
+        );
+
+        return stage;
+    }
+
+    private String extractString(
+            String json,
+            String key) {
+
+        String raw =
+                extractRawValue(json, key);
+
+        if (raw == null
+                || "null".equals(raw)) {
             return null;
         }
 
-        return pathInfo.substring(1);
+        if (!raw.startsWith("\"")
+                || !raw.endsWith("\"")) {
+
+            throw new IllegalArgumentException(
+                    "Trường " + key
+                            + " phải là chuỗi."
+            );
+        }
+
+        return unescapeJson(
+                raw.substring(
+                        1,
+                        raw.length() - 1
+                )
+        );
     }
 
-    private Long parseLong(String value) {
+    private int extractInt(
+            String json,
+            String key) {
 
-        if (value == null || value.isBlank()) {
+        return parseInt(
+                extractRawValue(json, key)
+        );
+    }
+
+    private BigDecimal extractDecimal(
+            String json,
+            String key) {
+
+        return parseDecimal(
+                extractRawValue(json, key)
+        );
+    }
+
+    private String extractRawValue(
+            String json,
+            String key) {
+
+        String regex =
+                "\""
+                + Pattern.quote(key)
+                + "\"\\s*:\\s*"
+                + "(null|"
+                + "\"(?:\\\\.|[^\"\\\\])*\"|"
+                + "-?\\d+(?:\\.\\d+)?)";
+
+        Matcher matcher =
+                Pattern.compile(regex)
+                        .matcher(json);
+
+        return matcher.find()
+                ? matcher.group(1)
+                : null;
+    }
+
+    private int parseInt(String value) {
+
+        if (value == null
+                || value.isBlank()
+                || "null".equals(value)) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(
+                    value.trim()
+            );
+
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "Thứ tự giai đoạn phải là số nguyên."
+            );
+        }
+    }
+
+    private BigDecimal parseDecimal(
+            String value) {
+
+        if (value == null
+                || value.isBlank()
+                || "null".equals(value)) {
             return null;
         }
 
         try {
-            long number = Long.parseLong(
+            return new BigDecimal(
                     value.trim()
             );
 
-            return number > 0 ? number : null;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "Xác suất thắng phải là số."
+            );
+        }
+    }
+
+    private Long parseId(String pathInfo) {
+
+        if (pathInfo == null
+                || pathInfo.isBlank()
+                || "/".equals(pathInfo)) {
+            return null;
+        }
+
+        String value =
+                pathInfo.startsWith("/")
+                        ? pathInfo.substring(1)
+                        : pathInfo;
+
+        if (value.contains("/")) {
+            return null;
+        }
+
+        try {
+            long id =
+                    Long.parseLong(value);
+
+            return id > 0
+                    ? id
+                    : null;
 
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    private boolean isAdmin(
+    private boolean canManageStages(
             HttpServletRequest request) {
 
         HttpSession session =
@@ -299,10 +535,32 @@ public class StageServlet extends HttpServlet {
         Object role =
                 session.getAttribute("userRole");
 
-        return role != null
-                && "ADMIN".equalsIgnoreCase(
-                        role.toString().trim()
+        if (role == null) {
+            return false;
+        }
+
+        String roleName =
+                role.toString().trim();
+
+        return "MANAGER".equalsIgnoreCase(
+                    roleName
+                )
+                || "ADMIN".equalsIgnoreCase(
+                    roleName
                 );
+    }
+
+    private void prepareResponse(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
+        response.setContentType(
+                "application/json;charset=UTF-8"
+        );
     }
 
     private void writeStages(
@@ -313,7 +571,9 @@ public class StageServlet extends HttpServlet {
         StringBuilder json =
                 new StringBuilder("[");
 
-        for (int i = 0; i < stages.size(); i++) {
+        for (int i = 0;
+             i < stages.size();
+             i++) {
 
             if (i > 0) {
                 json.append(",");
@@ -327,9 +587,8 @@ public class StageServlet extends HttpServlet {
 
         json.append("]");
 
-        response.getWriter().write(
-                json.toString()
-        );
+        response.getWriter()
+                .write(json.toString());
     }
 
     private void writeStage(
@@ -342,9 +601,8 @@ public class StageServlet extends HttpServlet {
 
         appendStageJson(json, stage);
 
-        response.getWriter().write(
-                json.toString()
-        );
+        response.getWriter()
+                .write(json.toString());
     }
 
     private void appendStageJson(
@@ -354,33 +612,108 @@ public class StageServlet extends HttpServlet {
         json.append("{")
                 .append("\"id\":")
                 .append(stage.getId())
-                .append(",")
-                .append("\"name\":")
-                .append(jsonString(stage.getName()))
-                .append(",")
-                .append("\"code\":")
-                .append(jsonString(stage.getCode()))
-                .append(",")
-                .append("\"status\":")
-                .append(jsonString(stage.getStatus()))
-                .append(",")
-                .append("\"description\":")
-                .append(jsonString(stage.getDescription()))
+
+                .append(",\"name\":")
+                .append(
+                        jsonString(
+                                stage.getName()
+                        )
+                )
+
+                .append(",\"code\":")
+                .append(
+                        jsonString(
+                                stage.getCode()
+                        )
+                )
+
+                .append(",\"stageOrder\":")
+                .append(
+                        stage.getStageOrder()
+                )
+
+                .append(",\"winProbability\":")
+                .append(
+                        stage.getWinProbability()
+                                == null
+                                ? "null"
+                                : stage
+                                    .getWinProbability()
+                                    .toPlainString()
+                )
+
+                .append(",\"exitCondition\":")
+                .append(
+                        jsonString(
+                                stage.getExitCondition()
+                        )
+                )
+
+                .append(",\"status\":")
+                .append(
+                        jsonString(
+                                stage.getStatus()
+                        )
+                )
+
+                .append(",\"description\":")
+                .append(
+                        jsonString(
+                                stage.getDescription()
+                        )
+                )
+
                 .append("}");
     }
 
-    private String jsonString(String value) {
+    private void sendError(
+            HttpServletResponse response,
+            int status,
+            String message)
+            throws IOException {
+
+        response.setStatus(status);
+
+        response.getWriter().write(
+                "{"
+                + "\"success\":false,"
+                + "\"message\":"
+                + jsonString(message)
+                + "}"
+        );
+    }
+
+    private String jsonString(
+            String value) {
 
         if (value == null) {
             return "null";
         }
 
         return "\""
-                + value
-                    .replace("\\", "\\\\")
-                    .replace("\"", "\\\"")
-                    .replace("\r", "\\r")
-                    .replace("\n", "\\n")
+                + escapeJson(value)
                 + "\"";
+    }
+
+    private String escapeJson(
+            String value) {
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
+    }
+
+    private String unescapeJson(
+            String value) {
+
+        return value
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\")
+                .replace("\\n", "\n")
+                .replace("\\r", "\r")
+                .replace("\\t", "\t");
     }
 }

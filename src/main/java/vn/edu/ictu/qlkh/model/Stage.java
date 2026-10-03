@@ -1,28 +1,19 @@
 package vn.edu.ictu.qlkh.model;
 
+import java.math.BigDecimal;
+
 public class Stage {
 
     private long id;
     private String name;
     private String code;
+    private int stageOrder;
+    private BigDecimal winProbability;
+    private String exitCondition;
     private String status;
     private String description;
 
     public Stage() {
-    }
-
-    public Stage(
-            long id,
-            String name,
-            String code,
-            String status,
-            String description) {
-
-        this.id = id;
-        this.name = name;
-        this.code = code;
-        this.status = status;
-        this.description = description;
     }
 
     public long getId() {
@@ -47,6 +38,30 @@ public class Stage {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public int getStageOrder() {
+        return stageOrder;
+    }
+
+    public void setStageOrder(int stageOrder) {
+        this.stageOrder = stageOrder;
+    }
+
+    public BigDecimal getWinProbability() {
+        return winProbability;
+    }
+
+    public void setWinProbability(BigDecimal winProbability) {
+        this.winProbability = winProbability;
+    }
+
+    public String getExitCondition() {
+        return exitCondition;
+    }
+
+    public void setExitCondition(String exitCondition) {
+        this.exitCondition = exitCondition;
     }
 
     public String getStatus() {
