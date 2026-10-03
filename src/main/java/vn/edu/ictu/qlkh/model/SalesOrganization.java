@@ -1,36 +1,104 @@
-package com.qlkh.model;
+package vn.edu.ictu.qlkh.model;
 
 import java.sql.Timestamp;
 
 public class SalesOrganization {
-    private Integer id;
-    private String orgCode;
-    private String orgName;
-    private Integer parentId;
+
+    private Long id;
+    private String code;
+    private String name;
+
+    private Long parentId;
+    private Long leaderId;
+    private Long regionId;
+
     private String status;
+
+    private String leaderName;
+    private String regionName;
+
     private Timestamp createdAt;
 
-    public SalesOrganization() {}
-
-    public SalesOrganization(Integer id, String orgCode, String orgName, Integer parentId, String status, Timestamp createdAt) {
-        this.id = id;
-        this.orgCode = orgCode;
-        this.orgName = orgName;
-        this.parentId = parentId;
-        this.status = status;
-        this.createdAt = createdAt;
+    public SalesOrganization() {
     }
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public String getOrgCode() { return orgCode; }
-    public void setOrgCode(String orgCode) { this.orgCode = orgCode; }
-    public String getOrgName() { return orgName; }
-    public void setOrgName(String orgName) { this.orgName = orgName; }
-    public Integer getParentId() { return parentId; }
-    public void setParentId(Integer parentId) { this.parentId = parentId; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
+    public Long getLeaderId() {
+        return leaderId;
+    }
+
+    public void setLeaderId(Long leaderId) {
+        this.leaderId = leaderId;
+    }
+
+    public Long getRegionId() {
+        return regionId;
+    }
+
+    public void setRegionId(Long regionId) {
+        this.regionId = regionId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getLeaderName() {
+        return leaderName;
+    }
+
+    public void setLeaderName(String leaderName) {
+        this.leaderName = leaderName;
+    }
+
+    public String getRegionName() {
+        return regionName;
+    }
+
+    public void setRegionName(String regionName) {
+        this.regionName = regionName;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
 }
