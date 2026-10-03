@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
     String role = (String) session.getAttribute("userRole");
@@ -156,12 +156,7 @@
 
             </li>
 
-        <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp" class="sidebar-link">
-        <span>Quản lý Pipeline Stages</span>
-    </a>
-</li>
-</ul>
+        </ul>
 
 
         <!-- ========================= -->
@@ -212,6 +207,26 @@
 
                     </a>
                 </li>
+                <% if ("MANAGER".equals(role) || "ADMIN".equals(role)) { %>
+
+                <li>
+
+                    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp"
+                       class="<%= currentURI.contains("/views/admin/pipeline-stages.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Cấu hình Pipeline bán hàng
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <% } %>
 
 
                 <% if ("ADMIN".equals(role)
@@ -233,12 +248,7 @@
 
                 <% } %>
 
-            <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp" class="sidebar-link">
-        <span>Quản lý Pipeline Stages</span>
-    </a>
-</li>
-</ul>
+            </ul>
 
         <%
             }
@@ -335,12 +345,7 @@
             </li>
 
 
-            <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp" class="sidebar-link">
-        <span>Quản lý Pipeline Stages</span>
-    </a>
-</li>
-</ul>
+            </ul>
 
         <%
             }
@@ -481,12 +486,7 @@
 
             <% } %>
 
-        <li class="sidebar-item">
-    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp" class="sidebar-link">
-        <span>Quản lý Pipeline Stages</span>
-    </a>
-</li>
-</ul>
+        </ul>
 
     </nav>
 
