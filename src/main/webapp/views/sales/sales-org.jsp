@@ -1,273 +1,1580 @@
+<%@ page contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8"
+         language="java" %>
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <title>Cơ cấu tổ chức kinh doanh - HỆ THỐNG QLKH</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Cơ cấu tổ chức kinh doanh</title>
+
     <style>
-    body { 
-            margin: 0; padding: 0; display: flex; justify-content: center; 
-            background-color: #f4f6f9; font-family: Arial, sans-serif; 
+        * {
+            box-sizing: border-box;
         }
-        /* Giới hạn khung nội dung chính đúng 1000px */
-        .main-content { 
-            padding: 30px; width: 100%; max-width: 1000px; box-sizing: border-box;
+
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            font-family: Arial, sans-serif;
+            color: #1f2937;
         }
-        .page-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 25px; 
+
+        .sales-org-layout {
+            position: absolute;
+            top: 0;
+            left: 270px;
+            width: calc(100% - 270px);
+            min-height: 100vh;
+            margin: 0;
+            padding: 28px 32px;
         }
-        .page-header h2 { margin: 0; color: #2c3e50; }
-        .btn-add { background-color: #2ecc71; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; border: none; cursor: pointer; }
-        .btn-add:hover { background-color: #27ae60; }
-        .content-box { 
-            background: #fff; padding: 20px; border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 22px;
         }
-        /* CSS cho Bảng danh sách */
-       /* CSS cho Cấu trúc cây (Tree View) */
-        .tree-container { padding: 10px; background: #fff; border-radius: 8px; width: 100%; box-sizing: border-box; }
-        .tree, .tree ul { list-style-type: none; margin: 0; padding: 0; }
-        .tree ul { padding-left: 30px; border-left: 1px dashed #bdc3c7; margin-left: 10px; margin-top: 5px; }
-        .tree li { margin: 10px 0; }
-        .tree-node { display: flex; align-items: center; padding: 10px 15px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; transition: background 0.2s; }
-        .tree-node:hover { background-color: #f1f2f6; }
-        .caret { cursor: pointer; user-select: none; width: 20px; height: 20px; display: inline-block; text-align: center; margin-right: 10px; font-weight: bold; color: #2c3e50; }
-        .caret::before { content: "\25B6"; display: inline-block; transition: transform 0.2s; }
-        .caret-down::before { transform: rotate(90deg); }
-        .caret.empty::before { content: "\25CF"; font-size: 10px; color: #95a5a6; cursor: default; } /* Nút không có con */
-        .node-title { flex-grow: 1; font-weight: 500; color: #2c3e50; font-size: 15px; }
-        .node-actions { display: flex; gap: 5px; margin-left: 15px; }
-        .btn-add-emp { background-color: #8e44ad; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        .btn-add-emp:hover { background-color: #9b59b6; }
-        .nested { display: none; }
-        .active-tree { display: block; }
-        
-        /* CSS cho Nút Thao tác & Trạng thái */
-        .btn-edit { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        .btn-delete { background-color: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-left: 5px;}
-        .btn-edit:hover { background-color: #d68910; }
-        .btn-delete:hover { background-color: #c0392b; }
-        
-        .status { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .status.active { background-color: #d4edda; color: #155724; }
-        .status.inactive { background-color: #f8d7da; color: #721c24; }
+
+        .page-title {
+            margin: 0;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            margin: 7px 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .btn {
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: #0d6efd;
+        }
+
+        .btn-primary:hover {
+            background: #0b5ed7;
+        }
+
+        .btn-outline-primary {
+            color: #0d6efd;
+            background: #fff;
+            border-color: #0d6efd;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            background: #fff;
+            border-color: #dc3545;
+        }
+
+        .btn-secondary {
+            color: #fff;
+            background: #6c757d;
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        }
+
+        .toolbar {
+            padding: 16px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .summary {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .tree-card {
+            padding: 18px;
+        }
+
+        .tree-empty,
+        .tree-loading,
+        .tree-error {
+            padding: 35px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .tree-error {
+            color: #b42318;
+        }
+
+        .org-tree,
+        .org-tree ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .org-tree ul {
+            margin-left: 32px;
+            padding-left: 18px;
+            border-left: 1px dashed #cbd5e1;
+        }
+
+        .org-tree li {
+            margin: 10px 0;
+        }
+
+        .org-node {
+            display: grid;
+            grid-template-columns:
+                minmax(220px, 1.5fr)
+                minmax(150px, 1fr)
+                minmax(150px, 1fr)
+                120px
+                auto;
+            gap: 14px;
+            align-items: center;
+
+            padding: 13px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .org-node:hover {
+            background: #f8fafc;
+        }
+
+        .org-main {
+            min-width: 0;
+        }
+
+        .org-name {
+            font-weight: 700;
+            color: #0f172a;
+            word-break: break-word;
+        }
+
+        .org-code {
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .org-info-label {
+            display: block;
+            margin-bottom: 3px;
+            color: #94a3b8;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .org-info-value {
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-active {
+            color: #067647;
+            background: #d1fadf;
+        }
+
+        .status-inactive {
+            color: #475467;
+            background: #eaecf0;
+        }
+
+        .node-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(15, 23, 42, .55);
+            padding: 30px 15px;
+            overflow-y: auto;
+        }
+
+        .modal-backdrop.show {
+            display: block;
+        }
+
+        .modal-dialog {
+            width: min(620px, 100%);
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.2);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .modal-close {
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            font-size: 25px;
+            color: #667085;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 40px;
+            padding: 8px 10px;
+            border: 1px solid #d0d5dd;
+            border-radius: 6px;
+            background: #fff;
+            color: #101828;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #84adff;
+            box-shadow: 0 0 0 3px rgba(13,110,253,.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 16px 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .alert {
+            display: none;
+            margin-bottom: 16px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-danger {
+            color: #b42318;
+            background: #fef3f2;
+            border: 1px solid #fecdca;
+        }
+
+        .toast-message {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 3000;
+            min-width: 280px;
+            max-width: 420px;
+            padding: 13px 16px;
+            border-radius: 8px;
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,.2);
+            display: none;
+        }
+
+        .toast-message.show {
+            display: block;
+        }
+
+        .toast-success {
+            background: #198754;
+        }
+
+        .toast-danger {
+            background: #dc3545;
+        }
+
+        @media (max-width: 1000px) {
+            .sales-org-layout {
+                left: 270px;
+                width: calc(100% - 270px);
+                padding: 20px;
+            }
+
+            .org-node {
+                grid-template-columns: 1fr;
+            }
+
+            .node-actions {
+                justify-content: flex-start;
+            }
+        }
+
+                @media (max-width: 768px) {
+            .sales-org-layout {
+                position: static;
+                top: auto;
+                left: auto;
+                width: 100%;
+                min-height: auto;
+                margin: 0;
+                padding: 20px;
+            }
+        }
+@media (max-width: 650px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
-<body>
-    <!-- Nhúng Menu Sidebar của Sprint 1 -->
-    <jsp:include page="/components/sidebar.jsp" />
 
-    <div class="main-content">
+<body
+    data-context-path="${pageContext.request.contextPath}"
+    data-user-role="${sessionScope.userRole}">
+
+    <jsp:include page="/components/sidebar.jsp"/>
+
+    <main class="sales-org-layout">
+
         <div class="page-header">
-            <h2>Quản lý cơ cấu tổ chức kinh doanh</h2>
-            <button id="btnAdd" class="btn-add">+ Thêm đơn vị mới</button>
-        </div>
-        
-        <div class="content-box">
-            <!-- Container trống: JS sẽ lấy dữ liệu từ API và tự động vẽ cây vào đây -->
-            <div id="treeContainer" class="tree-container">
-                <div style="text-align: center; padding: 20px; color: #7f8c8d;">
-                    Đang tải cấu trúc cây từ Backend...
-                </div>
+
+            <div>
+                <h1 class="page-title">
+                    Cơ cấu tổ chức kinh doanh
+                </h1>
+
+                <p class="page-subtitle">
+                    Quản lý cây nhóm kinh doanh,
+                    trưởng nhóm và khu vực phụ trách
+                </p>
             </div>
+
+            <button
+                type="button"
+                id="btnAddGroup"
+                class="btn btn-primary">
+
+                + Thêm nhóm kinh doanh
+            </button>
+
         </div>
-    </div>
-    <!-- Khu vực Modal Form Thêm/Sửa -->
-    <div id="salesOrgModal" class="modal">
-        <div class="modal-content">
+
+
+        <div class="card toolbar">
+
+            <div class="summary">
+                Tổng số nhóm:
+                <strong id="totalGroups">0</strong>
+            </div>
+
+            <button
+                type="button"
+                id="btnReload"
+                class="btn btn-outline-primary">
+
+                Tải lại
+            </button>
+
+        </div>
+
+
+        <section class="card tree-card">
+
+            <div id="treeContainer">
+
+                <div class="tree-loading">
+                    Đang tải cơ cấu tổ chức...
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <div
+        id="salesOrgModal"
+        class="modal-backdrop">
+
+        <div class="modal-dialog">
+
             <div class="modal-header">
-                <h3 id="modalTitle">Thêm mới đơn vị</h3>
-                <span class="close-btn">&times;</span>
+
+                <h3 id="modalTitle">
+                    Thêm nhóm kinh doanh
+                </h3>
+
+                <button
+                    type="button"
+                    id="btnCloseModal"
+                    class="modal-close">
+                    &times;
+                </button>
+
             </div>
-            <div class="modal-body">
-                <form id="salesOrgForm">
-                    <div class="form-group">
-                        <label>Mã đơn vị <span style="color:red">*</span></label>
-                        <input type="text" id="orgCode" name="orgCode" required placeholder="Ví dụ: KV_MB">
-                    </div>
-                    <div class="form-group">
-                        <label>Tên đơn vị <span style="color:red">*</span></label>
-                        <input type="text" id="orgName" name="orgName" required placeholder="Ví dụ: Khu vực Miền Bắc">
-                    </div>
-                    <div class="form-group">
-                        <label>Đơn vị cha</label>
-                        <select id="parentId" name="parentId">
-                            <option value="">-- Không có (Đơn vị gốc) --</option>
-                            <!-- Dữ liệu Đơn vị cha sẽ được đổ từ API của Backend -->
-                        </select>
-                    </div>
-                    
-                    <!-- Bổ sung trường Trưởng nhóm (Yêu cầu số 4) -->
-                    <div class="form-group">
-                        <label>Trưởng nhóm <span style="color:red">*</span></label>
-                        <select id="leaderId" name="leaderId" required>
-                            <option value="">-- Chọn trưởng nhóm --</option>
-                            <!-- Dữ liệu Trưởng nhóm sẽ được đổ từ API -->
-                        </select>
+
+            <form id="salesOrgForm">
+
+                <div class="modal-body">
+
+                    <div
+                        id="formError"
+                        class="alert alert-danger">
                     </div>
 
-                    <!-- Bổ sung trường Khu vực địa lý (Yêu cầu số 6) -->
-                    <div class="form-group">
-                        <label>Khu vực địa lý <span style="color:red">*</span></label>
-                        <select id="regionId" name="regionId" required>
-                            <option value="">-- Chọn khu vực --</option>
-                            <!-- Dữ liệu Khu vực sẽ được đổ từ API -->
-                        </select>
+                    <input
+                        type="hidden"
+                        id="groupId">
+
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+
+                            <label for="orgCode">
+                                Mã nhóm
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="orgCode"
+                                class="form-control"
+                                maxlength="50"
+                                required>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="status">
+                                Trạng thái
+                            </label>
+
+                            <select
+                                id="status"
+                                class="form-control">
+
+                                <option value="ACTIVE">
+                                    Đang hoạt động
+                                </option>
+
+                                <option value="INACTIVE">
+                                    Ngừng hoạt động
+                                </option>
+
+                            </select>
+
+                        </div>
+
                     </div>
 
+
                     <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select id="status" name="status">
-                            <option value="1">Hoạt động</option>
-                            <option value="0">Tạm ngừng</option>
+
+                        <label for="orgName">
+                            Tên nhóm
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="orgName"
+                            class="form-control"
+                            maxlength="150"
+                            required>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="parentId">
+                            Nhóm cha
+                        </label>
+
+                        <select
+                            id="parentId"
+                            class="form-control">
+
+                            <option value="">
+                                -- Không có, là nhóm gốc --
+                            </option>
+
                         </select>
+
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-cancel">Hủy</button>
-                        <button type="submit" class="btn-save">Lưu thông tin</button>
+
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+
+                            <label for="leaderId">
+                                Trưởng nhóm
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="leaderId"
+                                class="form-control"
+                                required>
+
+                                <option value="">
+                                    -- Chọn trưởng nhóm --
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="regionId">
+                                Khu vực địa lý
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="regionId"
+                                class="form-control"
+                                required>
+
+                                <option value="">
+                                    -- Chọn khu vực --
+                                </option>
+
+                            </select>
+
+                        </div>
+
                     </div>
-                </form>
-            </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        id="btnCancel"
+                        class="btn btn-secondary">
+                        Hủy
+                    </button>
+
+                    <button
+                        type="submit"
+                        id="btnSave"
+                        class="btn btn-primary">
+                        Lưu thông tin
+                    </button>
+
+                </div>
+
+            </form>
+
         </div>
+
     </div>
 
-    <!-- Bổ sung CSS cho Modal -->
-    <style>
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 5% auto; width: 450px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
-        .modal-header h3 { margin: 0; font-size: 18px; color: #2c3e50; }
-        .close-btn { font-size: 24px; cursor: pointer; color: #888; }
-        .close-btn:hover { color: #e74c3c; }
-        .modal-body { padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: #333; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .form-actions { text-align: right; margin-top: 25px; }
-        .btn-cancel { background-color: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-        .btn-save { background-color: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-cancel:hover { background-color: #7f8c8d; }
-        .btn-save:hover { background-color: #2980b9; }
-    </style>
 
-    <!-- Script xử lý giao diện S2-06 -->
+    <div
+        id="toast"
+        class="toast-message">
+    </div>
+
+
 <script>
-    const modal = document.getElementById("salesOrgModal");
-    const btnAdd = document.getElementById("btnAdd");
-    const spanClose = document.querySelector(".close-btn");
-    const btnCancel = document.querySelector(".btn-cancel");
-    const form = document.getElementById("salesOrgForm");
-    const treeContainer = document.getElementById("treeContainer");
+(() => {
 
-    const orgCodeInput = document.getElementById("orgCode");
-    const orgNameInput = document.getElementById("orgName");
-    const parentSelect = document.getElementById("parentId");
-    const leaderSelect = document.getElementById("leaderId");
-    const regionSelect = document.getElementById("regionId");
+    const CONTEXT_PATH =
+        document.body.dataset.contextPath || '';
 
-    function showBackendUnavailable() {
-        treeContainer.innerHTML = `
-            <div style="
-                padding: 32px 20px;
-                text-align: center;
-                color: #6c757d;
-                border: 1px dashed #ced4da;
-                border-radius: 6px;
-                background: #f8f9fa;">
-                <strong>Chưa có dữ liệu cơ cấu tổ chức</strong>
-                <div style="margin-top:8px">
-                    Chức năng đang chờ API quản lý cơ cấu tổ chức từ Backend.
-                </div>
-            </div>
-        `;
+    const API =
+        CONTEXT_PATH + '/api/v1/sales-orgs';
+
+    let organizations = [];
+    let treeData = [];
+    let managers = [];
+    let regions = [];
+
+    const treeContainer =
+        document.getElementById('treeContainer');
+
+    const totalGroups =
+        document.getElementById('totalGroups');
+
+    const modal =
+        document.getElementById('salesOrgModal');
+
+    const form =
+        document.getElementById('salesOrgForm');
+
+    const formError =
+        document.getElementById('formError');
+
+    const groupIdInput =
+        document.getElementById('groupId');
+
+    const orgCodeInput =
+        document.getElementById('orgCode');
+
+    const orgNameInput =
+        document.getElementById('orgName');
+
+    const parentSelect =
+        document.getElementById('parentId');
+
+    const leaderSelect =
+        document.getElementById('leaderId');
+
+    const regionSelect =
+        document.getElementById('regionId');
+
+    const statusSelect =
+        document.getElementById('status');
+
+    const btnSave =
+        document.getElementById('btnSave');
+
+
+    async function apiRequest(
+        url,
+        options = {}
+    ) {
+
+        const response =
+            await fetch(url, {
+                ...options,
+                headers: {
+                    ...(options.body
+                        ? {
+                            'Content-Type':
+                                'application/json'
+                        }
+                        : {}),
+                    ...(options.headers || {})
+                }
+            });
+
+        if (response.status === 204) {
+            return null;
+        }
+
+        const text =
+            await response.text();
+
+        let data = null;
+
+        if (text) {
+            try {
+                data = JSON.parse(text);
+            }
+            catch {
+                data = {
+                    message: text
+                };
+            }
+        }
+
+        if (!response.ok) {
+
+            throw new Error(
+                data?.message
+                || 'HTTP ' + response.status
+            );
+        }
+
+        return data;
     }
 
-    function openCreateModal() {
-        form.reset();
 
-        document.getElementById("modalTitle").innerText =
-            "Thêm mới đơn vị";
+    async function loadAll() {
 
-        modal.style.display = "block";
-        orgCodeInput.focus();
+        setTreeLoading();
+
+        try {
+
+            const [
+                allData,
+                tree,
+                managerData,
+                regionData
+            ] = await Promise.all([
+
+                apiRequest(API + '/'),
+
+                apiRequest(API + '/tree'),
+
+                apiRequest(API + '/managers'),
+
+                apiRequest(API + '/regions')
+            ]);
+
+            organizations =
+                Array.isArray(allData)
+                    ? allData
+                    : [];
+
+            treeData =
+                Array.isArray(tree)
+                    ? tree
+                    : [];
+
+            managers =
+                Array.isArray(managerData)
+                    ? managerData
+                    : [];
+
+            regions =
+                Array.isArray(regionData)
+                    ? regionData
+                    : [];
+
+            totalGroups.textContent =
+                organizations.length;
+
+            populateManagerOptions();
+            populateRegionOptions();
+
+            renderTree();
+
+        }
+        catch (error) {
+
+            treeContainer.innerHTML = '';
+
+            const errorBox =
+                document.createElement('div');
+
+            errorBox.className =
+                'tree-error';
+
+            errorBox.textContent =
+                error.message
+                || 'Không tải được cơ cấu tổ chức.';
+
+            treeContainer.appendChild(
+                errorBox
+            );
+        }
     }
 
-    function closeModal() {
-        modal.style.display = "none";
-        form.reset();
+
+    function setTreeLoading() {
+
+        treeContainer.innerHTML =
+            '<div class="tree-loading">' +
+            'Đang tải cơ cấu tổ chức...' +
+            '</div>';
     }
 
-    btnAdd.addEventListener("click", openCreateModal);
-    spanClose.addEventListener("click", closeModal);
-    btnCancel.addEventListener("click", closeModal);
 
-    window.addEventListener("click", function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
+    function renderTree() {
 
-    function validateForm() {
-        const orgCode = orgCodeInput.value.trim();
-        const orgName = orgNameInput.value.trim();
+        treeContainer.innerHTML = '';
 
-        if (!orgCode) {
-            alert("Vui lòng nhập Mã đơn vị.");
-            orgCodeInput.focus();
-            return false;
-        }
+        if (treeData.length === 0) {
 
-        if (orgCode.length > 20) {
-            alert("Mã đơn vị không được vượt quá 20 ký tự.");
-            orgCodeInput.focus();
-            return false;
-        }
+            const empty =
+                document.createElement('div');
 
-        if (!orgName) {
-            alert("Vui lòng nhập Tên đơn vị.");
-            orgNameInput.focus();
-            return false;
-        }
+            empty.className =
+                'tree-empty';
 
-        if (!leaderSelect.value) {
-            alert("Vui lòng chọn Trưởng nhóm.");
-            leaderSelect.focus();
-            return false;
-        }
+            empty.textContent =
+                'Chưa có nhóm kinh doanh.';
 
-        if (!regionSelect.value) {
-            alert("Vui lòng chọn Khu vực địa lý.");
-            regionSelect.focus();
-            return false;
-        }
+            treeContainer.appendChild(
+                empty
+            );
 
-        return true;
-    }
-
-    form.addEventListener("submit", function(event) {
-        event.preventDefault();
-
-        if (!validateForm()) {
             return;
         }
 
-        alert(
-            "Chưa thể lưu dữ liệu vì API Backend S2-06 " +
-            "chưa được cung cấp."
+        const rootList =
+            document.createElement('ul');
+
+        rootList.className =
+            'org-tree';
+
+        treeData.forEach(item => {
+
+            rootList.appendChild(
+                createTreeItem(item)
+            );
+        });
+
+        treeContainer.appendChild(
+            rootList
         );
-    });
+    }
 
-    /*
-     * Không sử dụng dữ liệu hard-code hoặc mock.
-     * Các danh sách này sẽ được tải từ Backend
-     * khi API S2-06 được cung cấp.
-     */
-    parentSelect.disabled = true;
-    leaderSelect.disabled = true;
-    regionSelect.disabled = true;
 
-    showBackendUnavailable();
+    function createTreeItem(item) {
+
+        const li =
+            document.createElement('li');
+
+        const node =
+            document.createElement('div');
+
+        node.className =
+            'org-node';
+
+
+        const main =
+            document.createElement('div');
+
+        main.className =
+            'org-main';
+
+        const name =
+            document.createElement('div');
+
+        name.className =
+            'org-name';
+
+        name.textContent =
+            item.orgName || '-';
+
+        const code =
+            document.createElement('div');
+
+        code.className =
+            'org-code';
+
+        code.textContent =
+            'Mã: ' + (item.orgCode || '-');
+
+        main.appendChild(name);
+        main.appendChild(code);
+
+
+        const leader =
+            createInfoBlock(
+                'Trưởng nhóm',
+                item.leaderName || '-'
+            );
+
+
+        const region =
+            createInfoBlock(
+                'Khu vực',
+                item.regionName || '-'
+            );
+
+
+        const statusWrap =
+            document.createElement('div');
+
+        const badge =
+            document.createElement('span');
+
+        const active =
+            item.status === 'ACTIVE';
+
+        badge.className =
+            'status-badge '
+            + (
+                active
+                ? 'status-active'
+                : 'status-inactive'
+            );
+
+        badge.textContent =
+            active
+                ? 'Đang hoạt động'
+                : 'Ngừng hoạt động';
+
+        statusWrap.appendChild(badge);
+
+
+        const actions =
+            document.createElement('div');
+
+        actions.className =
+            'node-actions';
+
+
+        const editButton =
+            document.createElement('button');
+
+        editButton.type = 'button';
+
+        editButton.className =
+            'btn btn-sm btn-outline-primary';
+
+        editButton.textContent =
+            'Sửa';
+
+        editButton.addEventListener(
+            'click',
+            () => openEditModal(item.id)
+        );
+
+        actions.appendChild(
+            editButton
+        );
+
+
+        if (active) {
+
+            const stopButton =
+                document.createElement('button');
+
+            stopButton.type =
+                'button';
+
+            stopButton.className =
+                'btn btn-sm btn-outline-danger';
+
+            stopButton.textContent =
+                'Ngừng';
+
+            stopButton.addEventListener(
+                'click',
+                () => deactivateGroup(item)
+            );
+
+            actions.appendChild(
+                stopButton
+            );
+        }
+
+
+        node.appendChild(main);
+        node.appendChild(leader);
+        node.appendChild(region);
+        node.appendChild(statusWrap);
+        node.appendChild(actions);
+
+        li.appendChild(node);
+
+
+        if (
+            Array.isArray(item.children)
+            && item.children.length > 0
+        ) {
+
+            const children =
+                document.createElement('ul');
+
+            item.children.forEach(child => {
+
+                children.appendChild(
+                    createTreeItem(child)
+                );
+            });
+
+            li.appendChild(children);
+        }
+
+        return li;
+    }
+
+
+    function createInfoBlock(
+        label,
+        value
+    ) {
+
+        const block =
+            document.createElement('div');
+
+        const labelEl =
+            document.createElement('span');
+
+        labelEl.className =
+            'org-info-label';
+
+        labelEl.textContent =
+            label;
+
+        const valueEl =
+            document.createElement('span');
+
+        valueEl.className =
+            'org-info-value';
+
+        valueEl.textContent =
+            value;
+
+        block.appendChild(labelEl);
+        block.appendChild(valueEl);
+
+        return block;
+    }
+
+
+    function populateManagerOptions(
+        selectedId = ''
+    ) {
+
+        leaderSelect.innerHTML = '';
+
+        const first =
+            new Option(
+                '-- Chọn trưởng nhóm --',
+                ''
+            );
+
+        leaderSelect.add(first);
+
+        managers.forEach(manager => {
+
+            const option =
+                new Option(
+                    manager.fullName + ' (' + manager.email + ')',
+                    manager.id
+                );
+
+            if (
+                String(manager.id)
+                === String(selectedId)
+            ) {
+                option.selected = true;
+            }
+
+            leaderSelect.add(option);
+        });
+    }
+
+
+    function populateRegionOptions(
+        selectedId = ''
+    ) {
+
+        regionSelect.innerHTML = '';
+
+        regionSelect.add(
+            new Option(
+                '-- Chọn khu vực --',
+                ''
+            )
+        );
+
+        regions.forEach(region => {
+
+            const option =
+                new Option(
+                    region.name,
+                    region.id
+                );
+
+            if (
+                String(region.id)
+                === String(selectedId)
+            ) {
+                option.selected = true;
+            }
+
+            regionSelect.add(option);
+        });
+    }
+
+
+    function populateParentOptions(
+        selectedId = '',
+        excludedId = ''
+    ) {
+
+        parentSelect.innerHTML = '';
+
+        parentSelect.add(
+            new Option(
+                '-- Không có, là nhóm gốc --',
+                ''
+            )
+        );
+
+        organizations.forEach(item => {
+
+            if (
+                String(item.id)
+                === String(excludedId)
+            ) {
+                return;
+            }
+
+            if (item.status !== 'ACTIVE') {
+                return;
+            }
+
+            const option =
+                new Option(
+                    item.orgCode + ' - ' + item.orgName,
+                    item.id
+                );
+
+            if (
+                String(item.id)
+                === String(selectedId)
+            ) {
+                option.selected = true;
+            }
+
+            parentSelect.add(option);
+        });
+    }
+
+
+    function openCreateModal() {
+
+        form.reset();
+
+        groupIdInput.value = '';
+
+        document.getElementById(
+            'modalTitle'
+        ).textContent =
+            'Thêm nhóm kinh doanh';
+
+        statusSelect.value =
+            'ACTIVE';
+
+        populateParentOptions();
+        populateManagerOptions();
+        populateRegionOptions();
+
+        hideFormError();
+
+        modal.classList.add('show');
+
+        orgCodeInput.focus();
+    }
+
+
+    function openEditModal(id) {
+
+        const item =
+            organizations.find(
+                x => Number(x.id)
+                    === Number(id)
+            );
+
+        if (!item) {
+            showToast(
+                'Không tìm thấy nhóm kinh doanh.',
+                'danger'
+            );
+            return;
+        }
+
+        form.reset();
+
+        groupIdInput.value =
+            item.id;
+
+        orgCodeInput.value =
+            item.orgCode || '';
+
+        orgNameInput.value =
+            item.orgName || '';
+
+        statusSelect.value =
+            item.status || 'ACTIVE';
+
+        populateParentOptions(
+            item.parentId ?? '',
+            item.id
+        );
+
+        populateManagerOptions(
+            item.leaderId ?? ''
+        );
+
+        populateRegionOptions(
+            item.regionId ?? ''
+        );
+
+        document.getElementById(
+            'modalTitle'
+        ).textContent =
+            'Chỉnh sửa nhóm kinh doanh';
+
+        hideFormError();
+
+        modal.classList.add('show');
+    }
+
+
+    function closeModal() {
+
+        modal.classList.remove('show');
+
+        form.reset();
+
+        hideFormError();
+    }
+
+
+    async function handleSubmit(event) {
+
+        event.preventDefault();
+
+        const id =
+            groupIdInput.value.trim();
+
+        const orgCode =
+            orgCodeInput.value.trim();
+
+        const orgName =
+            orgNameInput.value.trim();
+
+        const leaderId =
+            leaderSelect.value;
+
+        const regionId =
+            regionSelect.value;
+
+
+        if (!orgCode) {
+            showFormError(
+                'Vui lòng nhập mã nhóm.'
+            );
+            return;
+        }
+
+        if (!orgName) {
+            showFormError(
+                'Vui lòng nhập tên nhóm.'
+            );
+            return;
+        }
+
+        if (!leaderId) {
+            showFormError(
+                'Vui lòng chọn trưởng nhóm.'
+            );
+            return;
+        }
+
+        if (!regionId) {
+            showFormError(
+                'Vui lòng chọn khu vực.'
+            );
+            return;
+        }
+
+
+        const body = {
+
+            orgCode,
+
+            orgName,
+
+            parentId:
+                parentSelect.value
+                    ? Number(parentSelect.value)
+                    : null,
+
+            leaderId:
+                Number(leaderId),
+
+            regionId:
+                Number(regionId),
+
+            status:
+                statusSelect.value
+        };
+
+
+        setSaving(true);
+
+        try {
+
+            if (id) {
+
+                await apiRequest(
+                    API + '/' + id,
+                    {
+                        method: 'PUT',
+                        body:
+                            JSON.stringify(body)
+                    }
+                );
+
+                showToast(
+                    'Cập nhật nhóm kinh doanh thành công.',
+                    'success'
+                );
+
+            }
+            else {
+
+                await apiRequest(
+                    API + '/',
+                    {
+                        method: 'POST',
+                        body:
+                            JSON.stringify(body)
+                    }
+                );
+
+                showToast(
+                    'Thêm nhóm kinh doanh thành công.',
+                    'success'
+                );
+            }
+
+
+            closeModal();
+
+            await loadAll();
+
+        }
+        catch (error) {
+
+            showFormError(
+                error.message
+                || 'Không lưu được nhóm kinh doanh.'
+            );
+
+        }
+        finally {
+
+            setSaving(false);
+        }
+    }
+
+
+    async function deactivateGroup(item) {
+
+        const confirmed =
+            window.confirm(
+                'Ngừng hoạt động nhóm "' + item.orgName + '"?'
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+
+            await apiRequest(
+                API + '/' + item.id,
+                {
+                    method: 'DELETE'
+                }
+            );
+
+            showToast(
+                'Ngừng hoạt động nhóm thành công.',
+                'success'
+            );
+
+            await loadAll();
+
+        }
+        catch (error) {
+
+            showToast(
+                error.message
+                || 'Không ngừng được nhóm kinh doanh.',
+                'danger'
+            );
+        }
+    }
+
+
+    function showFormError(message) {
+
+        formError.textContent =
+            message;
+
+        formError.classList.add(
+            'show'
+        );
+    }
+
+
+    function hideFormError() {
+
+        formError.textContent = '';
+
+        formError.classList.remove(
+            'show'
+        );
+    }
+
+
+    function setSaving(saving) {
+
+        btnSave.disabled =
+            saving;
+
+        btnSave.textContent =
+            saving
+                ? 'Đang lưu...'
+                : 'Lưu thông tin';
+    }
+
+
+    let toastTimer = null;
+
+    function showToast(
+        message,
+        type
+    ) {
+
+        const toast =
+            document.getElementById(
+                'toast'
+            );
+
+        toast.textContent =
+            message;
+
+        toast.className =
+            'toast-message show '
+            + (
+                type === 'success'
+                    ? 'toast-success'
+                    : 'toast-danger'
+            );
+
+        clearTimeout(toastTimer);
+
+        toastTimer =
+            setTimeout(
+                () => {
+                    toast.className =
+                        'toast-message';
+                },
+                3500
+            );
+    }
+
+
+    document.getElementById(
+        'btnAddGroup'
+    ).addEventListener(
+        'click',
+        openCreateModal
+    );
+
+
+    document.getElementById(
+        'btnReload'
+    ).addEventListener(
+        'click',
+        loadAll
+    );
+
+
+    document.getElementById(
+        'btnCloseModal'
+    ).addEventListener(
+        'click',
+        closeModal
+    );
+
+
+    document.getElementById(
+        'btnCancel'
+    ).addEventListener(
+        'click',
+        closeModal
+    );
+
+
+    modal.addEventListener(
+        'click',
+        event => {
+
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    );
+
+
+    form.addEventListener(
+        'submit',
+        handleSubmit
+    );
+
+
+    loadAll();
+
+})();
 </script>
+
 </body>
 </html>
