@@ -207,6 +207,21 @@
 
                     </a>
                 </li>
+                                <li>
+                    <a href="${pageContext.request.contextPath}/views/product/product-service.jsp"
+                       class="<%= currentURI.contains("/views/product/product-service.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Sản phẩm / Dịch vụ & Bảng giá
+                        </span>
+
+                    </a>
+                </li>
+
                 <% if ("MANAGER".equals(role) || "ADMIN".equals(role)) { %>
 
                 <li>
