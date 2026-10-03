@@ -1,4 +1,14 @@
 
+const CURRENT_ROLE =
+    (document.body.dataset.userRole || '')
+        .toUpperCase();
+
+const CAN_VIEW_COST =
+    CURRENT_ROLE === 'MANAGER';
+
+const CAN_MANAGE =
+    CURRENT_ROLE === 'MANAGER'
+    || CURRENT_ROLE === 'ADMIN';
 const CONTEXT_PATH = document.body.dataset.contextPath || '';
 
 const PRODUCT_API = `${CONTEXT_PATH}/api/v1/products/`;
@@ -163,7 +173,7 @@ function renderProductLoading() {
     const row = document.createElement('tr');
     const cell = document.createElement('td');
 
-    cell.colSpan = 9;
+    cell.colSpan = CAN_VIEW_COST ? 10 : 9;
     cell.className = 'text-center text-muted py-4';
     cell.textContent = 'Đang tải dữ liệu...';
 
@@ -180,7 +190,7 @@ function renderProductError() {
     const row = document.createElement('tr');
     const cell = document.createElement('td');
 
-    cell.colSpan = 9;
+    cell.colSpan = CAN_VIEW_COST ? 10 : 9;
     cell.className = 'text-center text-danger py-4';
     cell.textContent = 'Không thể tải dữ liệu sản phẩm / dịch vụ.';
 
@@ -199,7 +209,7 @@ function renderProductTable(data) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
 
-        cell.colSpan = 9;
+        cell.colSpan = CAN_VIEW_COST ? 10 : 9;
         cell.className = 'text-center text-muted py-4';
         cell.textContent = 'Chưa có dữ liệu phù hợp.';
 
@@ -247,6 +257,17 @@ function renderProductTable(data) {
             formatCurrency(item.floorPrice)
         );
 
+        if (CAN_VIEW_COST) {
+
+            addTextCell(
+                row,
+                item.costPrice == null
+                    ? '-'
+                    : formatCurrency(item.costPrice),
+                'manager-only-cost'
+            );
+        }
+
         const statusCell = document.createElement('td');
 
         const statusBadge = document.createElement('span');
@@ -284,10 +305,13 @@ function renderProductTable(data) {
             'btn btn-sm btn-outline-danger';
         deleteButton.dataset.action = 'delete';
         deleteButton.dataset.id = item.id;
-        deleteButton.textContent = 'Xóa';
+        deleteButton.textContent = 'Ngừng';
 
         actionCell.appendChild(editButton);
-        actionCell.appendChild(deleteButton);
+
+        if (item.status === 'ACTIVE') {
+            actionCell.appendChild(deleteButton);
+        }
 
         row.appendChild(actionCell);
 
@@ -361,6 +385,14 @@ function openEditProductModal(id) {
         item.basePrice ?? '';
     document.getElementById('floorPrice').value =
         item.floorPrice ?? '';
+
+    const costPriceInput =
+        document.getElementById('costPrice');
+
+    if (costPriceInput && CAN_VIEW_COST) {
+        costPriceInput.value =
+            item.costPrice ?? '';
+    }
     document.getElementById('status').value =
         item.status || 'ACTIVE';
     document.getElementById('description').value =
@@ -413,6 +445,16 @@ async function handleProductSubmit(event) {
         unit: document.getElementById('unit').value.trim(),
         basePrice: basePrice,
         floorPrice: floorPrice,
+
+        ...(CAN_VIEW_COST
+            && document.getElementById('costPrice')
+            && document.getElementById('costPrice').value !== ''
+            ? {
+                costPrice: Number(
+                    document.getElementById('costPrice').value
+                )
+            }
+            : {}),
         status: document.getElementById('status').value,
         description:
             document.getElementById('description').value.trim()
@@ -533,6 +575,9 @@ function openProductDeleteModal(id) {
 
     document.getElementById('deleteTargetName').textContent =
         item.name || item.code || '';
+
+    document.getElementById('btnConfirmDelete')
+        .textContent = 'Ngừng kinh doanh';
 
     deleteModal.show();
 }
@@ -1538,17 +1583,10 @@ async function executeDelete() {
 
         if (deleteTarget.type === 'product') {
 
-            productList =
-                productList.filter(
-                    item =>
-                        Number(item.id) !==
-                        Number(deleteTarget.id)
-                );
-
-            renderProductTable(productList);
+            await fetchProducts();
 
             showToast(
-                'Xóa sản phẩm thành công.',
+                'Ngừng kinh doanh sản phẩm thành công.',
                 'success'
             );
 

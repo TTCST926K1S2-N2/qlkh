@@ -246,3 +246,17 @@ textarea.form-control {
         width: calc(100vw - 30px);
     }
 }
+/* S2-05 ROLE VISIBILITY */
+
+body:not([data-user-role="MANAGER"])
+.manager-only-cost {
+    display: none !important;
+}
+
+body[data-user-role="SALES"] #btnAddProduct,
+body[data-user-role="SALES"] #btnAddPriceList,
+body[data-user-role="SALES"] #btnAddPriceListItem,
+body[data-user-role="SALES"] button[data-action="edit"],
+body[data-user-role="SALES"] button[data-action="delete"] {
+    display: none !important;
+}

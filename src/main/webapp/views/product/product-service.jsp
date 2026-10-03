@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,7 +17,7 @@
             href="${pageContext.request.contextPath}/assets/css/product-service.css">
 </head>
 
-<body>
+<body data-context-path="${pageContext.request.contextPath}" data-user-role="${sessionScope.userRole}">
 
 <div class="system-layout">
 
@@ -187,6 +188,7 @@
                                         <th>Đơn vị tính</th>
                                         <th>Giá niêm yết</th>
                                         <th>Giá sàn</th>
+                                <th class="manager-only-cost">Giá vốn</th>
                                         <th>Trạng thái</th>
                                         <th class="text-center">
                                             Thao tác
@@ -419,6 +421,27 @@
 
                             <div class="form-text">
                                 Giá sàn không được lớn hơn giá niêm yết.
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6 manager-only-cost">
+
+                            <label
+                                    for="costPrice"
+                                    class="form-label">
+                                Giá vốn
+                            </label>
+
+                            <input
+                                    type="number"
+                                    class="form-control"
+                                    id="costPrice"
+                                    min="0"
+                                    step="0.01">
+
+                            <div class="form-text">
+                                Chỉ Giám đốc kinh doanh được xem và sửa giá vốn.
                             </div>
 
                         </div>
@@ -891,7 +914,7 @@
             <div class="modal-body">
 
                 <p class="mb-0">
-                    Bạn có chắc chắn muốn xóa:
+                    Bạn có chắc chắn muốn thực hiện thao tác với:
                 </p>
 
                 <p
