@@ -1,44 +1,36 @@
-﻿package com.qlkh.dto;
+package com.qlkh.dto;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SalesOrgDTO implements Serializable {
+public class SalesOrgDTO {
+    private Integer id;
     private String orgCode;
     private String orgName;
-    private String parentOrgCode;
-    private String description;
+    private Integer parentId;
     private String status;
     private List<SalesOrgDTO> children = new ArrayList<>();
 
     public SalesOrgDTO() {}
 
-    public SalesOrgDTO(String orgCode, String orgName, String parentOrgCode, String description, String status) {
+    public SalesOrgDTO(Integer id, String orgCode, String orgName, Integer parentId, String status) {
+        this.id = id;
         this.orgCode = orgCode;
         this.orgName = orgName;
-        this.parentOrgCode = parentOrgCode;
-        this.description = description;
+        this.parentId = parentId;
         this.status = status;
     }
 
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
     public String getOrgCode() { return orgCode; }
     public void setOrgCode(String orgCode) { this.orgCode = orgCode; }
-
     public String getOrgName() { return orgName; }
     public void setOrgName(String orgName) { this.orgName = orgName; }
-
-    public String getParentOrgCode() { return parentOrgCode; }
-    public void setParentOrgCode(String parentOrgCode) { this.parentOrgCode = parentOrgCode; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
+    public Integer getParentId() { return parentId; }
+    public void setParentId(Integer parentId) { this.parentId = parentId; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
     public List<SalesOrgDTO> getChildren() { return children; }
     public void setChildren(List<SalesOrgDTO> children) { this.children = children; }
-
-    public void addChild(SalesOrgDTO child) { this.children.add(child); }
 }

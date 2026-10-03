@@ -1,70 +1,60 @@
-﻿package com.qlkh.service;
+package com.qlkh.service;
 
 import com.qlkh.dto.SalesOrgDTO;
 import com.qlkh.model.SalesOrganization;
 import com.qlkh.repository.SalesOrgRepository;
 
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SalesOrgServiceImpl implements SalesOrgService {
-
-    private final SalesOrgRepository repository = new SalesOrgRepository();
+    private SalesOrgRepository repo = new SalesOrgRepository();
 
     @Override
-    public List<SalesOrgDTO> getOrgTree() throws SQLException {
-        List<SalesOrganization> rawList = repository.findAll();
-        Map<String, SalesOrgDTO> dtoMap = new HashMap<>();
-        List<SalesOrgDTO> rootNodes = new ArrayList<>();
+    public List<SalesOrgDTO> getAllSalesOrgs() {
+        List<SalesOrganization> entities = repo.findAll();
+        List<SalesOrgDTO> dtos = new ArrayList<>();
+        for (SalesOrganization e : entities) {
+            dtos.add(toDTO(e));
+        }
+        return dtos;
+    }
 
-        for (SalesOrganization org : rawList) {
-            SalesOrgDTO dto = new SalesOrgDTO(
-                org.getOrgCode(),
-                org.getOrgName(),
-                org.getParentOrgCode(),
-                org.getDescription(),
-                org.getStatus()
-            );
-            dtoMap.put(org.getOrgCode(), dto);
+    @Override
+    public List<SalesOrgDTO> getSalesOrgTree() {
+        List<SalesOrganization> entities = repo.findAll();
+        Map<Integer, SalesOrgDTO> dtoMap = new HashMap<>();
+        List<SalesOrgDTO> roots = new ArrayList<>();
+
+        for (SalesOrganization e : entities) {
+            dtoMap.put(e.getId(), toDTO(e));
         }
 
-        for (SalesOrgDTO dto : dtoMap.values()) {
-            String parentCode = dto.getParentOrgCode();
-            if (parentCode == null || parentCode.trim().isEmpty() || !dtoMap.containsKey(parentCode)) {
-                rootNodes.add(dto);
+        for (SalesOrganization e : entities) {
+            SalesOrgDTO dto = dtoMap.get(e.getId());
+            if (e.getParentId() == null || e.getParentId() == 0) {
+                roots.add(dto);
             } else {
-                SalesOrgDTO parent = dtoMap.get(parentCode);
-                parent.addChild(dto);
+                SalesOrgDTO parent = dtoMap.get(e.getParentId());
+                if (parent != null) {
+                    parent.getChildren().add(dto);
+                } else {
+                    roots.add(dto);
+                }
             }
         }
-        return rootNodes;
+        return roots;
     }
 
     @Override
-    public List<SalesOrganization> getAllOrgs() throws SQLException {
-        return repository.findAll();
+    public SalesOrgDTO getSalesOrgById(int id) {
+        SalesOrganization e = repo.findById(id);
+        return e != null ? toDTO(e) : null;
     }
 
-    @Override
-    public SalesOrganization getOrgByCode(String code) throws SQLException {
-        return repository.findByCode(code);
-    }
-
-    @Override
-    public boolean createOrg(SalesOrganization org) throws SQLException {
-        if (org.getOrgCode() == null || org.getOrgCode().trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã tổ chức không được để trống!");
-        }
-        return repository.insert(org);
-    }
-
-    @Override
-    public boolean updateOrg(SalesOrganization org) throws SQLException {
-        return repository.update(org);
-    }
-
-    @Override
-    public boolean deleteOrg(String code) throws SQLException {
-        return repository.delete(code);
+    private SalesOrgDTO toDTO(SalesOrganization e) {
+        return new SalesOrgDTO(e.getId(), e.getOrgCode(), e.getOrgName(), e.getParentId(), e.getStatus());
     }
 }
