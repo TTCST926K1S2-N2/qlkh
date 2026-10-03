@@ -276,6 +276,22 @@
 
                     </a>
                 </li>
+                <li>
+                    <a
+                        href="${pageContext.request.contextPath}/views/admin/win-loss-competitors.jsp"
+                        class="<%=
+                                currentURI.contains("/views/admin/win-loss-competitors.jsp")
+                                        ? "active"
+                                        : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Lý do thắng/thua & Đối thủ
+                        </span>
+
+                    </a>
+                </li>
 
                 <% } %>
 
