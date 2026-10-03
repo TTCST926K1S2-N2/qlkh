@@ -143,6 +143,12 @@ public class ProductService {
     public boolean deleteOrDeactivateProduct(long id)
             throws SQLException {
 
+        if (id <= 0) {
+            throw new IllegalArgumentException(
+                    "ID sản phẩm/dịch vụ không hợp lệ."
+            );
+        }
+
         Product product =
                 productDAO.findById(id);
 
@@ -151,19 +157,19 @@ public class ProductService {
         }
 
         /*
-         * Nếu sản phẩm đã nằm trong bảng giá,
-         * không xóa vật lý để tránh mất lịch sử.
+         * S2-05:
+         * Sản phẩm đã được sử dụng trong nghiệp vụ bán hàng
+         * không được xóa vật lý.
+         *
+         * Module báo giá chưa tồn tại trong project hiện tại,
+         * vì vậy DELETE API luôn chuyển sản phẩm sang INACTIVE.
+         * Cách này bảo toàn lịch sử và an toàn khi module báo giá
+         * được bổ sung sau.
          */
-        if (productDAO.existsInPriceList(id)) {
+        product.setStatus("INACTIVE");
 
-            product.setStatus("INACTIVE");
-
-            return productDAO.update(product);
-        }
-
-        return productDAO.delete(id);
+        return productDAO.update(product);
     }
-
 
     private void prepareNewProduct(Product product) {
 
