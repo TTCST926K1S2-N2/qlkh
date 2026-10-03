@@ -260,6 +260,22 @@
                         </span>
                     </a>
                 </li>
+                <li>
+                    <a
+                        href="${pageContext.request.contextPath}/views/sales/sales-org.jsp"
+                        class="<%=
+                                currentURI.contains("/views/sales/sales-org.jsp")
+                                        ? "active"
+                                        : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Cơ cấu tổ chức kinh doanh
+                        </span>
+
+                    </a>
+                </li>
 
                 <% } %>
 
