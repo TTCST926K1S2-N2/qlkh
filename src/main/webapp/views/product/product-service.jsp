@@ -1,205 +1,242 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Quản lý Sản phẩm / Dịch vụ & Bảng giá</title>
+    <title>Sản phẩm & Dịch vụ</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/assets/css/product-service.css">
+    <link
+            rel="stylesheet"
+            href="${pageContext.request.contextPath}/assets/css/product-service.css">
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container-fluid py-4">
+<div class="system-layout">
 
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold mb-1">
-                Sản phẩm & Dịch vụ
-            </h3>
+    <jsp:include page="/components/sidebar.jsp"/>
 
-            <p class="text-muted small mb-0">
-                Quản lý danh mục sản phẩm, dịch vụ và cấu hình bảng giá áp dụng
-            </p>
-        </div>
+    <main class="main-content">
 
-        <div>
-            <button class="btn btn-primary me-2"
-                    onclick="openAddProductModal()">
-                Thêm Sản phẩm/Dịch vụ
-            </button>
+        <div class="container-fluid py-4">
 
-            <button class="btn btn-outline-primary"
-                    onclick="openAddPriceListModal()">
-                Thêm Bảng giá
-            </button>
-        </div>
-    </div>
+            <!-- HEADER -->
+            <div class="page-header mb-4">
+                <div>
+                    <h2 class="page-title">Sản phẩm & Dịch vụ</h2>
+                    <p class="page-subtitle">
+                        Quản lý sản phẩm, dịch vụ và bảng giá
+                    </p>
+                </div>
 
+                <div class="page-actions">
+                    <button
+                            type="button"
+                            class="btn btn-primary"
+                            id="btnAddProduct">
+                        Thêm sản phẩm / dịch vụ
+                    </button>
 
-    <!-- Navigation Tabs -->
-    <ul class="nav nav-tabs custom-tabs mb-3"
-        id="productTab"
-        role="tablist">
+                    <button
+                            type="button"
+                            class="btn btn-outline-primary"
+                            id="btnAddPriceList">
+                        Thêm bảng giá
+                    </button>
+                </div>
+            </div>
 
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active"
-                    id="products-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#products-pane"
-                    type="button">
+            <!-- TABS -->
+            <ul class="nav custom-tabs mb-4" id="productPriceTabs">
+                <li class="nav-item">
+                    <button
+                            type="button"
+                            class="nav-link active"
+                            id="productTab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#productPanel">
+                        Danh sách Sản phẩm / Dịch vụ
+                    </button>
+                </li>
 
-                Danh sách Sản phẩm / Dịch vụ
+                <li class="nav-item">
+                    <button
+                            type="button"
+                            class="nav-link"
+                            id="priceListTab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#priceListPanel">
+                        Quản lý Bảng giá
+                    </button>
+                </li>
+            </ul>
 
-            </button>
-        </li>
+            <div class="tab-content">
 
-        <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="pricelists-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#pricelists-pane"
-                    type="button">
+                <div
+                        class="tab-pane fade show active"
+                        id="productPanel">
 
-                Quản lý Bảng giá
+                    <div class="card shadow-sm border-0">
 
-            </button>
-        </li>
+                        <div class="card-body">
 
-    </ul>
+                            <!-- FILTER -->
+                            <form id="filterForm">
 
+                                <div class="row g-3 align-items-end">
 
-    <div class="tab-content" id="productTabContent">
+                                    <div class="col-md-5">
+                                        <label
+                                                for="searchKeyword"
+                                                class="form-label">
+                                            Tìm kiếm
+                                        </label>
 
-        <!-- TAB 1: DANH SÁCH SẢN PHẨM / DỊCH VỤ -->
-        <div class="tab-pane fade show active"
-             id="products-pane"
-             role="tabpanel">
+                                        <input
+                                                type="text"
+                                                class="form-control"
+                                                id="searchKeyword"
+                                                placeholder="Nhập mã hoặc tên sản phẩm / dịch vụ">
+                                    </div>
 
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
+                                    <div class="col-md-2">
+                                        <label
+                                                for="filterType"
+                                                class="form-label">
+                                            Loại
+                                        </label>
 
-                    <!-- Filter Bar -->
-                    <form id="filterForm"
-                          class="row g-3 align-items-center">
+                                        <select
+                                                class="form-select"
+                                                id="filterType">
 
-                        <div class="col-md-4">
-                            <div class="input-group">
+                                            <option value="">Tất cả</option>
+                                            <option value="PRODUCT">
+                                                Sản phẩm
+                                            </option>
+                                            <option value="SERVICE">
+                                                Dịch vụ
+                                            </option>
 
-                                <input type="text"
-                                       id="searchKeyword"
-                                       class="form-control"
-                                       placeholder="Tìm kiếm theo mã, tên...">
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label
+                                                for="filterStatus"
+                                                class="form-label">
+                                            Trạng thái
+                                        </label>
+
+                                        <select
+                                                class="form-select"
+                                                id="filterStatus">
+
+                                            <option value="">Tất cả</option>
+
+                                            <option value="ACTIVE">
+                                                Đang kinh doanh
+                                            </option>
+
+                                            <option value="INACTIVE">
+                                                Ngừng kinh doanh
+                                            </option>
+
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3 filter-actions">
+
+                                        <button
+                                                type="submit"
+                                                class="btn btn-primary">
+                                            Tìm kiếm
+                                        </button>
+
+                                        <button
+                                                type="button"
+                                                class="btn btn-outline-secondary"
+                                                id="btnResetFilter">
+                                            Đặt lại
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </form>
+
+                            <!-- PRODUCT TABLE -->
+                            <div class="table-responsive mt-4">
+
+                                <table class="table table-hover align-middle">
+
+                                    <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Mã SP/DV</th>
+                                        <th>Tên</th>
+                                        <th>Loại</th>
+                                        <th>Đơn vị tính</th>
+                                        <th>Giá niêm yết</th>
+                                        <th>Giá sàn</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-center">
+                                            Thao tác
+                                        </th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody id="productTableBody"></tbody>
+
+                                </table>
 
                             </div>
-                        </div>
-
-
-                        <div class="col-md-3">
-                            <select id="filterType"
-                                    class="form-select">
-
-                                <option value="">
-                                    -- Tất cả loại --
-                                </option>
-
-                                <option value="PRODUCT">
-                                    Sản phẩm
-                                </option>
-
-                                <option value="SERVICE">
-                                    Dịch vụ
-                                </option>
-
-                            </select>
-                        </div>
-
-
-                        <div class="col-md-3">
-                            <select id="filterStatus"
-                                    class="form-select">
-
-                                <option value="">
-                                    -- Tất cả trạng thái --
-                                </option>
-
-                                <option value="ACTIVE">
-                                    Đang kinh doanh
-                                </option>
-
-                                <option value="INACTIVE">
-                                    Ngừng kinh doanh
-                                </option>
-
-                            </select>
-                        </div>
-
-
-                        <div class="col-md-2 d-flex gap-2">
-
-                            <button type="button"
-                                    class="btn btn-secondary w-100"
-                                    onclick="handleSearch()">
-
-                                Lọc
-
-                            </button>
-
-                            <button type="button"
-                                    class="btn btn-light border w-100"
-                                    onclick="resetFilter()">
-
-                                Đặt lại
-
-                            </button>
 
                         </div>
 
-                    </form>
+                    </div>
 
                 </div>
-            </div>
 
+                <div
+                        class="tab-pane fade"
+                        id="priceListPanel">
 
-            <!-- Product Table -->
-            <div class="card border-0 shadow-sm">
+                    <div class="card shadow-sm border-0">
 
-                <div class="card-body p-0">
+                        <div class="card-body">
 
-                    <div class="table-responsive">
+                            <div class="table-responsive">
 
-                        <table class="table table-hover align-middle mb-0">
+                                <table class="table table-hover align-middle">
 
-                            <thead class="table-light">
-                            <tr>
+                                    <thead>
+                                    <tr>
+                                        <th>Mã bảng giá</th>
+                                        <th>Tên bảng giá</th>
+                                        <th>Thời gian áp dụng</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-center">
+                                            Thao tác
+                                        </th>
+                                    </tr>
+                                    </thead>
 
-                                <th>STT</th>
-                                <th>Mã SP/DV</th>
-                                <th>Tên Sản phẩm / Dịch vụ</th>
-                                <th>Loại</th>
-                                <th>Đơn vị tính</th>
-                                <th>Giá niêm yết</th>
-                                <th>Trạng thái</th>
-                                <th class="text-center">Thao tác</th>
+                                    <tbody id="priceListTableBody"></tbody>
 
-                            </tr>
-                            </thead>
+                                </table>
 
-                            <tbody id="productTableBody">
+                            </div>
 
-                                <!-- Data rendered via JS -->
-
-                            </tbody>
-
-                        </table>
+                        </div>
 
                     </div>
 
@@ -209,129 +246,84 @@
 
         </div>
 
-
-        <!-- TAB 2: QUẢN LÝ BẢNG GIÁ -->
-        <div class="tab-pane fade"
-             id="pricelists-pane"
-             role="tabpanel">
-
-            <div class="card border-0 shadow-sm">
-
-                <div class="card-body">
-
-                    <h5 class="fw-bold mb-3">
-                        Danh sách Bảng giá đang áp dụng
-                    </h5>
-
-                    <div class="table-responsive">
-
-                        <table class="table table-hover align-middle mb-0">
-
-                            <thead class="table-light">
-                            <tr>
-
-                                <th>Mã bảng giá</th>
-                                <th>Tên bảng giá</th>
-                                <th>Ngày áp dụng</th>
-                                <th>Trạng thái</th>
-                                <th class="text-center">Thao tác</th>
-
-                            </tr>
-                            </thead>
-
-                            <tbody id="priceListTableBody">
-
-                                <!-- Data rendered via JS -->
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
+    </main>
 
 </div>
 
-
-<!-- MODAL THÊM / CHỈNH SỬA SẢN PHẨM / DỊCH VỤ -->
-<div class="modal fade"
-     id="productModal"
-     tabindex="-1"
-     aria-hidden="true">
+<div
+        class="modal fade"
+        id="productModal"
+        tabindex="-1"
+        aria-hidden="true">
 
     <div class="modal-dialog modal-lg modal-dialog-centered">
 
         <div class="modal-content">
 
-            <div class="modal-header">
+            <form id="productForm">
 
-                <h5 class="modal-title fw-bold"
-                    id="productModalTitle">
+                <div class="modal-header">
 
-                    Thêm mới Sản phẩm / Dịch vụ
+                    <h5
+                            class="modal-title"
+                            id="productModalTitle">
+                        Thêm mới Sản phẩm / Dịch vụ
+                    </h5>
 
-                </h5>
+                    <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Đóng
+                    </button>
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close">
-                </button>
-
-            </div>
-
-
-            <form id="productForm" novalidate>
+                </div>
 
                 <div class="modal-body">
 
-                    <input type="hidden" id="productId">
+                    <input
+                            type="hidden"
+                            id="productId">
 
                     <div class="row g-3">
 
-                        <!-- Mã sản phẩm -->
                         <div class="col-md-6">
 
-                            <label for="productCode"
-                                   class="form-label required">
-
-                                Mã SP/DV
-
+                            <label
+                                    for="productCode"
+                                    class="form-label required">
+                                Mã sản phẩm / dịch vụ
                             </label>
 
-                            <input type="text"
-                                   class="form-control"
-                                   id="productCode"
-                                   placeholder="Ví dụ: SP001"
-                                   required>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="productCode"
+                                    maxlength="50"
+                                    required>
 
                             <div class="invalid-feedback">
-                                Vui lòng nhập mã (không trùng lặp).
+                                Vui lòng nhập mã.
                             </div>
 
                         </div>
 
-
-                        <!-- Loại -->
                         <div class="col-md-6">
 
-                            <label for="productType"
-                                   class="form-label required">
-
+                            <label
+                                    for="productType"
+                                    class="form-label required">
                                 Loại
-
                             </label>
 
-                            <select class="form-select"
+                            <select
+                                    class="form-select"
                                     id="productType"
                                     required>
+
+                                <option value="">
+                                    -- Chọn loại --
+                                </option>
 
                                 <option value="PRODUCT">
                                     Sản phẩm
@@ -343,47 +335,47 @@
 
                             </select>
 
-                        </div>
-
-
-                        <!-- Tên -->
-                        <div class="col-md-12">
-
-                            <label for="productName"
-                                   class="form-label required">
-
-                                Tên Sản phẩm / Dịch vụ
-
-                            </label>
-
-                            <input type="text"
-                                   class="form-control"
-                                   id="productName"
-                                   placeholder="Nhập tên..."
-                                   required>
-
                             <div class="invalid-feedback">
-                                Vui lòng nhập tên sản phẩm/dịch vụ.
+                                Vui lòng chọn loại.
                             </div>
 
                         </div>
 
+                        <div class="col-md-8">
 
-                        <!-- Đơn vị -->
-                        <div class="col-md-6">
-
-                            <label for="unit"
-                                   class="form-label required">
-
-                                Đơn vị tính
-
+                            <label
+                                    for="productName"
+                                    class="form-label required">
+                                Tên sản phẩm / dịch vụ
                             </label>
 
-                            <input type="text"
-                                   class="form-control"
-                                   id="unit"
-                                   placeholder="Cái, Hộp, Gói, Lần..."
-                                   required>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="productName"
+                                    maxlength="255"
+                                    required>
+
+                            <div class="invalid-feedback">
+                                Vui lòng nhập tên.
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <label
+                                    for="unit"
+                                    class="form-label required">
+                                Đơn vị tính
+                            </label>
+
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="unit"
+                                    maxlength="50"
+                                    required>
 
                             <div class="invalid-feedback">
                                 Vui lòng nhập đơn vị tính.
@@ -391,44 +383,58 @@
 
                         </div>
 
-
-                        <!-- Giá -->
                         <div class="col-md-6">
 
-                            <label for="basePrice"
-                                   class="form-label required">
-
-                                Giá niêm yết (VNĐ)
-
+                            <label
+                                    for="basePrice"
+                                    class="form-label required">
+                                Giá niêm yết
                             </label>
 
-                            <input type="number"
-                                   class="form-control"
-                                   id="basePrice"
-                                   min="0"
-                                   step="1000"
-                                   placeholder="0"
-                                   required>
+                            <input
+                                    type="number"
+                                    class="form-control"
+                                    id="basePrice"
+                                    min="0"
+                                    step="0.01"
+                                    required>
 
-                            <div class="invalid-feedback">
-                                Giá niêm yết phải lớn hơn hoặc bằng 0.
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                    for="floorPrice"
+                                    class="form-label required">
+                                Giá sàn
+                            </label>
+
+                            <input
+                                    type="number"
+                                    class="form-control"
+                                    id="floorPrice"
+                                    min="0"
+                                    step="0.01"
+                                    required>
+
+                            <div class="form-text">
+                                Giá sàn không được lớn hơn giá niêm yết.
                             </div>
 
                         </div>
 
+                        <div class="col-md-6">
 
-                        <!-- Trạng thái -->
-                        <div class="col-md-12">
-
-                            <label for="status"
-                                   class="form-label">
-
-                                Trạng thái kinh doanh
-
+                            <label
+                                    for="status"
+                                    class="form-label required">
+                                Trạng thái
                             </label>
 
-                            <select class="form-select"
-                                    id="status">
+                            <select
+                                    class="form-select"
+                                    id="status"
+                                    required>
 
                                 <option value="ACTIVE">
                                     Đang kinh doanh
@@ -442,21 +448,19 @@
 
                         </div>
 
+                        <div class="col-12">
 
-                        <!-- Mô tả -->
-                        <div class="col-md-12">
-
-                            <label for="description"
-                                   class="form-label">
-
-                                Mô tả chi tiết
-
+                            <label
+                                    for="description"
+                                    class="form-label">
+                                Mô tả
                             </label>
 
-                            <textarea class="form-control"
-                                      id="description"
-                                      rows="3"
-                                      placeholder="Nhập ghi chú hoặc thông tin chi tiết..."></textarea>
+                            <textarea
+                                    class="form-control"
+                                    id="description"
+                                    rows="3"
+                                    maxlength="1000"></textarea>
 
                         </div>
 
@@ -464,23 +468,20 @@
 
                 </div>
 
-
                 <div class="modal-footer">
 
-                    <button type="button"
-                            class="btn btn-light border"
+                    <button
+                            type="button"
+                            class="btn btn-outline-secondary"
                             data-bs-dismiss="modal">
-
                         Hủy
-
                     </button>
 
-                    <button type="submit"
+                    <button
+                            type="submit"
                             class="btn btn-primary"
                             id="btnSaveProduct">
-
-                        Lưu thay đổi
-
+                        Lưu
                     </button>
 
                 </div>
@@ -493,59 +494,427 @@
 
 </div>
 
+<div
+        class="modal fade"
+        id="priceListModal"
+        tabindex="-1"
+        aria-hidden="true">
 
-<!-- MODAL XÁC NHẬN XÓA -->
-<div class="modal fade"
-     id="deleteModal"
-     tabindex="-1"
-     aria-hidden="true">
-
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
 
         <div class="modal-content">
 
-            <div class="modal-header border-0">
+            <form id="priceListForm">
 
-                <h5 class="modal-title fw-bold text-danger">
-                    Xác nhận xóa
-                </h5>
+                <div class="modal-header">
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close">
+                    <h5
+                            class="modal-title"
+                            id="priceListModalTitle">
+                        Thêm bảng giá
+                    </h5>
+
+                    <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input
+                            type="hidden"
+                            id="priceListId">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label
+                                    for="priceListCode"
+                                    class="form-label required">
+                                Mã bảng giá
+                            </label>
+
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="priceListCode"
+                                    maxlength="50"
+                                    required>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                    for="priceListName"
+                                    class="form-label required">
+                                Tên bảng giá
+                            </label>
+
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="priceListName"
+                                    maxlength="255"
+                                    required>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                    for="priceListStartDate"
+                                    class="form-label required">
+                                Ngày bắt đầu
+                            </label>
+
+                            <input
+                                    type="date"
+                                    class="form-control"
+                                    id="priceListStartDate"
+                                    required>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                    for="priceListEndDate"
+                                    class="form-label">
+                                Ngày kết thúc
+                            </label>
+
+                            <input
+                                    type="date"
+                                    class="form-control"
+                                    id="priceListEndDate">
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                    for="priceListStatus"
+                                    class="form-label required">
+                                Trạng thái
+                            </label>
+
+                            <select
+                                    class="form-select"
+                                    id="priceListStatus"
+                                    required>
+
+                                <option value="ACTIVE">
+                                    Đang áp dụng
+                                </option>
+
+                                <option value="INACTIVE">
+                                    Ngừng áp dụng
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-12">
+
+                            <label
+                                    for="priceListDescription"
+                                    class="form-label">
+                                Mô tả
+                            </label>
+
+                            <textarea
+                                    class="form-control"
+                                    id="priceListDescription"
+                                    rows="3"></textarea>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Hủy
+                    </button>
+
+                    <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="btnSavePriceList">
+                        Lưu
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div
+        class="modal fade"
+        id="priceListDetailModal"
+        tabindex="-1"
+        aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h5
+                            class="modal-title"
+                            id="priceListDetailTitle">
+                        Chi tiết bảng giá
+                    </h5>
+
+                    <div
+                            class="small text-muted"
+                            id="priceListDetailSubtitle">
+                    </div>
+
+                </div>
+
+                <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Đóng
                 </button>
 
             </div>
-
 
             <div class="modal-body">
 
-                Bạn có chắc chắn muốn xóa
-                <strong id="deleteTargetName"></strong>
-                khỏi hệ thống?
+                <div class="detail-toolbar">
 
-                Thao tác này không thể hoàn tác.
+                    <button
+                            type="button"
+                            class="btn btn-primary"
+                            id="btnAddPriceListItem">
+                        Thêm sản phẩm vào bảng giá
+                    </button>
+
+                </div>
+
+                <div class="table-responsive mt-3">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã SP/DV</th>
+                            <th>Tên</th>
+                            <th>Loại</th>
+                            <th>Đơn vị</th>
+                            <th>Giá bán</th>
+                            <th>Giá sàn</th>
+                            <th class="text-center">
+                                Thao tác
+                            </th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="priceListItemTableBody"></tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
+        </div>
 
-            <div class="modal-footer border-0">
+    </div>
 
-                <button type="button"
-                        class="btn btn-light border"
+</div>
+
+<div
+        class="modal fade"
+        id="priceListItemModal"
+        tabindex="-1"
+        aria-hidden="true">
+
+    <div class="modal-dialog modal-md modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <form id="priceListItemForm">
+
+                <div class="modal-header">
+
+                    <h5
+                            class="modal-title"
+                            id="priceListItemModalTitle">
+                        Thêm sản phẩm vào bảng giá
+                    </h5>
+
+                    <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input
+                            type="hidden"
+                            id="priceListItemId">
+
+                    <div class="mb-3">
+
+                        <label
+                                for="priceListItemProductId"
+                                class="form-label required">
+                            Sản phẩm / Dịch vụ
+                        </label>
+
+                        <select
+                                class="form-select"
+                                id="priceListItemProductId"
+                                required>
+                        </select>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label
+                                for="priceListItemListPrice"
+                                class="form-label required">
+                            Giá bán
+                        </label>
+
+                        <input
+                                type="number"
+                                class="form-control"
+                                id="priceListItemListPrice"
+                                min="0"
+                                step="0.01"
+                                required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label
+                                for="priceListItemFloorPrice"
+                                class="form-label required">
+                            Giá sàn
+                        </label>
+
+                        <input
+                                type="number"
+                                class="form-control"
+                                id="priceListItemFloorPrice"
+                                min="0"
+                                step="0.01"
+                                required>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Hủy
+                    </button>
+
+                    <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="btnSavePriceListItem">
+                        Lưu
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div
+        class="modal fade"
+        id="deleteModal"
+        tabindex="-1"
+        aria-hidden="true">
+
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Xác nhận
+                </h5>
+
+                <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
                         data-bs-dismiss="modal">
-
-                    Hủy
-
+                    Đóng
                 </button>
 
-                <button type="button"
+            </div>
+
+            <div class="modal-body">
+
+                <p class="mb-0">
+                    Bạn có chắc chắn muốn xóa:
+                </p>
+
+                <p
+                        class="fw-bold mt-2 mb-0"
+                        id="deleteTargetName">
+                </p>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Hủy
+                </button>
+
+                <button
+                        type="button"
                         class="btn btn-danger"
                         id="btnConfirmDelete">
-
-                    Xóa ngay
-
+                    Xác nhận
                 </button>
 
             </div>
@@ -556,40 +925,49 @@
 
 </div>
 
+<div
+        class="toast-container position-fixed bottom-0 end-0 p-3">
 
-<!-- TOAST CONTAINER THÔNG BÁO -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div
+            id="liveToast"
+            class="toast"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true">
 
-    <div id="liveToast"
-         class="toast align-items-center text-white border-0"
-         role="alert"
-         aria-live="assertive"
-         aria-atomic="true">
+        <div class="toast-header">
 
-        <div class="d-flex">
+            <strong
+                    class="me-auto"
+                    id="toastTitle">
+                Thông báo
+            </strong>
 
-            <div class="toast-body"
-                 id="toastMessage">
-            </div>
-
-            <button type="button"
-                    class="btn-close btn-close-white me-2 m-auto"
-                    data-bs-dismiss="toast"
-                    aria-label="Close">
+            <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    data-bs-dismiss="toast">
+                Đóng
             </button>
 
         </div>
 
+        <div
+                class="toast-body"
+                id="toastMessage">
+        </div>
+
     </div>
 
 </div>
 
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Custom JS -->
-<script src="${pageContext.request.contextPath}/assets/js/product-service.js"></script>
+<script
+        src="${pageContext.request.contextPath}/assets/js/product-service.js">
+</script>
 
 </body>
 </html>

@@ -1,14 +1,27 @@
-/**
- * FE Script cho Sprint 2 (S2-05: Quản lý sản phẩm, dịch vụ và bảng giá)
- * Người thực hiện: Ma Thị Hiện
- */
 
-const API_BASE_URL = '/api/v1/products';
+const CONTEXT_PATH = document.body.dataset.contextPath || '';
+
+const PRODUCT_API = `${CONTEXT_PATH}/api/v1/products/`;
+const PRICE_LIST_API = `${CONTEXT_PATH}/api/v1/price-lists/`;
 
 let productList = [];
-let deleteTargetId = null;
+let priceListData = [];
 
-let productModal, deleteModal, liveToast;
+let currentPriceListId = null;
+let currentPriceListItems = [];
+
+let deleteTarget = {
+    type: null,
+    id: null
+};
+
+let productModal;
+let priceListModal;
+let priceListDetailModal;
+let priceListItemModal;
+let deleteModal;
+let liveToast;
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -16,315 +29,1633 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('productModal')
     );
 
+    priceListModal = new bootstrap.Modal(
+        document.getElementById('priceListModal')
+    );
+
+    priceListDetailModal = new bootstrap.Modal(
+        document.getElementById('priceListDetailModal')
+    );
+
+    priceListItemModal = new bootstrap.Modal(
+        document.getElementById('priceListItemModal')
+    );
+
     deleteModal = new bootstrap.Modal(
         document.getElementById('deleteModal')
     );
 
     liveToast = new bootstrap.Toast(
-        document.getElementById('liveToast')
+        document.getElementById('liveToast'),
+        {
+            delay: 3500
+        }
     );
 
-    fetchProducts();
-    fetchPriceLists();
+    bindEvents();
 
-    // Event listener cho Form submit
+    loadInitialData();
+});
+
+function bindEvents() {
+
+    document
+        .getElementById('btnAddProduct')
+        .addEventListener('click', openAddProductModal);
+
+    document
+        .getElementById('btnAddPriceList')
+        .addEventListener('click', openAddPriceListModal);
+
+    document
+        .getElementById('filterForm')
+        .addEventListener('submit', handleSearch);
+
+    document
+        .getElementById('btnResetFilter')
+        .addEventListener('click', resetFilter);
+
     document
         .getElementById('productForm')
-        .addEventListener('submit', handleFormSubmit);
+        .addEventListener('submit', handleProductSubmit);
+
+    document
+        .getElementById('priceListForm')
+        .addEventListener('submit', handlePriceListSubmit);
+
+    document
+        .getElementById('priceListItemForm')
+        .addEventListener('submit', handlePriceListItemSubmit);
+
+    document
+        .getElementById('btnAddPriceListItem')
+        .addEventListener('click', openAddPriceListItemModal);
 
     document
         .getElementById('btnConfirmDelete')
         .addEventListener('click', executeDelete);
-});
 
+    document
+        .getElementById('productTableBody')
+        .addEventListener('click', handleProductTableClick);
 
-// =====================================================
-// 1. KẾT NỐI API & HIỂN THỊ DANH SÁCH
-// =====================================================
+    document
+        .getElementById('priceListTableBody')
+        .addEventListener('click', handlePriceListTableClick);
+
+    document
+        .getElementById('priceListItemTableBody')
+        .addEventListener('click', handlePriceListItemTableClick);
+}
+
+async function loadInitialData() {
+
+    await Promise.all([
+        fetchProducts(),
+        fetchPriceLists()
+    ]);
+}
 
 async function fetchProducts() {
 
+    renderProductLoading();
+
     try {
 
-        // Khi kết nối Backend thật, sử dụng:
-        // const res = await fetch(API_BASE_URL);
-        // productList = await res.json();
-
-        // Dữ liệu giả lập để test giao diện
-        productList = [
-
-            {
-                id: 1,
-                code: 'SP001',
-                name: 'Phần mềm Quản lý Khách hàng',
-                type: 'PRODUCT',
-                unit: 'Gói',
-                basePrice: 5000000,
-                status: 'ACTIVE'
-            },
-
-            {
-                id: 2,
-                code: 'DV001',
-                name: 'Dịch vụ Bảo trì Hệ thống',
-                type: 'SERVICE',
-                unit: 'Tháng',
-                basePrice: 1200000,
-                status: 'ACTIVE'
-            },
-
-            {
-                id: 3,
-                code: 'SP002',
-                name: 'Thẻ từ nhân viên',
-                type: 'PRODUCT',
-                unit: 'Cái',
-                basePrice: 50000,
-                status: 'INACTIVE'
+        const response = await fetch(PRODUCT_API, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
             }
+        });
 
-        ];
+        if (!response.ok) {
+            throw new Error(
+                await getErrorMessage(response, 'Không thể tải danh sách sản phẩm.')
+            );
+        }
+
+        const data = await response.json();
+
+        productList = Array.isArray(data) ? data : [];
 
         renderProductTable(productList);
 
     } catch (error) {
 
+        productList = [];
+
+        renderProductError();
+
         showToast(
-            'Lỗi khi tải danh sách sản phẩm/dịch vụ',
+            error.message || 'Không thể tải danh sách sản phẩm.',
             'danger'
         );
     }
 }
 
+function renderProductLoading() {
+
+    const tbody = document.getElementById('productTableBody');
+
+    tbody.replaceChildren();
+
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+
+    cell.colSpan = 9;
+    cell.className = 'text-center text-muted py-4';
+    cell.textContent = 'Đang tải dữ liệu...';
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+}
+
+function renderProductError() {
+
+    const tbody = document.getElementById('productTableBody');
+
+    tbody.replaceChildren();
+
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+
+    cell.colSpan = 9;
+    cell.className = 'text-center text-danger py-4';
+    cell.textContent = 'Không thể tải dữ liệu sản phẩm / dịch vụ.';
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+}
 
 function renderProductTable(data) {
 
     const tbody = document.getElementById('productTableBody');
 
-    tbody.innerHTML = '';
+    tbody.replaceChildren();
 
     if (!data || data.length === 0) {
 
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8"
-                    class="text-center text-muted py-4">
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
 
-                    Không tìm thấy dữ liệu phù hợp
+        cell.colSpan = 9;
+        cell.className = 'text-center text-muted py-4';
+        cell.textContent = 'Chưa có dữ liệu phù hợp.';
 
-                </td>
-            </tr>
-        `;
+        row.appendChild(cell);
+        tbody.appendChild(row);
 
         return;
     }
 
+    data.forEach((item, index) => {
+
+        const row = document.createElement('tr');
+
+        addTextCell(row, index + 1);
+        addTextCell(row, item.code, 'fw-semibold');
+        addTextCell(row, item.name);
+
+        const typeCell = document.createElement('td');
+
+        const typeBadge = document.createElement('span');
+
+        typeBadge.className =
+            item.type === 'PRODUCT'
+                ? 'badge badge-product'
+                : 'badge badge-service';
+
+        typeBadge.textContent =
+            item.type === 'PRODUCT'
+                ? 'Sản phẩm'
+                : 'Dịch vụ';
+
+        typeCell.appendChild(typeBadge);
+        row.appendChild(typeCell);
+
+        addTextCell(row, item.unit);
+
+        addTextCell(
+            row,
+            formatCurrency(item.basePrice),
+            'fw-semibold text-primary'
+        );
+
+        addTextCell(
+            row,
+            formatCurrency(item.floorPrice)
+        );
+
+        const statusCell = document.createElement('td');
+
+        const statusBadge = document.createElement('span');
+
+        statusBadge.className =
+            item.status === 'ACTIVE'
+                ? 'badge bg-success-subtle text-success'
+                : 'badge bg-secondary-subtle text-secondary';
+
+        statusBadge.textContent =
+            item.status === 'ACTIVE'
+                ? 'Đang kinh doanh'
+                : 'Ngừng kinh doanh';
+
+        statusCell.appendChild(statusBadge);
+        row.appendChild(statusCell);
+
+        const actionCell = document.createElement('td');
+
+        actionCell.className = 'text-center';
+
+        const editButton = document.createElement('button');
+
+        editButton.type = 'button';
+        editButton.className =
+            'btn btn-sm btn-outline-primary me-1';
+        editButton.dataset.action = 'edit';
+        editButton.dataset.id = item.id;
+        editButton.textContent = 'Sửa';
+
+        const deleteButton = document.createElement('button');
+
+        deleteButton.type = 'button';
+        deleteButton.className =
+            'btn btn-sm btn-outline-danger';
+        deleteButton.dataset.action = 'delete';
+        deleteButton.dataset.id = item.id;
+        deleteButton.textContent = 'Xóa';
+
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
+
+        row.appendChild(actionCell);
+
+        tbody.appendChild(row);
+    });
+}
+
+function handleProductTableClick(event) {
+
+    const button = event.target.closest('button');
+
+    if (!button) {
+        return;
+    }
+
+    const id = Number(button.dataset.id);
+    const action = button.dataset.action;
+
+    if (!id) {
+        return;
+    }
+
+    if (action === 'edit') {
+        openEditProductModal(id);
+    }
+
+    if (action === 'delete') {
+        openProductDeleteModal(id);
+    }
+}
+
+function openAddProductModal() {
+
+    const form = document.getElementById('productForm');
+
+    form.reset();
+    form.classList.remove('was-validated');
+
+    document.getElementById('productId').value = '';
+
+    document.getElementById('status').value = 'ACTIVE';
+
+    document.getElementById('productModalTitle').textContent =
+        'Thêm mới Sản phẩm / Dịch vụ';
+
+    productModal.show();
+}
+
+function openEditProductModal(id) {
+
+    const item = productList.find(
+        product => Number(product.id) === Number(id)
+    );
+
+    if (!item) {
+        showToast('Không tìm thấy sản phẩm.', 'danger');
+        return;
+    }
+
+    const form = document.getElementById('productForm');
+
+    form.reset();
+    form.classList.remove('was-validated');
+
+    document.getElementById('productId').value = item.id;
+    document.getElementById('productCode').value = item.code || '';
+    document.getElementById('productType').value = item.type || '';
+    document.getElementById('productName').value = item.name || '';
+    document.getElementById('unit').value = item.unit || '';
+    document.getElementById('basePrice').value =
+        item.basePrice ?? '';
+    document.getElementById('floorPrice').value =
+        item.floorPrice ?? '';
+    document.getElementById('status').value =
+        item.status || 'ACTIVE';
+    document.getElementById('description').value =
+        item.description || '';
+
+    document.getElementById('productModalTitle').textContent =
+        'Chỉnh sửa Sản phẩm / Dịch vụ';
+
+    productModal.show();
+}
+
+async function handleProductSubmit(event) {
+
+    event.preventDefault();
+
+    const form = event.target;
+
+    if (!form.checkValidity()) {
+
+        form.classList.add('was-validated');
+
+        return;
+    }
+
+    const basePrice = Number(
+        document.getElementById('basePrice').value
+    );
+
+    const floorPrice = Number(
+        document.getElementById('floorPrice').value
+    );
+
+    if (floorPrice > basePrice) {
+
+        showToast(
+            'Giá sàn không được lớn hơn giá niêm yết.',
+            'danger'
+        );
+
+        return;
+    }
+
+    const id =
+        document.getElementById('productId').value.trim();
+
+    const productData = {
+        code: document.getElementById('productCode').value.trim(),
+        name: document.getElementById('productName').value.trim(),
+        type: document.getElementById('productType').value,
+        unit: document.getElementById('unit').value.trim(),
+        basePrice: basePrice,
+        floorPrice: floorPrice,
+        status: document.getElementById('status').value,
+        description:
+            document.getElementById('description').value.trim()
+    };
+
+    const saveButton =
+        document.getElementById('btnSaveProduct');
+
+    setButtonLoading(saveButton, true, 'Đang lưu...');
+
+    try {
+
+        let response;
+
+        if (id) {
+
+            response = await fetch(
+                `${PRODUCT_API}${encodeURIComponent(id)}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                }
+            );
+
+        } else {
+
+            response = await fetch(
+                PRODUCT_API,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                }
+            );
+        }
+
+        if (!response.ok) {
+
+            throw new Error(
+                await getErrorMessage(
+                    response,
+                    'Không thể lưu sản phẩm.'
+                )
+            );
+        }
+
+        const savedProduct =
+            await parseJsonSafely(response);
+
+        if (savedProduct && savedProduct.id) {
+
+            if (id) {
+
+                const index = productList.findIndex(
+                    product =>
+                        Number(product.id) === Number(id)
+                );
+
+                if (index !== -1) {
+                    productList[index] = savedProduct;
+                }
+
+            } else {
+
+                productList.unshift(savedProduct);
+            }
+
+        } else {
+
+            await fetchProducts();
+        }
+
+        productModal.hide();
+
+        renderProductTable(productList);
+
+        showToast(
+            id
+                ? 'Cập nhật sản phẩm thành công.'
+                : 'Thêm sản phẩm thành công.',
+            'success'
+        );
+
+    } catch (error) {
+
+        showToast(
+            error.message || 'Có lỗi xảy ra khi lưu sản phẩm.',
+            'danger'
+        );
+
+    } finally {
+
+        setButtonLoading(saveButton, false, 'Lưu');
+    }
+}
+
+function openProductDeleteModal(id) {
+
+    const item = productList.find(
+        product => Number(product.id) === Number(id)
+    );
+
+    if (!item) {
+        return;
+    }
+
+    deleteTarget = {
+        type: 'product',
+        id: Number(id)
+    };
+
+    document.getElementById('deleteTargetName').textContent =
+        item.name || item.code || '';
+
+    deleteModal.show();
+}
+
+async function fetchPriceLists() {
+
+    renderPriceListLoading();
+
+    try {
+
+        const response = await fetch(
+            PRICE_LIST_API,
+            {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+                await getErrorMessage(
+                    response,
+                    'Không thể tải danh sách bảng giá.'
+                )
+            );
+        }
+
+        const data = await response.json();
+
+        priceListData = Array.isArray(data) ? data : [];
+
+        renderPriceListTable(priceListData);
+
+    } catch (error) {
+
+        priceListData = [];
+
+        renderPriceListError();
+
+        showToast(
+            error.message || 'Không thể tải danh sách bảng giá.',
+            'danger'
+        );
+    }
+}
+
+function renderPriceListLoading() {
+
+    const tbody =
+        document.getElementById('priceListTableBody');
+
+    tbody.replaceChildren();
+
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+
+    cell.colSpan = 5;
+    cell.className = 'text-center text-muted py-4';
+    cell.textContent = 'Đang tải dữ liệu...';
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+}
+
+function renderPriceListError() {
+
+    const tbody =
+        document.getElementById('priceListTableBody');
+
+    tbody.replaceChildren();
+
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+
+    cell.colSpan = 5;
+    cell.className = 'text-center text-danger py-4';
+    cell.textContent =
+        'Không thể tải danh sách bảng giá.';
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+}
+
+function renderPriceListTable(data) {
+
+    const tbody =
+        document.getElementById('priceListTableBody');
+
+    tbody.replaceChildren();
+
+    if (!data || data.length === 0) {
+
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+
+        cell.colSpan = 5;
+        cell.className = 'text-center text-muted py-4';
+        cell.textContent = 'Chưa có bảng giá.';
+
+        row.appendChild(cell);
+        tbody.appendChild(row);
+
+        return;
+    }
+
+    data.forEach(item => {
+
+        const row = document.createElement('tr');
+
+        addTextCell(row, item.code, 'fw-semibold');
+        addTextCell(row, item.name);
+
+        const dateText =
+            formatDateRange(
+                item.startDate,
+                item.endDate
+            );
+
+        addTextCell(row, dateText);
+
+        const statusCell = document.createElement('td');
+
+        const badge = document.createElement('span');
+
+        badge.className =
+            item.status === 'ACTIVE'
+                ? 'badge bg-success-subtle text-success'
+                : 'badge bg-secondary-subtle text-secondary';
+
+        badge.textContent =
+            item.status === 'ACTIVE'
+                ? 'Đang áp dụng'
+                : 'Ngừng áp dụng';
+
+        statusCell.appendChild(badge);
+
+        row.appendChild(statusCell);
+
+        const actionCell = document.createElement('td');
+
+        actionCell.className = 'text-center';
+
+        const detailButton = createActionButton(
+            'Xem chi tiết',
+            'outline-primary',
+            'detail',
+            item.id
+        );
+
+        const editButton = createActionButton(
+            'Sửa',
+            'outline-secondary',
+            'edit',
+            item.id
+        );
+
+        const deleteButton = createActionButton(
+            'Xóa',
+            'outline-danger',
+            'delete',
+            item.id
+        );
+
+        actionCell.appendChild(detailButton);
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
+
+        row.appendChild(actionCell);
+
+        tbody.appendChild(row);
+    });
+}
+
+function handlePriceListTableClick(event) {
+
+    const button = event.target.closest('button');
+
+    if (!button) {
+        return;
+    }
+
+    const id = Number(button.dataset.id);
+    const action = button.dataset.action;
+
+    if (!id) {
+        return;
+    }
+
+    if (action === 'detail') {
+        openPriceListDetail(id);
+    }
+
+    if (action === 'edit') {
+        openEditPriceListModal(id);
+    }
+
+    if (action === 'delete') {
+        openPriceListDeleteModal(id);
+    }
+}
+
+function openAddPriceListModal() {
+
+    const form =
+        document.getElementById('priceListForm');
+
+    form.reset();
+    form.classList.remove('was-validated');
+
+    document.getElementById('priceListId').value = '';
+
+    document.getElementById('priceListStatus').value =
+        'ACTIVE';
+
+    document.getElementById('priceListModalTitle').textContent =
+        'Thêm bảng giá';
+
+    priceListModal.show();
+}
+
+function openEditPriceListModal(id) {
+
+    const item = priceListData.find(
+        priceList =>
+            Number(priceList.id) === Number(id)
+    );
+
+    if (!item) {
+        showToast('Không tìm thấy bảng giá.', 'danger');
+        return;
+    }
+
+    const form =
+        document.getElementById('priceListForm');
+
+    form.reset();
+    form.classList.remove('was-validated');
+
+    document.getElementById('priceListId').value =
+        item.id;
+
+    document.getElementById('priceListCode').value =
+        item.code || '';
+
+    document.getElementById('priceListName').value =
+        item.name || '';
+
+    document.getElementById('priceListStartDate').value =
+        normalizeDateInput(item.startDate);
+
+    document.getElementById('priceListEndDate').value =
+        normalizeDateInput(item.endDate);
+
+    document.getElementById('priceListStatus').value =
+        item.status || 'ACTIVE';
+
+    document.getElementById('priceListDescription').value =
+        item.description || '';
+
+    document.getElementById('priceListModalTitle').textContent =
+        'Chỉnh sửa bảng giá';
+
+    priceListModal.show();
+}
+
+async function handlePriceListSubmit(event) {
+
+    event.preventDefault();
+
+    const form = event.target;
+
+    if (!form.checkValidity()) {
+
+        form.classList.add('was-validated');
+
+        return;
+    }
+
+    const startDate =
+        document.getElementById('priceListStartDate').value;
+
+    const endDate =
+        document.getElementById('priceListEndDate').value;
+
+    if (endDate && endDate < startDate) {
+
+        showToast(
+            'Ngày kết thúc không được trước ngày bắt đầu.',
+            'danger'
+        );
+
+        return;
+    }
+
+    const id =
+        document.getElementById('priceListId').value.trim();
+
+    const data = {
+        code:
+            document.getElementById('priceListCode').value.trim(),
+
+        name:
+            document.getElementById('priceListName').value.trim(),
+
+        startDate: startDate,
+
+        endDate: endDate || null,
+
+        status:
+            document.getElementById('priceListStatus').value,
+
+        description:
+            document.getElementById('priceListDescription')
+                .value
+                .trim()
+    };
+
+    const button =
+        document.getElementById('btnSavePriceList');
+
+    setButtonLoading(button, true, 'Đang lưu...');
+
+    try {
+
+        let response;
+
+        if (id) {
+
+            response = await fetch(
+                `${PRICE_LIST_API}${encodeURIComponent(id)}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }
+            );
+
+        } else {
+
+            response = await fetch(
+                PRICE_LIST_API,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }
+            );
+        }
+
+        if (!response.ok) {
+
+            throw new Error(
+                await getErrorMessage(
+                    response,
+                    'Không thể lưu bảng giá.'
+                )
+            );
+        }
+
+        const saved =
+            await parseJsonSafely(response);
+
+        if (saved && saved.id) {
+
+            if (id) {
+
+                const index = priceListData.findIndex(
+                    item =>
+                        Number(item.id) === Number(id)
+                );
+
+                if (index !== -1) {
+                    priceListData[index] = saved;
+                }
+
+            } else {
+
+                priceListData.unshift(saved);
+            }
+
+        } else {
+
+            await fetchPriceLists();
+        }
+
+        priceListModal.hide();
+
+        renderPriceListTable(priceListData);
+
+        showToast(
+            id
+                ? 'Cập nhật bảng giá thành công.'
+                : 'Thêm bảng giá thành công.',
+            'success'
+        );
+
+    } catch (error) {
+
+        showToast(
+            error.message || 'Không thể lưu bảng giá.',
+            'danger'
+        );
+
+    } finally {
+
+        setButtonLoading(button, false, 'Lưu');
+    }
+}
+
+function openPriceListDeleteModal(id) {
+
+    const item = priceListData.find(
+        priceList =>
+            Number(priceList.id) === Number(id)
+    );
+
+    if (!item) {
+        return;
+    }
+
+    deleteTarget = {
+        type: 'priceList',
+        id: Number(id)
+    };
+
+    document.getElementById('deleteTargetName').textContent =
+        item.name || item.code || '';
+
+    deleteModal.show();
+}
+
+async function openPriceListDetail(id) {
+
+    const item = priceListData.find(
+        priceList =>
+            Number(priceList.id) === Number(id)
+    );
+
+    if (!item) {
+        showToast('Không tìm thấy bảng giá.', 'danger');
+        return;
+    }
+
+    currentPriceListId = Number(id);
+
+    document.getElementById('priceListDetailTitle')
+        .textContent = item.name || 'Chi tiết bảng giá';
+
+    document.getElementById('priceListDetailSubtitle')
+        .textContent =
+            `${item.code || ''} | ${formatDateRange(
+                item.startDate,
+                item.endDate
+            )}`;
+
+    priceListDetailModal.show();
+
+    await fetchPriceListItems(currentPriceListId);
+}
+
+async function fetchPriceListItems(priceListId) {
+
+    const tbody =
+        document.getElementById('priceListItemTableBody');
+
+    renderItemLoading();
+
+    try {
+
+        const response = await fetch(
+            `${PRICE_LIST_API}${encodeURIComponent(priceListId)}/items`,
+            {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+                await getErrorMessage(
+                    response,
+                    'Không thể tải chi tiết bảng giá.'
+                )
+            );
+        }
+
+        const data = await response.json();
+
+        currentPriceListItems =
+            Array.isArray(data) ? data : [];
+
+        renderPriceListItems(
+            currentPriceListItems
+        );
+
+    } catch (error) {
+
+        currentPriceListItems = [];
+
+        tbody.replaceChildren();
+
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+
+        cell.colSpan = 8;
+        cell.className = 'text-center text-danger py-4';
+        cell.textContent =
+            'Không thể tải chi tiết bảng giá.';
+
+        row.appendChild(cell);
+        tbody.appendChild(row);
+
+        showToast(
+            error.message || 'Không thể tải chi tiết bảng giá.',
+            'danger'
+        );
+    }
+}
+
+function renderItemLoading() {
+
+    const tbody =
+        document.getElementById('priceListItemTableBody');
+
+    tbody.replaceChildren();
+
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+
+    cell.colSpan = 8;
+    cell.className = 'text-center text-muted py-4';
+    cell.textContent = 'Đang tải dữ liệu...';
+
+    row.appendChild(cell);
+    tbody.appendChild(row);
+}
+
+function renderPriceListItems(data) {
+
+    const tbody =
+        document.getElementById('priceListItemTableBody');
+
+    tbody.replaceChildren();
+
+    if (!data || data.length === 0) {
+
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+
+        cell.colSpan = 8;
+        cell.className = 'text-center text-muted py-4';
+        cell.textContent =
+            'Bảng giá chưa có sản phẩm / dịch vụ.';
+
+        row.appendChild(cell);
+        tbody.appendChild(row);
+
+        return;
+    }
 
     data.forEach((item, index) => {
 
-        // Không sử dụng icon
-        const typeBadge =
-            item.type === 'PRODUCT'
-                ? `<span class="badge badge-product">Sản phẩm</span>`
-                : `<span class="badge badge-service">Dịch vụ</span>`;
+        const row = document.createElement('tr');
 
+        addTextCell(row, index + 1);
+        addTextCell(row, item.productCode);
+        addTextCell(row, item.productName);
 
-        const statusBadge =
-            item.status === 'ACTIVE'
-                ? `<span class="badge bg-success-subtle text-success">
-                        Đang kinh doanh
-                   </span>`
-                : `<span class="badge bg-secondary-subtle text-secondary">
-                        Ngừng kinh doanh
-                   </span>`;
+        const typeCell = document.createElement('td');
 
+        const badge = document.createElement('span');
 
-        const row = `
+        badge.className =
+            item.productType === 'PRODUCT'
+                ? 'badge badge-product'
+                : 'badge badge-service';
 
-            <tr>
+        badge.textContent =
+            item.productType === 'PRODUCT'
+                ? 'Sản phẩm'
+                : 'Dịch vụ';
 
-                <td>
-                    ${index + 1}
-                </td>
+        typeCell.appendChild(badge);
+        row.appendChild(typeCell);
 
-                <td class="fw-bold">
-                    ${item.code}
-                </td>
+        addTextCell(row, item.unit);
+        addTextCell(
+            row,
+            formatCurrency(item.listPrice)
+        );
+        addTextCell(
+            row,
+            formatCurrency(item.floorPrice)
+        );
 
-                <td>
-                    ${item.name}
-                </td>
+        const actionCell = document.createElement('td');
 
-                <td>
-                    ${typeBadge}
-                </td>
+        actionCell.className = 'text-center';
 
-                <td>
-                    ${item.unit}
-                </td>
+        const editButton = createActionButton(
+            'Sửa',
+            'outline-primary',
+            'edit',
+            item.id
+        );
 
-                <td class="fw-bold text-primary">
-                    ${formatCurrency(item.basePrice)}
-                </td>
+        const deleteButton = createActionButton(
+            'Xóa',
+            'outline-danger',
+            'delete',
+            item.id
+        );
 
-                <td>
-                    ${statusBadge}
-                </td>
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
 
-                <td class="text-center">
+        row.appendChild(actionCell);
 
-                    <button
-                        class="btn btn-sm btn-outline-primary me-1"
-                        onclick="openEditProductModal(${item.id})">
-
-                        Sửa
-
-                    </button>
-
-                    <button
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="openDeleteModal(${item.id}, '${item.name}')">
-
-                        Xóa
-
-                    </button>
-
-                </td>
-
-            </tr>
-
-        `;
-
-        tbody.innerHTML += row;
+        tbody.appendChild(row);
     });
 }
 
+function handlePriceListItemTableClick(event) {
 
-// =====================================================
-// 2. GIẢ LẬP BẢNG GIÁ
-// =====================================================
+    const button = event.target.closest('button');
 
-function fetchPriceLists() {
+    if (!button) {
+        return;
+    }
 
-    const priceLists = [
+    const id = Number(button.dataset.id);
+    const action = button.dataset.action;
 
-        {
-            code: 'BG2026_STANDARD',
-            name: 'Bảng giá Niêm yết 2026',
-            startDate: '01/01/2026',
-            status: 'ACTIVE'
-        },
+    if (!id) {
+        return;
+    }
 
-        {
-            code: 'BG2026_VIP',
-            name: 'Bảng giá Ưu đãi Đối tác VIP',
-            startDate: '15/02/2026',
-            status: 'ACTIVE'
-        }
+    if (action === 'edit') {
+        openEditPriceListItemModal(id);
+    }
 
-    ];
+    if (action === 'delete') {
+        openPriceListItemDeleteModal(id);
+    }
+}
 
+function openAddPriceListItemModal() {
 
-    const tbody = document.getElementById(
-        'priceListTableBody'
+    if (!currentPriceListId) {
+        showToast('Chưa chọn bảng giá.', 'danger');
+        return;
+    }
+
+    const form =
+        document.getElementById('priceListItemForm');
+
+    form.reset();
+    form.classList.remove('was-validated');
+
+    document.getElementById('priceListItemId').value = '';
+
+    document.getElementById('priceListItemModalTitle')
+        .textContent =
+            'Thêm sản phẩm vào bảng giá';
+
+    populateProductSelect();
+
+    priceListItemModal.show();
+}
+
+function openEditPriceListItemModal(id) {
+
+    const item = currentPriceListItems.find(
+        currentItem =>
+            Number(currentItem.id) === Number(id)
     );
 
-    tbody.innerHTML = '';
+    if (!item) {
+        showToast(
+            'Không tìm thấy sản phẩm trong bảng giá.',
+            'danger'
+        );
+        return;
+    }
 
+    const form =
+        document.getElementById('priceListItemForm');
 
-    priceLists.forEach(item => {
+    form.reset();
+    form.classList.remove('was-validated');
 
-        tbody.innerHTML += `
+    document.getElementById('priceListItemId').value =
+        item.id;
 
-            <tr>
+    populateProductSelect(item.productId);
 
-                <td class="fw-bold">
-                    ${item.code}
-                </td>
+    document.getElementById('priceListItemProductId').value =
+        item.productId;
 
-                <td>
-                    ${item.name}
-                </td>
+    document.getElementById('priceListItemListPrice').value =
+        item.listPrice ?? '';
 
-                <td>
-                    ${item.startDate}
-                </td>
+    document.getElementById('priceListItemFloorPrice').value =
+        item.floorPrice ?? '';
 
-                <td>
+    document.getElementById('priceListItemModalTitle')
+        .textContent =
+            'Chỉnh sửa sản phẩm trong bảng giá';
 
-                    <span class="badge bg-success-subtle text-success">
-                        Đang áp dụng
-                    </span>
+    priceListItemModal.show();
+}
 
-                </td>
+function populateProductSelect(selectedProductId = null) {
 
-                <td class="text-center">
+    const select =
+        document.getElementById('priceListItemProductId');
 
-                    <button
-                        class="btn btn-sm btn-outline-secondary">
+    select.replaceChildren();
 
-                        Xem chi tiết
+    const defaultOption =
+        document.createElement('option');
 
-                    </button>
+    defaultOption.value = '';
+    defaultOption.textContent =
+        '-- Chọn sản phẩm / dịch vụ --';
 
-                </td>
+    select.appendChild(defaultOption);
 
-            </tr>
+    const existingProductIds =
+        new Set(
+            currentPriceListItems.map(
+                item => Number(item.productId)
+            )
+        );
 
-        `;
+    productList.forEach(product => {
+
+        const productId = Number(product.id);
+
+        if (
+            existingProductIds.has(productId) &&
+            productId !== Number(selectedProductId)
+        ) {
+            return;
+        }
+
+        const option =
+            document.createElement('option');
+
+        option.value = productId;
+
+        option.textContent =
+            `${product.code} - ${product.name}`;
+
+        select.appendChild(option);
     });
 }
 
+async function handlePriceListItemSubmit(event) {
 
-// =====================================================
-// 3. TÌM KIẾM VÀ LỌC
-// =====================================================
+    event.preventDefault();
 
-function handleSearch() {
+    const form = event.target;
+
+    if (!form.checkValidity()) {
+
+        form.classList.add('was-validated');
+
+        return;
+    }
+
+    const listPrice = Number(
+        document.getElementById('priceListItemListPrice').value
+    );
+
+    const floorPrice = Number(
+        document.getElementById('priceListItemFloorPrice').value
+    );
+
+    if (floorPrice > listPrice) {
+
+        showToast(
+            'Giá sàn không được lớn hơn giá bán.',
+            'danger'
+        );
+
+        return;
+    }
+
+    const itemId =
+        document.getElementById('priceListItemId')
+            .value
+            .trim();
+
+    const productId =
+        Number(
+            document.getElementById('priceListItemProductId')
+                .value
+        );
+
+    const data = {
+        productId: productId,
+        listPrice: listPrice,
+        floorPrice: floorPrice
+    };
+
+    const button =
+        document.getElementById('btnSavePriceListItem');
+
+    setButtonLoading(button, true, 'Đang lưu...');
+
+    try {
+
+        let response;
+
+        if (itemId) {
+
+            response = await fetch(
+                `${PRICE_LIST_API}${currentPriceListId}/items/${encodeURIComponent(itemId)}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }
+            );
+
+        } else {
+
+            response = await fetch(
+                `${PRICE_LIST_API}${currentPriceListId}/items`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }
+            );
+        }
+
+        if (!response.ok) {
+
+            throw new Error(
+                await getErrorMessage(
+                    response,
+                    'Không thể lưu sản phẩm vào bảng giá.'
+                )
+            );
+        }
+
+        const saved =
+            await parseJsonSafely(response);
+
+        if (saved && saved.id) {
+
+            if (itemId) {
+
+                const index =
+                    currentPriceListItems.findIndex(
+                        item =>
+                            Number(item.id) === Number(itemId)
+                    );
+
+                if (index !== -1) {
+                    currentPriceListItems[index] = saved;
+                }
+
+            } else {
+
+                currentPriceListItems.push(saved);
+            }
+
+        }
+
+        priceListItemModal.hide();
+
+        await fetchPriceListItems(currentPriceListId);
+
+        showToast(
+            itemId
+                ? 'Cập nhật sản phẩm trong bảng giá thành công.'
+                : 'Thêm sản phẩm vào bảng giá thành công.',
+            'success'
+        );
+
+    } catch (error) {
+
+        showToast(
+            error.message ||
+            'Không thể lưu sản phẩm vào bảng giá.',
+            'danger'
+        );
+
+    } finally {
+
+        setButtonLoading(
+            button,
+            false,
+            'Lưu'
+        );
+    }
+}
+
+function openPriceListItemDeleteModal(id) {
+
+    const item = currentPriceListItems.find(
+        currentItem =>
+            Number(currentItem.id) === Number(id)
+    );
+
+    if (!item) {
+        return;
+    }
+
+    deleteTarget = {
+        type: 'priceListItem',
+        id: Number(id)
+    };
+
+    document.getElementById('deleteTargetName')
+        .textContent =
+            item.productName ||
+            item.productCode ||
+            '';
+
+    deleteModal.show();
+}
+
+async function executeDelete() {
+
+    if (!deleteTarget.type || !deleteTarget.id) {
+        return;
+    }
+
+    const button =
+        document.getElementById('btnConfirmDelete');
+
+    setButtonLoading(button, true, 'Đang xử lý...');
+
+    try {
+
+        let url;
+
+        if (deleteTarget.type === 'product') {
+
+            url =
+                `${PRODUCT_API}${encodeURIComponent(
+                    deleteTarget.id
+                )}`;
+
+        } else if (deleteTarget.type === 'priceList') {
+
+            url =
+                `${PRICE_LIST_API}${encodeURIComponent(
+                    deleteTarget.id
+                )}`;
+
+        } else if (deleteTarget.type === 'priceListItem') {
+
+            url =
+                `${PRICE_LIST_API}${encodeURIComponent(
+                    currentPriceListId
+                )}/items/${encodeURIComponent(
+                    deleteTarget.id
+                )}`;
+        }
+
+        const response = await fetch(
+            url,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+                await getErrorMessage(
+                    response,
+                    'Xóa dữ liệu thất bại.'
+                )
+            );
+        }
+
+        if (deleteTarget.type === 'product') {
+
+            productList =
+                productList.filter(
+                    item =>
+                        Number(item.id) !==
+                        Number(deleteTarget.id)
+                );
+
+            renderProductTable(productList);
+
+            showToast(
+                'Xóa sản phẩm thành công.',
+                'success'
+            );
+
+        } else if (deleteTarget.type === 'priceList') {
+
+            priceListData =
+                priceListData.filter(
+                    item =>
+                        Number(item.id) !==
+                        Number(deleteTarget.id)
+                );
+
+            renderPriceListTable(priceListData);
+
+            showToast(
+                'Xóa bảng giá thành công.',
+                'success'
+            );
+
+        } else if (deleteTarget.type === 'priceListItem') {
+
+            currentPriceListItems =
+                currentPriceListItems.filter(
+                    item =>
+                        Number(item.id) !==
+                        Number(deleteTarget.id)
+                );
+
+            renderPriceListItems(
+                currentPriceListItems
+            );
+
+            showToast(
+                'Xóa sản phẩm khỏi bảng giá thành công.',
+                'success'
+            );
+        }
+
+        deleteModal.hide();
+
+        deleteTarget = {
+            type: null,
+            id: null
+        };
+
+    } catch (error) {
+
+        showToast(
+            error.message ||
+            'Xóa dữ liệu thất bại.',
+            'danger'
+        );
+
+    } finally {
+
+        setButtonLoading(
+            button,
+            false,
+            'Xác nhận'
+        );
+    }
+}
+
+function handleSearch(event) {
+
+    event.preventDefault();
 
     const keyword =
-        document
-            .getElementById('searchKeyword')
+        document.getElementById('searchKeyword')
             .value
             .trim()
             .toLowerCase();
 
-
     const type =
         document.getElementById('filterType').value;
-
 
     const status =
         document.getElementById('filterStatus').value;
 
+    const filtered =
+        productList.filter(item => {
 
-    const filtered = productList.filter(item => {
+            const code =
+                String(item.code || '').toLowerCase();
 
-        const matchesKeyword =
-            item.name
-                .toLowerCase()
-                .includes(keyword)
-            ||
-            item.code
-                .toLowerCase()
-                .includes(keyword);
+            const name =
+                String(item.name || '').toLowerCase();
 
+            const matchesKeyword =
+                !keyword ||
+                code.includes(keyword) ||
+                name.includes(keyword);
 
-        const matchesType =
-            type === '' || item.type === type;
+            const matchesType =
+                !type ||
+                item.type === type;
 
+            const matchesStatus =
+                !status ||
+                item.status === status;
 
-        const matchesStatus =
-            status === '' || item.status === status;
-
-
-        return (
-            matchesKeyword &&
-            matchesType &&
-            matchesStatus
-        );
-    });
-
+            return (
+                matchesKeyword &&
+                matchesType &&
+                matchesStatus
+            );
+        });
 
     renderProductTable(filtered);
 }
@@ -339,342 +1670,58 @@ function resetFilter() {
     renderProductTable(productList);
 }
 
+function addTextCell(row, value, className = '') {
 
-// =====================================================
-// 4. FORM MODAL & VALIDATION
-// =====================================================
+    const cell = document.createElement('td');
 
-function openAddProductModal() {
-
-    document
-        .getElementById('productForm')
-        .reset();
-
-
-    document
-        .getElementById('productForm')
-        .classList
-        .remove('was-validated');
-
-
-    document
-        .getElementById('productId')
-        .value = '';
-
-
-    document
-        .getElementById('productModalTitle')
-        .textContent =
-        'Thêm mới Sản phẩm / Dịch vụ';
-
-
-    productModal.show();
-}
-
-
-function openEditProductModal(id) {
-
-    const item =
-        productList.find(
-            p => p.id === id
-        );
-
-
-    if (!item) {
-        return;
+    if (className) {
+        cell.className = className;
     }
 
+    cell.textContent =
+        value === null ||
+        value === undefined ||
+        value === ''
+            ? '-'
+            : String(value);
 
-    document
-        .getElementById('productForm')
-        .classList
-        .remove('was-validated');
+    row.appendChild(cell);
 
-
-    document
-        .getElementById('productId')
-        .value = item.id;
-
-
-    document
-        .getElementById('productCode')
-        .value = item.code;
-
-
-    document
-        .getElementById('productType')
-        .value = item.type;
-
-
-    document
-        .getElementById('productName')
-        .value = item.name;
-
-
-    document
-        .getElementById('unit')
-        .value = item.unit;
-
-
-    document
-        .getElementById('basePrice')
-        .value = item.basePrice;
-
-
-    document
-        .getElementById('status')
-        .value = item.status;
-
-
-    document
-        .getElementById('description')
-        .value =
-        item.description || '';
-
-
-    document
-        .getElementById('productModalTitle')
-        .textContent =
-        'Chỉnh sửa Sản phẩm / Dịch vụ';
-
-
-    productModal.show();
+    return cell;
 }
 
+function createActionButton(
+    text,
+    style,
+    action,
+    id
+) {
 
-async function handleFormSubmit(e) {
+    const button =
+        document.createElement('button');
 
-    e.preventDefault();
+    button.type = 'button';
 
-    const form = e.target;
+    button.className =
+        `btn btn-sm btn-${style} me-1`;
 
+    button.dataset.action = action;
+    button.dataset.id = id;
 
-    if (!form.checkValidity()) {
+    button.textContent = text;
 
-        e.stopPropagation();
-
-        form.classList.add('was-validated');
-
-        return;
-    }
-
-
-    const id =
-        document
-            .getElementById('productId')
-            .value;
-
-
-    const productData = {
-
-        code:
-            document
-                .getElementById('productCode')
-                .value
-                .trim(),
-
-        type:
-            document
-                .getElementById('productType')
-                .value,
-
-        name:
-            document
-                .getElementById('productName')
-                .value
-                .trim(),
-
-        unit:
-            document
-                .getElementById('unit')
-                .value
-                .trim(),
-
-        basePrice:
-            parseFloat(
-                document
-                    .getElementById('basePrice')
-                    .value
-            ),
-
-        status:
-            document
-                .getElementById('status')
-                .value,
-
-        description:
-            document
-                .getElementById('description')
-                .value
-                .trim()
-    };
-
-
-    try {
-
-        if (id) {
-
-            // Edit Mode
-
-            // Khi kết nối Backend thật:
-            // await fetch(`${API_BASE_URL}/${id}`, {
-            //     method: 'PUT',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify(productData)
-            // });
-
-
-            const index =
-                productList.findIndex(
-                    p => p.id === parseInt(id)
-                );
-
-
-            if (index !== -1) {
-
-                productList[index] = {
-                    id: parseInt(id),
-                    ...productData
-                };
-            }
-
-
-            showToast(
-                'Cập nhật thông tin thành công!',
-                'success'
-            );
-
-        } else {
-
-            // Add Mode
-
-            // Khi kết nối Backend thật:
-            // await fetch(API_BASE_URL, {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify(productData)
-            // });
-
-
-            const newProduct = {
-                id: Date.now(),
-                ...productData
-            };
-
-
-            productList.unshift(newProduct);
-
-
-            showToast(
-                'Thêm mới thành công!',
-                'success'
-            );
-        }
-
-
-        productModal.hide();
-
-        renderProductTable(productList);
-
-    } catch (err) {
-
-        showToast(
-            'Có lỗi xảy ra khi lưu thông tin!',
-            'danger'
-        );
-    }
+    return button;
 }
-
-
-// =====================================================
-// 5. CHỨC NĂNG XÓA
-// =====================================================
-
-function openDeleteModal(id, name) {
-
-    deleteTargetId = id;
-
-    document
-        .getElementById('deleteTargetName')
-        .textContent = name;
-
-    deleteModal.show();
-}
-
-
-async function executeDelete() {
-
-    if (!deleteTargetId) {
-        return;
-    }
-
-
-    try {
-
-        // Khi kết nối Backend thật:
-        // await fetch(`${API_BASE_URL}/${deleteTargetId}`, {
-        //     method: 'DELETE'
-        // });
-
-
-        productList =
-            productList.filter(
-                p => p.id !== deleteTargetId
-            );
-
-
-        showToast(
-            'Xóa thành công!',
-            'success'
-        );
-
-
-        deleteModal.hide();
-
-        renderProductTable(productList);
-
-
-        deleteTargetId = null;
-
-    } catch (error) {
-
-        showToast(
-            'Xóa thất bại. Vui lòng thử lại!',
-            'danger'
-        );
-    }
-}
-
-
-// =====================================================
-// 6. HÀM BỔ TRỢ
-// =====================================================
-
-function showToast(message, type = 'success') {
-
-    const toastEl =
-        document.getElementById('liveToast');
-
-
-    const msgEl =
-        document.getElementById('toastMessage');
-
-
-    toastEl.className =
-        `toast align-items-center text-white border-0 bg-${type}`;
-
-
-    msgEl.textContent = message;
-
-    liveToast.show();
-}
-
 
 function formatCurrency(amount) {
+
+    if (
+        amount === null ||
+        amount === undefined ||
+        amount === ''
+    ) {
+        return '-';
+    }
 
     return new Intl.NumberFormat(
         'vi-VN',
@@ -682,18 +1729,181 @@ function formatCurrency(amount) {
             style: 'currency',
             currency: 'VND'
         }
-    ).format(amount);
+    ).format(Number(amount));
 }
 
+function normalizeDateInput(value) {
 
-// =====================================================
-// 7. THÊM BẢNG GIÁ
-// =====================================================
+    if (!value) {
+        return '';
+    }
 
-function openAddPriceListModal() {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
 
-    showToast(
-        'Chức năng tạo mới Bảng giá đang phát triển!',
-        'primary'
+    const match =
+        String(value).match(
+            /^(\d{2})\/(\d{2})\/(\d{4})$/
+        );
+
+    if (match) {
+
+        return `${match[3]}-${match[2]}-${match[1]}`;
+    }
+
+    return String(value).substring(0, 10);
+}
+
+function formatDate(date) {
+
+    if (!date) {
+        return '-';
+    }
+
+    const normalized =
+        normalizeDateInput(date);
+
+    const parts =
+        normalized.split('-');
+
+    if (parts.length !== 3) {
+        return String(date);
+    }
+
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function formatDateRange(startDate, endDate) {
+
+    const start =
+        formatDate(startDate);
+
+    const end =
+        endDate
+            ? formatDate(endDate)
+            : 'Không giới hạn';
+
+    return `${start} - ${end}`;
+}
+
+function setButtonLoading(
+    button,
+    loading,
+    loadingText
+) {
+
+    if (!button) {
+        return;
+    }
+
+    if (loading) {
+
+        button.dataset.originalText =
+            button.textContent;
+
+        button.disabled = true;
+        button.textContent = loadingText;
+
+    } else {
+
+        button.disabled = false;
+
+        button.textContent =
+            button.dataset.originalText ||
+            loadingText;
+    }
+}
+
+async function parseJsonSafely(response) {
+
+    if (response.status === 204) {
+        return null;
+    }
+
+    const text = await response.text();
+
+    if (!text) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        return null;
+    }
+}
+
+async function getErrorMessage(
+    response,
+    defaultMessage
+) {
+
+    try {
+
+        const text =
+            await response.text();
+
+        if (!text) {
+            return defaultMessage;
+        }
+
+        try {
+
+            const data =
+                JSON.parse(text);
+
+            return (
+                data.message ||
+                data.error ||
+                defaultMessage
+            );
+
+        } catch (error) {
+
+            return text || defaultMessage;
+        }
+
+    } catch (error) {
+
+        return defaultMessage;
+    }
+}
+
+function showToast(
+    message,
+    type = 'success'
+) {
+
+    const toastEl =
+        document.getElementById('liveToast');
+
+    const messageEl =
+        document.getElementById('toastMessage');
+
+    const titleEl =
+        document.getElementById('toastTitle');
+
+    toastEl.classList.remove(
+        'toast-success',
+        'toast-danger',
+        'toast-warning',
+        'toast-primary'
     );
+
+    toastEl.classList.add(
+        `toast-${type}`
+    );
+
+    titleEl.textContent =
+        type === 'success'
+            ? 'Thành công'
+            : type === 'danger'
+                ? 'Lỗi'
+                : 'Thông báo';
+
+    messageEl.textContent =
+        message || 'Đã xảy ra lỗi.';
+
+    liveToast.show();
 }
