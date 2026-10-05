@@ -46,7 +46,14 @@
     <div class="main-content">
         <div class="page-header">
             <h2>Quản lý danh mục dùng chung</h2>
-            <button id="btnAdd" class="btn-add" onclick="openModal('create')">+ Thêm danh mục mới</button>
+            <button id="btnExport" type="button"
+    onclick="exportCategories()"
+    style="background:#2563eb;color:white;border:0;
+    padding:10px 20px;border-radius:4px;
+    cursor:pointer;margin-right:8px;">
+    Xuất Excel
+</button>
+<button id="btnAdd" class="btn-add" onclick="openModal('create')">+ Thêm danh mục mới</button>
         </div>
 
         <div class="content-box">
@@ -168,6 +175,37 @@
 
     let categories = [];
 
+    async function exportCategories() {
+        const button = document.getElementById("btnExport");
+        button.disabled = true;
+
+        try {
+            const response = await fetch(API_URL + "/export", {
+                credentials: "same-origin"
+            });
+
+            if (!response.ok) {
+                throw new Error(await readError(response));
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = "common-categories.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showMessage("Xuất Excel thành công.", true);
+        } catch (error) {
+            showMessage(error.message, false);
+        } finally {
+            button.disabled = false;
+        }
+    }
     function escapeHtml(value) {
         return String(value ?? "")
             .replace(/&/g, "&amp;")

@@ -41,6 +41,17 @@ public class CategoryServlet extends HttpServlet {
 
         String pathInfo = request.getPathInfo();
 
+        if ("/export".equals(pathInfo)) {
+            try {
+                exportExcel(response,
+                        categoryService.getAllCategories());
+            } catch (SQLException e) {
+                if (!response.isCommitted()) {
+                    sendError(response, 500, "Lỗi cơ sở dữ liệu.");
+                }
+            }
+            return;
+        }
         try {
             if (pathInfo == null || "/".equals(pathInfo)) {
                 List<Category> categories =
@@ -372,6 +383,66 @@ public class CategoryServlet extends HttpServlet {
         return Long.parseLong(idText);
     }
 
+    private void exportExcel(
+            HttpServletResponse response,
+            List<Category> categories) throws IOException {
+
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                     new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+
+            org.apache.poi.ss.usermodel.Sheet sheet =
+                    workbook.createSheet("Danh muc");
+
+            String[] headers = {
+                    "STT", "Mã danh mục", "Tên danh mục",
+                    "Loại danh mục", "Mô tả", "Trạng thái"
+            };
+
+            org.apache.poi.ss.usermodel.Row header =
+                    sheet.createRow(0);
+
+            for (int i = 0; i < headers.length; i++) {
+                header.createCell(i).setCellValue(headers[i]);
+            }
+
+            for (int i = 0; i < categories.size(); i++) {
+                Category c = categories.get(i);
+                org.apache.poi.ss.usermodel.Row row =
+                        sheet.createRow(i + 1);
+
+                row.createCell(0).setCellValue(i + 1);
+                row.createCell(1).setCellValue(safeExcel(c.getCategoryCode()));
+                row.createCell(2).setCellValue(safeExcel(c.getCategoryName()));
+                row.createCell(3).setCellValue(safeExcel(c.getCategoryType()));
+                row.createCell(4).setCellValue(safeExcel(c.getDescription()));
+                row.createCell(5).setCellValue(
+                        c.isStatus() ? "Hoạt động" : "Tạm ngừng");
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.setColumnWidth(i, i == 4 ? 12000 : 6500);
+            }
+
+            response.setContentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=common-categories.xlsx");
+
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    private String safeExcel(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (!value.isEmpty() &&
+                "=+-@\t\r\n".indexOf(value.charAt(0)) >= 0) {
+            return "'" + value;
+        }
+        return value;
+    }
     private void sendCategory(
             HttpServletResponse response,
             Category category)
