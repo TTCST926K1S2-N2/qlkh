@@ -176,6 +176,53 @@ class SalesOrgServiceTest {
     }
 
 
+    @Test
+    void getMembers_shouldRejectInvalidId() throws Exception {
+        FakeSalesOrgDAO dao = new FakeSalesOrgDAO();
+        SalesOrgServiceImpl service = createService(dao);
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> service.getMembers(0)
+        );
+    }
+
+    @Test
+    void getMembers_shouldReturnMembers() throws Exception {
+        FakeSalesOrgDAO dao = new FakeSalesOrgDAO();
+        SalesOrgServiceImpl service = createService(dao);
+
+        List<User> members = service.getMembers(10);
+
+        assertEquals(1, members.size());
+        assertEquals("Test Member", members.get(0).getFullName());
+    }
+
+    @Test
+    void getMembers_shouldReturnEmptyList() throws Exception {
+        FakeSalesOrgDAO dao = new FakeSalesOrgDAO();
+        dao.emptyMembers = true;
+
+        SalesOrgServiceImpl service = createService(dao);
+
+        assertTrue(service.getMembers(10).isEmpty());
+    }
+    @Test
+    void getMembers_shouldRejectMissingGroup() throws Exception {
+        FakeSalesOrgDAO dao = new FakeSalesOrgDAO() {
+            @Override
+            public SalesOrganization findById(long id) {
+                return null;
+            }
+        };
+
+        SalesOrgServiceImpl service = createService(dao);
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> service.getMembers(999999L)
+        );
+    }
     private SalesOrgServiceImpl createService(
             FakeSalesOrgDAO salesOrgDAO
     ) {
@@ -207,6 +254,20 @@ class SalesOrgServiceTest {
     static class FakeSalesOrgDAO
             extends SalesOrgDAO {
 
+        boolean emptyMembers;
+
+        @Override
+        public List<User> findMembersByGroupId(long groupId) {
+            if (emptyMembers) {
+                return List.of();
+            }
+
+            User user = new User();
+            user.setId(1L);
+            user.setFullName("Test Member");
+
+            return List.of(user);
+        }
         boolean duplicateCode;
         boolean descendant;
 

@@ -311,6 +311,45 @@ public class SalesOrgDAO {
     }
 
 
+    public List<vn.edu.ictu.qlkh.model.User> findMembersByGroupId(
+            long groupId
+    ) throws SQLException {
+        String sql = """
+                SELECT u.id, u.full_name, u.email,
+                       u.role, u.status
+                FROM user_business_groups ubg
+                JOIN users u ON u.id = ubg.user_id
+                WHERE ubg.group_id = ?
+                ORDER BY u.full_name, u.id
+                """;
+
+        List<vn.edu.ictu.qlkh.model.User> members =
+                new ArrayList<>();
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, groupId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    vn.edu.ictu.qlkh.model.User user =
+                            new vn.edu.ictu.qlkh.model.User();
+
+                    user.setId(rs.getLong("id"));
+                    user.setFullName(rs.getString("full_name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setRole(rs.getString("role"));
+                    user.setStatus(rs.getString("status"));
+
+                    members.add(user);
+                }
+            }
+        }
+
+        return members;
+    }
+
     private void bind(
             PreparedStatement statement,
             SalesOrganization organization

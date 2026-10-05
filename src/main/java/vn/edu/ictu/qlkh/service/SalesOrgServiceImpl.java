@@ -303,6 +303,24 @@ public class SalesOrgServiceImpl
     }
 
 
+    @Override
+    public List<User> getMembers(long groupId)
+            throws SQLException {
+        if (groupId <= 0) {
+            throw new IllegalArgumentException(
+                    "ID nhóm không hợp lệ."
+            );
+        }
+
+        if (salesOrgDAO.findById(groupId) == null) {
+            throw new IllegalArgumentException(
+                    "Nhóm kinh doanh không tồn tại."
+            );
+        }
+
+        return salesOrgDAO.findMembersByGroupId(groupId);
+    }
+
     private void validateCommon(
             SalesOrgDTO input,
             Long excludeId
