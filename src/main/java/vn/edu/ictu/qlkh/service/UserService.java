@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Nghiá»‡p vá»¥ quáº£n lÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng - HTQLKH-8.
+ * Nghiệp vụ quản lý tài khoản người dùng - HTQLKH-8.
  */
 public class UserService {
 
@@ -49,7 +49,7 @@ public class UserService {
     }
 
     /**
-     * Láº¥y danh sÃ¡ch tÃ i khoáº£n cÃ³ tÃ¬m kiáº¿m, lá»c vÃ  phÃ¢n trang.
+     * Lấy danh sách tài khoản có tìm kiếm, lọc và phân trang.
      */
     public UserPage getUsers(
             String keyword,
@@ -118,8 +118,8 @@ public class UserService {
 
         /**
      * HTQLKH-10:
-     * Láº¥y toÃ n bá»™ tÃ i khoáº£n ACTIVE Ä‘á»ƒ hiá»ƒn thá»‹
-     * trong danh sÃ¡ch ngÆ°á»i nháº­n bÃ n giao.
+     * Lấy toàn bộ tài khoản ACTIVE để hiển thị
+     * trong danh sách người nhận bàn giao.
      */
     public List<User> getActiveUsersForHandover()
             throws SQLException {
@@ -133,7 +133,7 @@ public class UserService {
         );
     }
 /**
-     * Láº¥y tÃ i khoáº£n theo ID Ä‘á»ƒ hiá»ƒn thá»‹ form sá»­a.
+     * Lấy tài khoản theo ID để hiển thị form sửa.
      */
     public User getUserById(long userId)
             throws SQLException {
@@ -146,10 +146,10 @@ public class UserService {
     }
 
     /**
-     * Táº¡o tÃ i khoáº£n má»›i.
+     * Tạo tài khoản mới.
      *
-     * Há»‡ thá»‘ng tá»± sinh máº­t kháº©u táº¡m vÃ  chá»‰ lÆ°u báº£n hash PBKDF2.
-     * Máº­t kháº©u táº¡m Ä‘Æ°á»£c tráº£ vá» Ä‘á»ƒ bÆ°á»›c gá»­i email sá»­ dá»¥ng.
+     * Hệ thống tự sinh mật khẩu tạm và chỉ lưu bản hash PBKDF2.
+     * Mật khẩu tạm được trả về để bước gửi email sử dụng.
      */
     public CreateUserResult createUser(
             String fullName,
@@ -189,7 +189,7 @@ public class UserService {
                 null)) {
 
             return CreateUserResult.failed(
-                    "Email Ä‘Ã£ tá»“n táº¡i trong há»‡ thá»‘ng."
+                    "Email đã tồn tại trong hệ thống."
             );
         }
 
@@ -231,7 +231,7 @@ public class UserService {
     }
 
     /**
-     * Cáº­p nháº­t thÃ´ng tin tÃ i khoáº£n.
+     * Cập nhật thông tin tài khoản.
      */
     public String validateUserForImport(
             String fullName, String email, String role, String status)
@@ -250,7 +250,7 @@ public class UserService {
         }
 
         if (userDAO.existsByEmail(normalizedEmail, null)) {
-            return "Email Ä‘Ã£ tá»“n táº¡i trong há»‡ thá»‘ng.";
+            return "Email đã tồn tại trong hệ thống.";
         }
 
         return null;
@@ -266,7 +266,7 @@ public class UserService {
 
         if (userId <= 0) {
             return UpdateUserResult.failed(
-                    "TÃ i khoáº£n khÃ´ng há»£p lá»‡."
+                    "Tài khoản không hợp lệ."
             );
         }
 
@@ -275,7 +275,7 @@ public class UserService {
 
         if (existingUser == null) {
             return UpdateUserResult.failed(
-                    "KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n."
+                    "Không tìm thấy tài khoản."
             );
         }
 
@@ -310,7 +310,7 @@ public class UserService {
                 userId)) {
 
             return UpdateUserResult.failed(
-                    "Email Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng bá»Ÿi tÃ i khoáº£n khÃ¡c."
+                    "Email đã được sử dụng bởi tài khoản khác."
             );
         }
 
@@ -337,7 +337,7 @@ public class UserService {
 
         if (!updated) {
             return UpdateUserResult.failed(
-                    "KhÃ´ng thá»ƒ cáº­p nháº­t tÃ i khoáº£n."
+                    "Không thể cập nhật tài khoản."
             );
         }
 
@@ -345,7 +345,7 @@ public class UserService {
     }
 
     /**
-     * Validate dá»¯ liá»‡u táº¡o/sá»­a tÃ i khoáº£n.
+     * Validate dữ liệu tạo/sửa tài khoản.
      */
     private String validateUserInput(
             String fullName,
@@ -354,31 +354,31 @@ public class UserService {
             String status) {
 
         if (fullName.isBlank()) {
-            return "Há» tÃªn khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.";
+            return "Họ tên không được để trống.";
         }
 
         if (fullName.length() > 255) {
-            return "Há» tÃªn khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 255 kÃ½ tá»±.";
+            return "Họ tên không được vượt quá 255 ký tự.";
         }
 
         if (email.isBlank()) {
-            return "Email khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.";
+            return "Email không được để trống.";
         }
 
         if (email.length() > 255) {
-            return "Email khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 255 kÃ½ tá»±.";
+            return "Email không được vượt quá 255 ký tự.";
         }
 
         if (!isValidEmail(email)) {
-            return "Email khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng.";
+            return "Email không đúng định dạng.";
         }
 
         if (!VALID_ROLES.contains(role)) {
-            return "Vai trÃ² khÃ´ng há»£p lá»‡.";
+            return "Vai trò không hợp lệ.";
         }
 
         if (!VALID_STATUSES.contains(status)) {
-            return "Tráº¡ng thÃ¡i tÃ i khoáº£n khÃ´ng há»£p lá»‡.";
+            return "Trạng thái tài khoản không hợp lệ.";
         }
 
         return null;
@@ -407,7 +407,7 @@ public class UserService {
     }
 
     /**
-     * Sinh máº­t kháº©u táº¡m báº±ng SecureRandom.
+     * Sinh mật khẩu tạm bằng SecureRandom.
      */
     private String generateTemporaryPassword() {
 
@@ -660,7 +660,7 @@ public class UserService {
     }
 
     /**
-     * Káº¿t quáº£ phÃ¢n trang.
+     * Kết quả phân trang.
      */
     public static final class UserPage {
 
@@ -706,7 +706,7 @@ public class UserService {
     }
 
     /**
-     * Káº¿t quáº£ táº¡o tÃ i khoáº£n.
+     * Kết quả tạo tài khoản.
      */
     public static final class CreateUserResult {
 
@@ -769,7 +769,7 @@ public class UserService {
     }
 
     /**
-     * Káº¿t quáº£ cáº­p nháº­t tÃ i khoáº£n.
+     * Kết quả cập nhật tài khoản.
      */
     public static final class UpdateUserResult {
 

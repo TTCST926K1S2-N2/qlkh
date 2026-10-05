@@ -97,7 +97,15 @@
         </section>
 
 
-        <!-- KẾT QUẢ IMPORT -->
+        <!-- THONG BAO IMPORT -->
+<div
+    id="importNotification"
+    class="import-notification"
+    role="status"
+    aria-live="polite"
+    hidden>
+</div>
+<!-- KẾT QUẢ IMPORT -->
         <section
             id="importResult"
             class="result-card"
