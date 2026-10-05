@@ -113,6 +113,30 @@ public class SalesOrgServlet extends HttpServlet {
             }
 
 
+            if (path.matches("[0-9]+/members")) {
+                long groupId = Long.parseLong(
+                        path.substring(0, path.indexOf('/'))
+                );
+
+                if (salesOrgService.getSalesOrgById(groupId) == null) {
+                    writeError(
+                            response,
+                            HttpServletResponse.SC_NOT_FOUND,
+                            "Nhóm kinh doanh không tồn tại."
+                    );
+                    return;
+                }
+
+                writeJson(
+                        response,
+                        HttpServletResponse.SC_OK,
+                        managersToJson(
+                                salesOrgService.getMembers(groupId)
+                        )
+                );
+                return;
+            }
+
             long id =
                     parseId(path);
 

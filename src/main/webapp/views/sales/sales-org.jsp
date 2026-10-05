@@ -993,6 +993,21 @@
         );
 
 
+        const membersButton =
+            document.createElement('button');
+
+        membersButton.type = 'button';
+        membersButton.className =
+            'btn btn-sm btn-outline-primary';
+        membersButton.textContent = 'Xem thành viên';
+
+        membersButton.addEventListener(
+            'click',
+            () => openMembersModal(item)
+        );
+
+        actions.appendChild(membersButton);
+
         if (active) {
 
             const stopButton =
@@ -1219,6 +1234,132 @@
         orgCodeInput.focus();
     }
 
+
+    async function openMembersModal(item) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText =
+            'position:fixed;inset:0;background:rgba(0,0,0,.5);' +
+            'display:flex;align-items:center;justify-content:center;' +
+            'z-index:9999;padding:20px';
+
+        const panel = document.createElement('div');
+        panel.style.cssText =
+            'background:white;border-radius:12px;padding:24px;' +
+            'width:min(850px,100%);max-height:85vh;overflow:auto';
+
+        const title = document.createElement('h3');
+        title.textContent =
+            'Thành viên - ' + (item.orgName || '');
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'btn btn-secondary';
+        close.textContent = 'Đóng';
+
+        const content = document.createElement('div');
+        content.textContent = 'Đang tải thành viên...';
+
+        function dismiss() {
+            overlay.remove();
+            document.removeEventListener('keydown', onKey);
+        }
+
+        function onKey(e) {
+            if (e.key === 'Escape') dismiss();
+        }
+
+        close.addEventListener('click', dismiss);
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) dismiss();
+        });
+        document.addEventListener('keydown', onKey);
+
+        panel.style.boxShadow =
+            '0 16px 48px rgba(0,0,0,.18)';
+
+        title.style.cssText =
+            'margin:0;font-size:20px;color:#17324d';
+
+        close.style.cssText =
+            'margin-left:auto;display:block;margin-top:20px';
+
+        content.style.cssText =
+            'margin-top:20px;overflow-x:auto';
+        panel.append(title, content, close);
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+
+        try {
+            const members = await apiRequest(
+                API + '/' + item.id + '/members'
+            );
+
+            if (!overlay.isConnected) return;
+
+            if (!Array.isArray(members)) {
+                throw new Error('Dữ liệu không hợp lệ.');
+            }
+
+            content.replaceChildren();
+
+            if (members.length === 0) {
+                content.textContent =
+                    'Nhóm chưa có thành viên.';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'table table-bordered';
+            table.style.cssText =
+                'width:100%;border-collapse:collapse;' +
+                'text-align:left';
+
+            const thead = document.createElement('thead');
+            const trHead = document.createElement('tr');
+
+            ['Họ tên', 'Email', 'Vai trò', 'Trạng thái']
+                .forEach(label => {
+                    const th = document.createElement('th');
+                    th.textContent = label;
+                    th.style.cssText =
+                        'padding:12px;border-bottom:2px solid #ddd;' +
+                        'background:#f5f7fa';
+                    trHead.appendChild(th);
+                });
+
+            thead.appendChild(trHead);
+
+            const tbody = document.createElement('tbody');
+
+            members.forEach(member => {
+                const tr = document.createElement('tr');
+
+                [
+                    member.fullName,
+                    member.email,
+                    member.role,
+                    member.status
+                ].forEach(value => {
+                    const td = document.createElement('td');
+                    td.textContent = value ?? '-';
+                    td.style.cssText =
+                        'padding:12px;border-bottom:1px solid #eee';
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+
+            table.append(thead, tbody);
+            content.appendChild(table);
+
+        } catch (error) {
+            if (overlay.isConnected) {
+                content.textContent =
+                    error.message || 'Không tải được thành viên.';
+            }
+        }
+    }
 
     function openEditModal(id) {
 

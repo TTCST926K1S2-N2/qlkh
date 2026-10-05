@@ -33,6 +33,8 @@ public interface SalesOrgService {
     List<Region> getRegions()
             throws SQLException;
 
+    List<User> getMembers(long groupId) throws SQLException;
+
     List<User> getManagers()
             throws SQLException;
 }
