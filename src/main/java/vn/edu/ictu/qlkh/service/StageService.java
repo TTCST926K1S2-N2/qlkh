@@ -112,16 +112,7 @@ public class StageService {
             );
         }
 
-        if (stageDAO.existsOrder(
-                stage.getStageOrder(),
-                stage.getId())) {
-
-            throw new IllegalArgumentException(
-                    "Thứ tự giai đoạn đã tồn tại."
-            );
-        }
-
-        if (!stageDAO.update(stage)) {
+        if (!stageDAO.updateWithOrderSwap(stage)) {
             throw new SQLException(
                     "Không thể cập nhật giai đoạn."
             );

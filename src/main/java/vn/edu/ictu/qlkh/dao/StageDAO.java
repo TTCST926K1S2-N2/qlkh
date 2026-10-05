@@ -233,6 +233,121 @@ public class StageDAO {
     }
 
 
+    public boolean updateWithOrderSwap(Stage stage)
+            throws SQLException {
+
+        try (Connection connection =
+                     DBConnection.getConnection()) {
+
+            connection.setAutoCommit(false);
+
+            try {
+                // Lock the table against concurrent stage-order changes.
+                try (PreparedStatement lock =
+                             connection.prepareStatement(
+                                 "SELECT id FROM stages ORDER BY id FOR UPDATE");
+                     ResultSet ignored = lock.executeQuery()) {
+                    while (ignored.next()) {
+                        // Consume all locked rows.
+                    }
+                }
+
+                int oldOrder;
+                try (PreparedStatement query =
+                             connection.prepareStatement(
+                                 "SELECT stage_order FROM stages WHERE id = ?")) {
+                    query.setLong(1, stage.getId());
+                    try (ResultSet rs = query.executeQuery()) {
+                        if (!rs.next()) {
+                            connection.rollback();
+                            return false;
+                        }
+                        oldOrder = rs.getInt(1);
+                    }
+                }
+
+                int newOrder = stage.getStageOrder();
+
+                if (oldOrder != newOrder) {
+                    long otherId = 0;
+
+                    try (PreparedStatement query =
+                                 connection.prepareStatement(
+                                     "SELECT id FROM stages WHERE stage_order = ?")) {
+                        query.setInt(1, newOrder);
+
+                        try (ResultSet rs = query.executeQuery()) {
+                            if (rs.next()) {
+                                otherId = rs.getLong(1);
+                            }
+                        }
+                    }
+
+                    if (otherId != 0) {
+                        int temporaryOrder;
+
+                        try (PreparedStatement query =
+                                     connection.prepareStatement(
+                                         "SELECT COALESCE(MAX(stage_order),0) FROM stages");
+                             ResultSet rs = query.executeQuery()) {
+                            rs.next();
+                            long candidate = Math.max(
+                                rs.getLong(1), (long) newOrder) + 1L;
+                            if (candidate > Integer.MAX_VALUE) {
+                                throw new SQLException("No free temporary stage order.");
+                            }
+                            temporaryOrder = (int) candidate;
+                        }
+
+                        setOrder(connection, stage.getId(), temporaryOrder);
+                        setOrder(connection, otherId, oldOrder);
+                    }
+                }
+
+                String sql = """
+                    UPDATE stages
+                    SET name = ?, code = ?, stage_order = ?,
+                        win_probability = ?, exit_condition = ?,
+                        status = ?, description = ?
+                    WHERE id = ?
+                    """;
+
+                try (PreparedStatement statement =
+                             connection.prepareStatement(sql)) {
+                    setParameters(statement, stage);
+                    statement.setLong(8, stage.getId());
+
+                    if (statement.executeUpdate() != 1) {
+                        connection.rollback();
+                        return false;
+                    }
+                }
+
+                connection.commit();
+                return true;
+
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
+
+    private void setOrder(
+            Connection connection, long id, int order)
+            throws SQLException {
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                         "UPDATE stages SET stage_order = ? WHERE id = ?")) {
+            statement.setInt(1, order);
+            statement.setLong(2, id);
+
+            if (statement.executeUpdate() != 1) {
+                throw new SQLException("Cannot update stage order.");
+            }
+        }
+    }
     public boolean deactivate(long id)
             throws SQLException {
 
