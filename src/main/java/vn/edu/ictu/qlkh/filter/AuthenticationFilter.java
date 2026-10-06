@@ -68,7 +68,9 @@ public class AuthenticationFilter implements Filter {
          * phiên không còn hợp lệ, không redirect HTML.
          */
         if (path.equals("/api/v1/customers")
-                || path.startsWith("/api/v1/customers/")) {
+                || path.startsWith("/api/v1/customers/")
+                || path.equals("/api/v1/contacts")
+                || path.startsWith("/api/v1/contacts/")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setCharacterEncoding("UTF-8");
             response.setContentType("application/json;charset=UTF-8");
