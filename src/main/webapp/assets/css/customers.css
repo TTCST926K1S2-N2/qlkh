@@ -1,7 +1,6 @@
-body {
-  margin: 0;
-  display: flex;
+.customer-main {
   min-height: 100vh;
+  box-sizing: border-box;
   background: #f4f6f9;
   font-family: Arial, sans-serif;
 }
@@ -40,8 +39,8 @@ body {
 }
 .customer-filters input,
 .customer-filters select,
-dialog input,
-dialog select {
+#customerDialog input,
+#customerDialog select {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -49,22 +48,22 @@ dialog select {
 .customer-table-wrap {
   overflow-x: auto;
 }
-table {
+.customer-table-wrap table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
 }
-th,
-td {
+.customer-table-wrap th,
+.customer-table-wrap td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #eee;
 }
-th {
+.customer-table-wrap th {
   background: #f8f9fa;
   color: #2c3e50;
 }
-button {
+.customer-main button {
   padding: 9px 13px;
   border: 0;
   border-radius: 4px;
@@ -75,7 +74,7 @@ button {
   background: #2ecc71;
   color: white;
 }
-dialog {
+#customerDialog {
   border: 0;
   border-radius: 8px;
   width: min(500px, 90vw);
@@ -83,14 +82,14 @@ dialog {
   overflow: auto;
   box-shadow: 0 10px 40px #0003;
 }
-dialog::backdrop {
+#customerDialog::backdrop {
   background: #0006;
 }
-dialog form {
+#customerDialog form {
   display: grid;
   gap: 12px;
 }
-dialog label {
+#customerDialog label {
   display: grid;
   gap: 5px;
 }
@@ -108,12 +107,80 @@ dialog label {
 .customer-success {
   color: #166534;
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .customer-main {
     padding: 12px;
   }
   .customer-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+#customerDialog [hidden] {
+  display: none !important;
+}
+/* S3-01 LAYOUT */
+@media (min-width: 769px) {
+  body:has(> .customer-main) {
+    display: flex;
+    margin: 0;
+  }
+
+  body > .customer-main {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  body:has(> .customer-main) {
+    display: block;
+    margin: 0;
+  }
+
+  body > .customer-main {
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .customer-box {
+    padding: 12px;
+  }
+
+  .customer-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+/* S3-01 MOBILE SIDEBAR */
+@media (max-width: 768px) {
+  body:has(> .customer-main) > .sidebar {
+    min-height: auto;
+    height: auto;
+  }
+
+  body:has(> .customer-main) .sidebar-navigation
+    .menu-category {
+    display: none;
+  }
+
+  body:has(> .customer-main) .sidebar-menu li {
+    display: none;
+  }
+
+  body:has(> .customer-main) .sidebar-menu li:has(a.active),
+  body:has(> .customer-main) .sidebar-menu li:has(a[aria-current="page"]) {
+    display: list-item;
+  }
+
+  body:has(> .customer-main) .sidebar-footer {
+    display: none;
+  }
+
+  body:has(> .customer-main) .sidebar-navigation {
+    padding-bottom: 8px;
   }
 }

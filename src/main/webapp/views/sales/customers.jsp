@@ -49,6 +49,7 @@
       </section>
       <dialog id="customerDialog">
         <form id="customerForm">
+          <p id="customerFormError" class="customer-error" role="alert" aria-live="assertive" hidden></p>
           <h3 id="customerFormTitle">Thông tin khách hàng</h3>
           <label
             >Tên doanh nghiệp<input
@@ -60,14 +61,11 @@
           ><label>Quy mô<input name="companySize" maxlength="100" /></label
           ><label>Website<input name="website" maxlength="500" /></label
           ><label>Địa chỉ<input name="address" maxlength="500" /></label
-          ><label
-            >Người phụ trách (ID)<input
-              name="ownerId"
-              type="number"
-              min="1"
-              step="1"
-              placeholder="Để trống khi thêm: chính mình" /></label
-          ><label
+          ><label id="customerOwnerLabel" hidden>
+              Người phụ trách (ID)
+              <input name="ownerId" readonly />
+            </label>
+            <p id="customerOwnerHint">Người phụ trách được hệ thống tự động xác định.</p><label
             >Trạng thái<select name="status">
               <option value="POTENTIAL">Tiềm năng</option>
               <option value="IN_PROGRESS">Đang giao dịch</option>

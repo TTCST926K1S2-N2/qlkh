@@ -15,6 +15,12 @@
     CUSTOMER: "Khách hàng",
     INACTIVE: "Ngừng hợp tác",
   };
+  function formError(text) {
+    const error = $("customerFormError");
+    error.textContent = text || "";
+    error.hidden = !text;
+  }
+
   function message(t, error = false) {
     msg.textContent = t;
     msg.className = error ? "customer-error" : "customer-success";
@@ -28,14 +34,23 @@
       },
       ...options,
     });
-    if (res.status === 401) {
-      location.href = window.customerContextPath + "/login";
+    const loginUrl = window.customerContextPath + "/login";
+    const responseUrl = new URL(res.url, location.href);
+
+    if (
+      res.status === 401 ||
+      (res.redirected && responseUrl.pathname === loginUrl)
+    ) {
+      location.replace(loginUrl);
       throw Error("Phiên đăng nhập đã hết hạn");
     }
     let data;
     try {
       data = await res.json();
     } catch {
+      if (res.status === 403) {
+        throw Error("Bạn không có quyền thực hiện thao tác này.");
+      }
       throw Error("Phản hồi máy chủ không hợp lệ");
     }
     if (!res.ok)
@@ -126,10 +141,16 @@
     }
   }
   function show(c, mode) {
+    formError("");
     editingId = c ? c.id : null;
     readOnly = mode === "view";
     form.reset();
     setFields(c);
+    $("customerOwnerLabel").hidden = !readOnly;
+    $("customerOwnerHint").hidden = readOnly;
+    $("customerOwnerHint").textContent = editingId
+      ? "Giữ nguyên người phụ trách hiện tại."
+      : "Tự động giao cho tài khoản đang đăng nhập.";
     $("customerFormTitle").textContent = readOnly
       ? "Chi tiết khách hàng"
       : editingId
@@ -155,7 +176,9 @@
   $("customerCancel").addEventListener("click", close);
   $("customerSearch").addEventListener("input", render);
   $("customerStatus").addEventListener("change", render);
+  form.elements.taxCode.addEventListener("input", () => formError(""));
   form.addEventListener("submit", async (e) => {
+    formError("");
     e.preventDefault();
     if (readOnly) return;
     const payload = {};
@@ -176,17 +199,6 @@
       return;
     }
     payload.status = payload.status || "POTENTIAL";
-    const owner = form.elements.ownerId.value.trim();
-    if (owner) {
-      if (
-        !/^[1-9][0-9]*$/.test(owner) ||
-        !Number.isSafeInteger(Number(owner))
-      ) {
-        message("ID người phụ trách không hợp lệ", true);
-        return;
-      }
-      payload.ownerId = Number(owner);
-    }
     const btn = $("customerSave");
     btn.disabled = true;
     try {
@@ -199,7 +211,7 @@
       await load();
       message(edit ? "Cập nhật thành công" : "Thêm khách hàng thành công");
     } catch (err) {
-      message(err.message, true);
+      formError(err.message || "Không thể lưu khách hàng");
     } finally {
       btn.disabled = false;
     }
