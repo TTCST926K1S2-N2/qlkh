@@ -192,6 +192,17 @@
                     </a>
 
                 </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/contacts.jsp"
+                       class="<%= currentURI.contains("/views/sales/contacts.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quản lý người liên hệ
+                        </span>
+                    </a>
+                </li>
                 <!-- DANH MỤC DÙNG CHUNG -->
                 <li>
                     <a href="${pageContext.request.contextPath}/views/sales/common-categories.jsp"
