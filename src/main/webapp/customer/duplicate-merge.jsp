@@ -1,89 +1,126 @@
 ﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="vn.edu.ictu.qlkh.controller.DuplicateCustomerServlet.CustomerData" %>
+<%
+    CustomerData c1 = (CustomerData) request.getAttribute("customer1");
+    CustomerData c2 = (CustomerData) request.getAttribute("customer2");
+    String errorMessage = (String) request.getAttribute("errorMessage");
+    String errorParam = request.getParameter("error");
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Cảnh báo và Gộp khách hàng trùng</title>
+    <title>Cảnh báo và gộp khách hàng trùng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container mt-4">
-    <div class="alert alert-warning shadow-sm" role="alert">
-        <h4 class="alert-heading">⚠️ Cảnh báo: Phát hiện khách hàng trùng lặp!</h4>
-        <p class="mb-0">Hệ thống tìm thấy các hồ sơ có thông tin tương đồng (Số điện thoại hoặc Email trùng nhau). Vui lòng đối chiếu và chọn hồ sơ chính trước khi gộp.</p>
-    </div>
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4">⚠️ Phát hiện hồ sơ khách hàng trùng lặp</h2>
 
-    <% String msg = request.getParameter("message");
-       if ("merge_success".equals(msg)) { %>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Gộp khách hàng thành công! Dữ liệu đã được đồng bộ sang hồ sơ chính.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+    <% if (errorMessage != null) { %>
+        <div class="alert alert-danger"><%= errorMessage %></div>
+    <% } %>
+    <% if ("invalid_selection".equals(errorParam)) { %>
+        <div class="alert alert-warning">Vui lòng chọn hai hồ sơ khác nhau để thực hiện gộp.</div>
+    <% } else if ("merge_failed".equals(errorParam)) { %>
+        <div class="alert alert-danger">Gộp khách hàng thất bại do lỗi hệ thống. Vui lòng thử lại.</div>
+    <% } else if ("unauthorized".equals(errorParam)) { %>
+        <div class="alert alert-danger">Bạn không có quyền thực hiện thao tác này (Chỉ Trưởng nhóm kinh doanh mới được gộp).</div>
     <% } %>
 
-    <form action="${pageContext.request.contextPath}/customers/merge" method="POST">
+    <% if (c1 != null && c2 != null) { %>
+    <form action="${pageContext.request.contextPath}/customers/merge" method="POST" id="mergeForm">
+        <input type="hidden" id="primaryId" name="primaryId" value="<%= c1.getId() %>">
+        <input type="hidden" id="duplicateId" name="duplicateId" value="<%= c2.getId() %>">
+
         <div class="row">
-            <!-- Hồ sơ 1 -->
             <div class="col-md-6">
-                <div class="card shadow-sm mb-3 border-primary">
+                <div class="card shadow-sm border-primary">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <span>Hồ sơ số 1</span>
+                        <span>Hồ sơ A (ID: <%= c1.getId() %>)</span>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="primaryId" id="primary1" value="101" checked>
-                            <label class="form-check-label text-white fw-bold" for="primary1">Chọn làm hồ sơ chính</label>
+                            <input class="form-check-input primary-radio" type="radio" name="choosePrimary" id="radio1" value="<%= c1.getId() %>" checked onchange="updateMergeIds()">
+                            <label class="form-check-label text-white" for="radio1">Chọn làm chính</label>
                         </div>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>ID:</strong> 101</li>
-                            <li class="list-group-item"><strong>Họ tên:</strong> Nguyễn Văn An</li>
-                            <li class="list-group-item"><strong>Email:</strong> an.nguyen@ictu.edu.vn</li>
-                            <li class="list-group-item"><strong>Số điện thoại:</strong> 0912345678</li>
-                            <li class="list-group-item"><strong>Nhóm:</strong> Miền Bắc</li>
-                        </ul>
+                        <p><strong>Tên công ty:</strong> <%= c1.getName() %></p>
+                        <p><strong>Mã số thuế:</strong> <%= c1.getTaxCode() %></p>
+                        <p><strong>Ngành nghề:</strong> <%= c1.getIndustry() %></p>
+                        <p><strong>Quy mô:</strong> <%= c1.getScale() %></p>
+                        <p><strong>Website:</strong> <%= c1.getWebsite() %></p>
+                        <p><strong>Địa chỉ:</strong> <%= c1.getAddress() %></p>
+                        <p><strong>Người sở hữu:</strong> <%= c1.getOwner() %></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Hồ sơ 2 -->
             <div class="col-md-6">
-                <div class="card shadow-sm mb-3 border-secondary">
+                <div class="card shadow-sm border-secondary">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                        <span>Hồ sơ số 2 (Trùng)</span>
+                        <span>Hồ sơ B (ID: <%= c2.getId() %>)</span>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="primaryId" id="primary2" value="102">
-                            <input type="hidden" name="duplicateId" value="102">
-                            <label class="form-check-label text-white fw-bold" for="primary2">Chọn làm hồ sơ chính</label>
+                            <input class="form-check-input primary-radio" type="radio" name="choosePrimary" id="radio2" value="<%= c2.getId() %>" onchange="updateMergeIds()">
+                            <label class="form-check-label text-white" for="radio2">Chọn làm chính</label>
                         </div>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>ID:</strong> 102</li>
-                            <li class="list-group-item"><strong>Họ tên:</strong> Nguyễn Văn A</li>
-                            <li class="list-group-item"><strong>Email:</strong> an.nguyen@ictu.edu.vn</li>
-                            <li class="list-group-item"><strong>Số điện thoại:</strong> 0912345678</li>
-                            <li class="list-group-item"><strong>Nhóm:</strong> Miền Nam</li>
-                        </ul>
+                        <p><strong>Tên công ty:</strong> <%= c2.getName() %></p>
+                        <p><strong>Mã số thuế:</strong> <%= c2.getTaxCode() %></p>
+                        <p><strong>Ngành nghề:</strong> <%= c2.getIndustry() %></p>
+                        <p><strong>Quy mô:</strong> <%= c2.getScale() %></p>
+                        <p><strong>Website:</strong> <%= c2.getWebsite() %></p>
+                        <p><strong>Địa chỉ:</strong> <%= c2.getAddress() %></p>
+                        <p><strong>Người sở hữu:</strong> <%= c2.getOwner() %></p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm mt-3">
-            <div class="card-body bg-white">
-                <h5 class="text-danger">Thông tin dự kiến sau khi gộp:</h5>
-                <ul>
-                    <li>Hồ sơ được chọn sẽ giữ lại toàn bộ thông tin định danh và lịch sử giao dịch liên quan.</li>
-                    <li>Hồ sơ trùng lặp sẽ bị vô hiệu hóa và chuyển toàn bộ liên kết dữ liệu sang hồ sơ chính.</li>
-                </ul>
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="${pageContext.request.contextPath}/customers" class="btn btn-secondary">Hủy bỏ</a>
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn gộp các hồ sơ này không? Thao tác không thể hoàn tác!');">Xác nhận và Gộp</button>
-                </div>
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📋 Chi tiết dự kiến dữ liệu được giữ lại & chuyển đổi</h5>
             </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Thông tin định danh & Thuộc tính:</strong> Giữ lại toàn bộ thông tin của Hồ sơ được chọn làm chính. Hồ sơ còn lại sẽ bị vô hiệu hóa (Trạng thái: MERGED).</li>
+                    <li><strong>Người liên hệ (Contacts):</strong> Toàn bộ danh sách người liên hệ thuộc hồ sơ phụ sẽ được tự động chuyển sang liên kết với Hồ sơ chính.</li>
+                    <li><strong>Cơ hội kinh doanh (Opportunities):</strong> Các cơ hội đang mở/đóng của hồ sơ phụ sẽ gộp chung vào dòng thời gian của Hồ sơ chính.</li>
+                    <li><strong>Hoạt động & Lịch sử chăm sóc (Activities):</strong> Lịch sử cuộc gọi, email, ghi chú sẽ được gom về một mối tại Hồ sơ chính.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <a href="${pageContext.request.contextPath}/customers" class="btn btn-secondary">Hủy bỏ</a>
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn thực hiện gộp hồ sơ này không? Thao tác không thể hoàn tác.')">Xác nhận gộp hồ sơ</button>
         </div>
     </form>
+    <% } else { %>
+        <div class="alert alert-warning">Không có dữ liệu so sánh khách hàng trùng.</div>
+        <a href="${pageContext.request.contextPath}/customers" class="btn btn-primary">Quay lại danh sách</a>
+    <% } %>
 </div>
+
+<script>
+    function updateMergeIds() {
+        const radio1 = document.getElementById('radio1');
+        const primaryIdInput = document.getElementById('primaryId');
+        const duplicateIdInput = document.getElementById('duplicateId');
+
+        const id1 = "<%= c1 != null ? c1.getId() : "" %>";
+        const id2 = "<%= c2 != null ? c2.getId() : "" %>";
+
+        if (radio1.checked) {
+            primaryIdInput.value = id1;
+            duplicateIdInput.value = id2;
+        } else {
+            primaryIdInput.value = id2;
+            duplicateIdInput.value = id1;
+        }
+    }
+    window.onload = updateMergeIds;
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
