@@ -92,8 +92,6 @@
 
             <div class="empty-state">
 
-                <div class="empty-icon">👤</div>
-
                 <h3>Chưa có dữ liệu</h3>
 
                 <p>
@@ -116,8 +114,6 @@
             </div>
 
             <div class="empty-state">
-
-                <div class="empty-icon">💼</div>
 
                 <h3>Chưa có dữ liệu</h3>
 
@@ -142,8 +138,6 @@
 
             <div class="empty-state">
 
-                <div class="empty-icon">🕒</div>
-
                 <h3>Chưa có dữ liệu</h3>
 
                 <p>
@@ -167,8 +161,6 @@
 
             <div class="empty-state">
 
-                <div class="empty-icon">📎</div>
-
                 <h3>Chưa có dữ liệu</h3>
 
                 <p>
@@ -182,7 +174,6 @@
     </main>
 
 </div>
-
 
 <script>
     window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';
