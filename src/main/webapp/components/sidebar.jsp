@@ -88,9 +88,7 @@
 
         <div class="sidebar-user">
 
-            <div class="user-avatar">
-                <%= userName.substring(0, 1).toUpperCase() %>
-            </div>
+            <div class="user-avatar"><span class="qlkh-avatar-initial"><%= userName.substring(0, 1).toUpperCase() %></span></div>
 
             <div class="user-information">
 
@@ -440,13 +438,6 @@
 
                     </a>
 
-                </li>
-
-                <li>
-                    <a href="${pageContext.request.contextPath}/user/avatar.jsp" class="<%= currentURI.contains("/avatar") ? "active" : "" %>">
-                        <span class="menu-indicator"></span>
-                        <span class="menu-text">&#7842;nh &#273;&#7841;i di&#7879;n</span>
-                    </a>
                 </li>
 
 
