@@ -279,6 +279,7 @@
 
                 <div class="scope-grid">
 
+                    <c:if test="${currentDataScope == 'MY'}">
                     <!-- MY -->
                     <div class="scope-card
                          ${currentDataScope == 'MY'
@@ -314,6 +315,8 @@
                     </div>
 
 
+                    </c:if>
+                    <c:if test="${currentDataScope == 'TEAM'}">
                     <!-- TEAM -->
                     <div class="scope-card
                          ${currentDataScope == 'TEAM'
@@ -349,6 +352,8 @@
                     </div>
 
 
+                    </c:if>
+                    <c:if test="${currentDataScope == 'ALL'}">
                     <!-- ALL -->
                     <div class="scope-card
                          ${currentDataScope == 'ALL'
@@ -383,6 +388,7 @@
 
                     </div>
 
+                    </c:if>
                 </div>
 
 
