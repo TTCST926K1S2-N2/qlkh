@@ -27,7 +27,12 @@ class CustomerDAORealTest {
                 outsider = createUser(conn, tag + "o", "SALES");
 
                 group = createGroup(conn, tag);
-                joinGroup(conn, manager, group);
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE business_groups SET leader_id=? WHERE id=?")) {
+                    ps.setLong(1, manager);
+                    ps.setLong(2, group);
+                    ps.executeUpdate();
+                }
                 joinGroup(conn, sales, group);
 
                 Customer c = new Customer();

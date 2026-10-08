@@ -54,12 +54,13 @@ public class CustomerDAO {
         } else if ("TEAM".equals(scope)) {
             sql = "SELECT " + COLUMNS +
                   " FROM customers c " +
-                  "WHERE EXISTS (" +
-                  "SELECT 1 FROM user_business_groups me " +
-                  "JOIN user_business_groups owner_group " +
-                  "ON owner_group.group_id = me.group_id " +
-                  "WHERE me.user_id = ? " +
-                  "AND owner_group.user_id = c.owner_id" +
+                  "WHERE c.owner_id = ? OR EXISTS (" +
+                  "SELECT 1 FROM business_groups bg " +
+                  "JOIN user_business_groups ubg " +
+                  "ON ubg.group_id = bg.id " +
+                  "WHERE bg.leader_id = ? " +
+                  "AND bg.status = 'ACTIVE' " +
+                  "AND ubg.user_id = c.owner_id" +
                   ") ORDER BY c.id DESC";
 
         } else if ("MY".equals(scope)) {
@@ -78,6 +79,7 @@ public class CustomerDAO {
 
             if ("TEAM".equals(scope)) {
                 ps.setLong(1, userId);
+                ps.setLong(2, userId);
             } else if ("MY".equals(scope)) {
                 ps.setLong(1, userId);
             }
@@ -106,12 +108,13 @@ public class CustomerDAO {
         } else if ("TEAM".equals(scope)) {
             sql = "SELECT " + COLUMNS +
                   " FROM customers c " +
-                  "WHERE c.id = ? AND EXISTS (" +
-                  "SELECT 1 FROM user_business_groups me " +
-                  "JOIN user_business_groups owner_group " +
-                  "ON owner_group.group_id = me.group_id " +
-                  "WHERE me.user_id = ? " +
-                  "AND owner_group.user_id = c.owner_id)";
+                  "WHERE c.id = ? AND (c.owner_id = ? OR EXISTS (" +
+                  "SELECT 1 FROM business_groups bg " +
+                  "JOIN user_business_groups ubg " +
+                  "ON ubg.group_id = bg.id " +
+                  "WHERE bg.leader_id = ? " +
+                  "AND bg.status = 'ACTIVE' " +
+                  "AND ubg.user_id = c.owner_id))";
 
         } else if ("MY".equals(scope)) {
             sql = "SELECT " + COLUMNS +
@@ -129,6 +132,7 @@ public class CustomerDAO {
 
             if ("TEAM".equals(scope)) {
                 ps.setLong(2, userId);
+                ps.setLong(3, userId);
             } else if ("MY".equals(scope)) {
                 ps.setLong(2, userId);
             }
@@ -232,12 +236,13 @@ public class CustomerDAO {
 
         } else if ("TEAM".equals(scope)) {
             accessCondition =
-                " AND EXISTS (" +
-                "SELECT 1 FROM user_business_groups me " +
-                "JOIN user_business_groups og " +
-                "ON og.group_id = me.group_id " +
-                "WHERE me.user_id = ? " +
-                "AND og.user_id = customers.owner_id)";
+                " AND (customers.owner_id = ? OR EXISTS (" +
+                  "SELECT 1 FROM business_groups bg " +
+                  "JOIN user_business_groups ubg " +
+                  "ON ubg.group_id = bg.id " +
+                  "WHERE bg.leader_id = ? " +
+                  "AND bg.status = 'ACTIVE' " +
+                  "AND ubg.user_id = customers.owner_id))";
 
         } else if ("MY".equals(scope)) {
             accessCondition = " AND owner_id = ?";
@@ -268,6 +273,7 @@ public class CustomerDAO {
 
             if ("TEAM".equals(scope)) {
                 ps.setLong(10, userId);
+                ps.setLong(11, userId);
             } else if ("MY".equals(scope)) {
                 ps.setLong(10, userId);
             }
@@ -281,11 +287,12 @@ public class CustomerDAO {
             long managerId) throws SQLException {
 
         String sql =
-            "SELECT 1 FROM user_business_groups me " +
-            "JOIN user_business_groups member " +
-            "ON member.group_id = me.group_id " +
-            "WHERE me.user_id = ? " +
-            "AND member.user_id = ? LIMIT 1";
+            "SELECT 1 FROM business_groups bg " +
+            "JOIN user_business_groups ubg " +
+            "ON ubg.group_id = bg.id " +
+            "WHERE bg.leader_id = ? " +
+            "AND bg.status = 'ACTIVE' " +
+            "AND ubg.user_id = ? LIMIT 1";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
