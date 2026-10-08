@@ -49,7 +49,33 @@ document.addEventListener("DOMContentLoaded", () => {
       if(url){preview.src=/^https?:\/\//i.test(url)?url:context+(url.startsWith("/")?url:"/"+url);preview.hidden=false;placeholder.hidden=true;}
       if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}
       fileInput.value=""; fileName.textContent="Đã tải ảnh thành công"; removeBtn.disabled=true; uploadBtn.disabled=true;
-      showMessage("Cập nhật ảnh đại diện thành công.","success");
+      showMessage("Avatar updated successfully.","success"); if (url) {
+  const avatarUrl = /^https?:\/\//i.test(url)
+    ? url
+    : context + (url.startsWith("/") ? url : "/" + url);
+
+  const freshUrl = avatarUrl +
+    (avatarUrl.includes("?") ? "&" : "?") +
+    "v=" + Date.now();
+
+  document.querySelectorAll(
+    ".qlkh-header-avatar, .user-avatar"
+  ).forEach(container => {
+    let img = container.querySelector("img");
+
+    if (!img) {
+      img = document.createElement("img");
+      img.alt = "Anh dai dien";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "50%";
+      container.replaceChildren(img);
+    }
+
+    img.src = freshUrl;
+  });
+}
     }catch(ex){
       error.textContent=ex.message||"Không thể tải ảnh đại diện."; removeBtn.disabled=false; uploadBtn.disabled=false;
       showMessage(error.textContent,"error");
