@@ -298,4 +298,238 @@ public class CustomerDAO {
             }
         }
     }
+
+    /**
+     * Ket qua tim kiem co phan trang.
+     */
+    public static class SearchPageData {
+        private final List<Customer> items;
+        private final long totalItems;
+
+        public SearchPageData(List<Customer> items, long totalItems) {
+            this.items = items;
+            this.totalItems = totalItems;
+        }
+
+        public List<Customer> getItems() {
+            return items;
+        }
+
+        public long getTotalItems() {
+            return totalItems;
+        }
+    }
+
+    private static class SearchQuery {
+        private final String sql;
+        private final List<Object> params;
+
+        private SearchQuery(String sql, List<Object> params) {
+            this.sql = sql;
+            this.params = params;
+        }
+    }
+
+    private SearchQuery buildSearchQuery(
+            long userId,
+            String scope,
+            String keyword,
+            String companyName,
+            String taxCode,
+            String phone,
+            String industry,
+            String status,
+            Long ownerId,
+            boolean countQuery) {
+
+        StringBuilder sql = new StringBuilder();
+
+        if (countQuery) {
+            sql.append("SELECT COUNT(*) FROM customers c ");
+        } else {
+            sql.append("SELECT ").append(COLUMNS)
+               .append(" FROM customers c ");
+        }
+
+        List<Object> params = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
+
+        if ("MY".equals(scope)) {
+            conditions.add("c.owner_id = ?");
+            params.add(userId);
+
+        } else if ("TEAM".equals(scope)) {
+            conditions.add(
+                "EXISTS (" +
+                "SELECT 1 FROM user_business_groups me " +
+                "JOIN user_business_groups owner_group " +
+                "ON owner_group.group_id = me.group_id " +
+                "WHERE me.user_id = ? " +
+                "AND owner_group.user_id = c.owner_id)"
+            );
+            params.add(userId);
+
+        } else if (!"ALL".equals(scope)) {
+            throw new SecurityException(
+                "Khong co quyen quan ly khach hang"
+            );
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            conditions.add(
+                "(c.company_name LIKE ? " +
+                "OR c.tax_code LIKE ? " +
+                "OR EXISTS (" +
+                "SELECT 1 FROM contacts ct " +
+                "WHERE ct.customer_id = c.id " +
+                "AND ct.phone LIKE ?))"
+            );
+
+            String pattern = "%" + keyword.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+            params.add(pattern);
+        }
+
+        if (companyName != null && !companyName.isBlank()) {
+            conditions.add("c.company_name LIKE ?");
+            params.add("%" + companyName.trim() + "%");
+        }
+
+        if (taxCode != null && !taxCode.isBlank()) {
+            conditions.add("c.tax_code LIKE ?");
+            params.add("%" + taxCode.trim() + "%");
+        }
+
+        if (phone != null && !phone.isBlank()) {
+            conditions.add(
+                "EXISTS (" +
+                "SELECT 1 FROM contacts ct " +
+                "WHERE ct.customer_id = c.id " +
+                "AND ct.phone LIKE ?)"
+            );
+            params.add("%" + phone.trim() + "%");
+        }
+
+        if (industry != null && !industry.isBlank()) {
+            conditions.add("c.industry = ?");
+            params.add(industry.trim());
+        }
+
+        if (status != null && !status.isBlank()) {
+            conditions.add("c.status = ?");
+            params.add(status.trim());
+        }
+
+        if (ownerId != null) {
+            conditions.add("c.owner_id = ?");
+            params.add(ownerId);
+        }
+
+        if (!conditions.isEmpty()) {
+            sql.append(" WHERE ")
+               .append(String.join(" AND ", conditions));
+        }
+
+        if (!countQuery) {
+            sql.append(" ORDER BY c.id DESC LIMIT ? OFFSET ?");
+        }
+
+        return new SearchQuery(sql.toString(), params);
+    }
+
+    private void bindSearchParams(
+            PreparedStatement ps,
+            List<Object> params) throws SQLException {
+
+        for (int i = 0; i < params.size(); i++) {
+            Object value = params.get(i);
+
+            if (value instanceof Long number) {
+                ps.setLong(i + 1, number);
+            } else {
+                ps.setString(i + 1, value.toString());
+            }
+        }
+    }
+
+    /**
+     * Tim kiem, loc ket hop va phan trang theo pham vi du lieu.
+     * page bat dau tu 1.
+     */
+    public SearchPageData searchVisible(
+            long userId,
+            String scope,
+            String keyword,
+            String companyName,
+            String taxCode,
+            String phone,
+            String industry,
+            String status,
+            Long ownerId,
+            int page,
+            int size) throws SQLException {
+
+        if (page < 1 || size < 1 || size > 100) {
+            throw new IllegalArgumentException(
+                "Tham so phan trang khong hop le"
+            );
+        }
+
+        if (userId <= 0) {
+            throw new SecurityException(
+                "Nguoi dung khong hop le"
+            );
+        }
+
+        long offset = (long) (page - 1) * size;
+
+        SearchQuery dataQuery = buildSearchQuery(
+            userId, scope, keyword, companyName,
+            taxCode, phone, industry, status,
+            ownerId, false
+        );
+
+        SearchQuery countQuery = buildSearchQuery(
+            userId, scope, keyword, companyName,
+            taxCode, phone, industry, status,
+            ownerId, true
+        );
+
+        List<Customer> items = new ArrayList<>();
+        long totalItems = 0;
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            try (PreparedStatement ps =
+                         conn.prepareStatement(countQuery.sql)) {
+
+                bindSearchParams(ps, countQuery.params);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        totalItems = rs.getLong(1);
+                    }
+                }
+            }
+
+            try (PreparedStatement ps =
+                         conn.prepareStatement(dataQuery.sql)) {
+
+                bindSearchParams(ps, dataQuery.params);
+
+                int next = dataQuery.params.size() + 1;
+                ps.setInt(next, size);
+                ps.setLong(next + 1, offset);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        items.add(map(rs));
+                    }
+                }
+            }
+        }
+
+        return new SearchPageData(items, totalItems);
+    }
 }

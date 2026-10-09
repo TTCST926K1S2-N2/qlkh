@@ -1,5 +1,7 @@
 package vn.edu.ictu.qlkh.controller;
 
+import vn.edu.ictu.qlkh.dao.CustomerDAO;
+
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import vn.edu.ictu.qlkh.model.Customer;
@@ -80,14 +82,51 @@ public class CustomerServlet extends HttpServlet {
             Actor a = actor(req);
 
             if (isList(req)) {
-                List<Customer> customers = service.list(a.id(), a.role());
-                StringJoiner json = new StringJoiner(",", "[", "]");
+                if (hasSearchParameters(req)) {
+                    int page = parsePageParameter(req, "page", 1);
+                    int size = parsePageParameter(req, "size", 20);
+                    Long ownerId = parseOptionalLongParameter(req, "ownerId");
 
-                for (Customer c : customers) {
-                    json.add(toJson(c));
+                    CustomerDAO.SearchPageData result = service.searchCustomers(
+                            a.id(),
+                            a.role(),
+                            req.getParameter("keyword"),
+                            req.getParameter("companyName"),
+                            req.getParameter("taxCode"),
+                            req.getParameter("phone"),
+                            req.getParameter("industry"),
+                            req.getParameter("status"),
+                            ownerId,
+                            page,
+                            size
+                    );
+
+                    StringJoiner items = new StringJoiner(",", "[", "]");
+                    for (Customer c : result.getItems()) {
+                        items.add(toJson(c));
+                    }
+
+                    int totalPages = (int) Math.ceil(
+                            (double) result.getTotalItems() / size
+                    );
+
+                    String json = "{\"items\":" + items
+                            + ",\"page\":" + page
+                            + ",\"size\":" + size
+                            + ",\"totalItems\":" + result.getTotalItems()
+                            + ",\"totalPages\":" + totalPages + "}";
+
+                    send(res, 200, json);
+                } else {
+                    List<Customer> customers = service.list(a.id(), a.role());
+                    StringJoiner json = new StringJoiner(",", "[", "]");
+
+                    for (Customer c : customers) {
+                        json.add(toJson(c));
+                    }
+
+                    send(res, 200, json.toString());
                 }
-
-                send(res, 200, json.toString());
             } else {
                 Customer c = service.detail(
                         pathId(req), a.id(), a.role());
@@ -157,6 +196,62 @@ public class CustomerServlet extends HttpServlet {
         }
     }
 
+    private boolean hasSearchParameters(HttpServletRequest req) {
+        String[] names = {
+                "keyword", "companyName", "taxCode", "phone",
+                "industry", "status", "ownerId", "page", "size"
+        };
+
+        for (String name : names) {
+            if (req.getParameter(name) != null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private int parsePageParameter(
+            HttpServletRequest req, String name, int defaultValue) {
+        String value = req.getParameter(name);
+
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                    "Tham so " + name + " khong hop le"
+            );
+        }
+    }
+
+    private Long parseOptionalLongParameter(
+            HttpServletRequest req, String name) {
+        String value = req.getParameter(name);
+
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            long parsed = Long.parseLong(value.trim());
+
+            if (parsed <= 0) {
+                throw new IllegalArgumentException(
+                        "Tham so " + name + " phai lon hon 0"
+                );
+            }
+
+            return parsed;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                    "Tham so " + name + " khong hop le"
+            );
+        }
+    }
     private Customer readCustomer(HttpServletRequest req)
             throws IOException {
 

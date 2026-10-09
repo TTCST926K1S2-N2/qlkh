@@ -184,4 +184,132 @@ class CustomerServiceTest {
         assertEquals(10L, c.getOwnerId());
         assertEquals("POTENTIAL", c.getStatus());
     }
+@Test
+void searchCustomersSalesUsesMyScope() throws SQLException {
+    service.searchCustomers(
+            10L, "SALES",
+            "ABC", null, null, null,
+            null, null, null, 1, 20
+    );
+
+    verify(dao).searchVisible(
+            10L, "MY",
+            "ABC", null, null, null,
+            null, null, null, 1, 20
+    );
+}
+
+@Test
+void searchCustomersManagerUsesTeamScope() throws SQLException {
+    service.searchCustomers(
+            10L, "MANAGER",
+            null, "Cong ty ABC", null, null,
+            null, null, null, 2, 10
+    );
+
+    verify(dao).searchVisible(
+            10L, "TEAM",
+            null, "Cong ty ABC", null, null,
+            null, null, null, 2, 10
+    );
+}
+
+@Test
+void searchCustomersAdminUsesAllScope() throws SQLException {
+    service.searchCustomers(
+            1L, "ADMIN",
+            null, null, "0101234567", "0987654321",
+            "Cong nghe", "CUSTOMER", 10L, 1, 50
+    );
+
+    verify(dao).searchVisible(
+            1L, "ALL",
+            null, null, "0101234567", "0987654321",
+            "Cong nghe", "CUSTOMER", 10L, 1, 50
+    );
+}
+
+@Test
+void searchCustomersRejectsInvalidRole() {
+    assertThrows(
+            SecurityException.class,
+            () -> service.searchCustomers(
+                    10L, "GUEST",
+                    null, null, null, null,
+                    null, null, null, 1, 20
+            )
+    );
+
+    verifyNoInteractions(dao);
+}
+
+@Test
+void searchCustomersRejectsInvalidUserId() {
+    assertThrows(
+            SecurityException.class,
+            () -> service.searchCustomers(
+                    0L, "SALES",
+                    null, null, null, null,
+                    null, null, null, 1, 20
+            )
+    );
+
+    verifyNoInteractions(dao);
+}
+
+@Test
+void searchCustomersRejectsInvalidPage() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> service.searchCustomers(
+                    10L, "SALES",
+                    null, null, null, null,
+                    null, null, null, 0, 20
+            )
+    );
+
+    verifyNoInteractions(dao);
+}
+
+@Test
+void searchCustomersRejectsPageSizeOver100() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> service.searchCustomers(
+                    10L, "SALES",
+                    null, null, null, null,
+                    null, null, null, 1, 101
+            )
+    );
+
+    verifyNoInteractions(dao);
+}
+
+@Test
+void searchCustomersRejectsInvalidStatus() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> service.searchCustomers(
+                    10L, "SALES",
+                    null, null, null, null,
+                    null, "UNKNOWN", null, 1, 20
+            )
+    );
+
+    verifyNoInteractions(dao);
+}
+
+@Test
+void searchCustomersRejectsInvalidOwnerId() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> service.searchCustomers(
+                    10L, "ADMIN",
+                    null, null, null, null,
+                    null, null, 0L, 1, 20
+            )
+    );
+
+    verifyNoInteractions(dao);
+}
 }
