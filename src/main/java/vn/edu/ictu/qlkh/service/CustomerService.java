@@ -53,6 +53,81 @@ public class CustomerService {
         return dao.findVisible(userId, scope.name());
     }
 
+    private String normalizeSearch(
+            String value, int maxLength, String field) {
+        if (value == null) {
+            return null;
+        }
+
+        String normalized = value.trim();
+
+        if (normalized.isEmpty()) {
+            return null;
+        }
+
+        if (normalized.length() > maxLength) {
+            throw new IllegalArgumentException(
+                    field + " vuot qua " + maxLength + " ky tu");
+        }
+
+        return normalized;
+    }
+
+    public CustomerDAO.SearchPageData searchCustomers(
+            long userId,
+            String role,
+            String keyword,
+            String companyName,
+            String taxCode,
+            String phone,
+            String industry,
+            String status,
+            Long ownerId,
+            int page,
+            int size) throws SQLException {
+
+        DataScope scope = requireScope(role);
+
+        if (userId <= 0) {
+            throw new SecurityException("Nguoi dung khong hop le");
+        }
+
+        if (page < 1 || size < 1 || size > 100) {
+            throw new IllegalArgumentException(
+                    "page phai >= 1 va size phai tu 1 den 100");
+        }
+
+        keyword = normalizeSearch(keyword, 255, "Tu khoa");
+        companyName = normalizeSearch(
+                companyName, 255, "Ten doanh nghiep");
+        taxCode = normalizeSearch(taxCode, 50, "Ma so thue");
+        phone = normalizeSearch(phone, 30, "So dien thoai");
+        industry = normalizeSearch(industry, 150, "Nganh nghe");
+        status = normalizeSearch(status, 30, "Trang thai");
+
+        if (status != null && !STATUSES.contains(status)) {
+            throw new IllegalArgumentException(
+                    "Trang thai khong hop le");
+        }
+
+        if (ownerId != null && ownerId <= 0) {
+            throw new IllegalArgumentException(
+                    "ownerId phai lon hon 0");
+        }
+
+        return dao.searchVisible(
+                userId,
+                scope.name(),
+                keyword,
+                companyName,
+                taxCode,
+                phone,
+                industry,
+                status,
+                ownerId,
+                page,
+                size);
+    }
     public Customer detail(
             long id,
             long userId,
