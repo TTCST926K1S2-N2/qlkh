@@ -82,17 +82,14 @@
             <!-- Khu vực Bộ lọc -->
             <form id="filterForm" onsubmit="handleSearch(event)">
                 <div class="filter-section">
-                    <!-- Yêu cầu: Tìm theo tên, mã số thuế -->
                     <div class="form-group">
                         <label>Từ khóa (Tên/MST):</label>
                         <input type="text" id="keyword" placeholder="Nhập tên hoặc mã số thuế...">
                     </div>
-                    <!-- Yêu cầu: Tìm theo SĐT người liên hệ -->
                     <div class="form-group">
                         <label>SĐT người liên hệ:</label>
                         <input type="text" id="phone" placeholder="Nhập số điện thoại...">
                     </div>
-                    <!-- Yêu cầu: Lọc theo trạng thái -->
                     <div class="form-group">
                         <label>Trạng thái:</label>
                         <select id="status">
@@ -101,7 +98,6 @@
                             <option value="inactive">Ngừng giao dịch</option>
                         </select>
                     </div>
-                    <!-- Yêu cầu: Lọc theo ngành nghề -->
                     <div class="form-group">
                         <label>Ngành nghề:</label>
                         <select id="industry">
@@ -111,7 +107,6 @@
                             <option value="retail">Bán lẻ</option>
                         </select>
                     </div>
-                    <!-- Yêu cầu: Lọc theo quy mô -->
                     <div class="form-group">
                         <label>Quy mô:</label>
                         <select id="scale">
@@ -121,7 +116,6 @@
                             <option value="large">Doanh nghiệp Lớn</option>
                         </select>
                     </div>
-                     <!-- Yêu cầu: Lọc theo khu vực -->
                     <div class="form-group">
                         <label>Khu vực:</label>
                         <select id="region">
@@ -131,7 +125,6 @@
                             <option value="south">Miền Nam</option>
                         </select>
                     </div>
-                     <!-- Yêu cầu: Lọc theo người sở hữu -->
                      <div class="form-group">
                         <label>Người phụ trách:</label>
                         <select id="owner">
@@ -144,7 +137,6 @@
 
                 <div class="action-buttons">
                     <button type="button" class="btn btn-secondary" onclick="saveFilter()">Lưu bộ lọc</button>
-                    <!-- Yêu cầu: Nút xóa bộ lọc -->
                     <button type="button" class="btn btn-danger" onclick="clearFilter()">Xóa bộ lọc</button>
                     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
                 </div>
@@ -158,7 +150,7 @@
                 Không tìm thấy khách hàng nào phù hợp với điều kiện lọc.
             </div>
             <div id="errorState" class="state-message state-error">
-                Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại.
+                Đã xảy ra lỗi khi tải dữ liệu từ máy chủ. Vui lòng thử lại.
             </div>
 
             <table id="customerTable">
@@ -177,26 +169,98 @@
                 </tbody>
             </table>
 
-            <!-- Yêu cầu: Phân trang -->
             <div class="pagination" id="pagination">
-                <!-- Sẽ được tạo bằng JS -->
+                <!-- Sẽ được tạo tự động bằng JS -->
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = '/qlkh/api/v1/customers/search';
-        
-        // Cấu trúc Dữ liệu Mock để Test UI
-        const mockData = [
-            { id: "KH001", name: "Công ty Cổ phần Alpha", taxCode: "0101234567", contactPhone: "0901234567", industry: "Công nghệ thông tin", status: "active" },
-            { id: "KH002", name: "Công ty TNHH Beta", taxCode: "0307654321", contactPhone: "0987654321", industry: "Sản xuất", status: "inactive" }
-        ];
+        const API_URL = '/qlkh/api/v1/customers/search'; 
 
-        function handleSearch(event) {
-            event.preventDefault();
+        // 1. Hàm gọi API tìm kiếm
+        async function handleSearch(event, page = 1) {
+            if (event) event.preventDefault();
+
+            // Ẩn các thông báo trước khi tìm kiếm
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('customerTable').style.display = 'table';
+
+            // Thu thập dữ liệu từ TẤT CẢ form input
+            const filterParams = {
+                keyword: document.getElementById('keyword').value,
+                phone: document.getElementById('phone').value,
+                status: document.getElementById('status').value,
+                industry: document.getElementById('industry').value,
+                scale: document.getElementById('scale').value,
+                region: document.getElementById('region').value,
+                owner: document.getElementById('owner').value,
+                page: page
+            };
+
+            // Lọc bỏ các tham số rỗng để URL sạch hơn
+            const cleanedParams = Object.fromEntries(Object.entries(filterParams).filter(([_, v]) => v != ''));
+            const queryString = new URLSearchParams(cleanedParams).toString();
+
+            try {
+                const response = await fetch(`${API_URL}?${queryString}`);
+                if (!response.ok) throw new Error('Lỗi gọi API');
+                
+                const result = await response.json();
+                const data = result.data || result.items || []; 
+                
+                if (data.length === 0) {
+                    showEmptyState();
+                } else {
+                    renderTable(data);
+                    if (result.totalPages) renderPagination(result.totalPages, page);
+                }
+            } catch (error) {
+                console.error("Lỗi API:", error);
+                showErrorState();
+            }
+        }
+
+        // 2. Hàm vẽ bảng kết quả
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; // Xóa thông báo cũ
             
-            // Thu thập dữ liệu form để đồng bộ API
+            data.forEach(item => {
+                // Xử lý badge màu trạng thái
+                const statusClass = item.status === 'active' ? 'status-active' : 'status-inactive';
+                const statusText = item.status === 'active' ? 'Đang giao dịch' : 'Ngừng giao dịch';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.customerCode || '---'}</td>
+                    <td>${item.name || '---'}</td>
+                    <td>${item.taxCode || '---'}</td>
+                    <td>${item.contactName || ''} - ${item.phone || ''}</td>
+                    <td>${item.industry || '---'}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 3. Hàm vẽ phân trang
+        function renderPagination(totalPages, currentPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = ''; 
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('div');
+                btn.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => handleSearch(null, i); // Click đổi trang gọi lại API
+                pagination.appendChild(btn);
+            }
+        }
+
+        // 4. Lưu bộ lọc
+        function saveFilter() {
             const filterParams = {
                 keyword: document.getElementById('keyword').value,
                 phone: document.getElementById('phone').value,
@@ -206,88 +270,50 @@
                 region: document.getElementById('region').value,
                 owner: document.getElementById('owner').value
             };
-            
-            console.log("Payload gửi đi:", filterParams);
-            fetchData(filterParams);
+            localStorage.setItem('savedCustomerFilters', JSON.stringify(filterParams));
+            alert('Đã lưu bộ lọc thành công! Các thiết lập sẽ được giữ nguyên cho lần sau truy cập.');
         }
 
-        function fetchData(params) {
-            const tableBody = document.getElementById("tableBody");
-            const emptyState = document.getElementById("emptyState");
-            const errorState = document.getElementById("errorState");
-            const customerTable = document.getElementById("customerTable");
-            const pagination = document.getElementById("pagination");
-
-            // Reset view
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Đang tìm kiếm...</td></tr>';
-            emptyState.style.display = 'none';
-            errorState.style.display = 'none';
-            customerTable.style.display = 'table';
-            pagination.innerHTML = '';
-
-            // --- GIẢ LẬP GỌI API ---
-            setTimeout(() => {
-                // Để test trạng thái rỗng, đổi isTestEmpty = true
-                const isTestEmpty = false; 
-                // Để test trạng thái lỗi, đổi isTestError = true
-                const isTestError = false;
-
-                if (isTestError) {
-                    customerTable.style.display = 'none';
-                    errorState.style.display = 'block';
-                    return;
-                }
-
-                if (isTestEmpty || mockData.length === 0) {
-                    customerTable.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    return;
-                }
-
-                renderTable(mockData);
-                renderPagination(1, 5); // Giả lập đang ở trang 1, có tổng cộng 5 trang
-            }, 500);
-        }
-
-        function renderTable(data) {
-            const tableBody = document.getElementById("tableBody");
-            tableBody.innerHTML = "";
-            
-            data.forEach(item => {
-                const statusHtml = item.status === 'active' 
-                    ? '<span class="status-badge status-active">Đang giao dịch</span>' 
-                    : '<span class="status-badge status-inactive">Ngừng giao dịch</span>';
-
-                const row = `<tr>
-                    <td>${item.id}</td>
-                    <td><strong>${item.name}</strong></td>
-                    <td>${item.taxCode}</td>
-                    <td>${item.contactPhone}</td>
-                    <td>${item.industry}</td>
-                    <td>${statusHtml}</td>
-                </tr>`;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
-        }
-
-        function renderPagination(currentPage, totalPages) {
-            const pagination = document.getElementById("pagination");
-            let html = '';
-            for (let i = 1; i <= totalPages; i++) {
-                html += `<div class="page-item ${i === currentPage ? 'active' : ''}">${i}</div>`;
-            }
-            pagination.innerHTML = html;
-        }
-
+        // 5. Xóa bộ lọc và khôi phục giao diện mặc định
         function clearFilter() {
             document.getElementById('filterForm').reset();
+            localStorage.removeItem('savedCustomerFilters');
+            
+            // Đưa bảng về trạng thái chờ
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('customerTable').style.display = 'table';
             document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align: center;">Vui lòng nhập điều kiện và bấm Tìm kiếm.</td></tr>';
             document.getElementById('pagination').innerHTML = '';
         }
 
-        function saveFilter() {
-            alert("Đã lưu bộ lọc hiện tại (Sẽ triển khai logic lưu vào LocalStorage hoặc Backend sau).");
+        // Các hàm phụ trợ hiển thị lỗi/trống
+        function showEmptyState() {
+            document.getElementById('customerTable').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block'; 
+            document.getElementById('pagination').innerHTML = '';
         }
+
+        function showErrorState() {
+            document.getElementById('customerTable').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('pagination').innerHTML = '';
+        }
+
+        // 6. Tự động load lại dữ liệu lọc đã lưu khi người dùng mở trang
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('savedCustomerFilters');
+            if (saved) {
+                const filters = JSON.parse(saved);
+                if (filters.keyword) document.getElementById('keyword').value = filters.keyword;
+                if (filters.phone) document.getElementById('phone').value = filters.phone;
+                if (filters.status) document.getElementById('status').value = filters.status;
+                if (filters.industry) document.getElementById('industry').value = filters.industry;
+                if (filters.scale) document.getElementById('scale').value = filters.scale;
+                if (filters.region) document.getElementById('region').value = filters.region;
+                if (filters.owner) document.getElementById('owner').value = filters.owner;
+            }
+        });
     </script>
 </body>
 </html>
