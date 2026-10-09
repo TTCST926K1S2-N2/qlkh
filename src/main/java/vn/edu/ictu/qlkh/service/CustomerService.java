@@ -105,6 +105,50 @@ public class CustomerService {
         return dao.insert(customer);
     }
 
+
+    public void validateForImport(
+            Customer customer,
+            long userId,
+            String role) throws SQLException {
+
+        DataScope scope =
+                requireScope(role);
+
+        if (customer == null) {
+            throw new IllegalArgumentException(
+                    "Du lieu khong hop le"
+            );
+        }
+
+        if (customer.getOwnerId() == null) {
+            customer.setOwnerId(userId);
+        }
+
+        validate(customer);
+
+        if (customer.getTaxCode() == null ||
+                customer.getTaxCode().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Ma so thue la bat buoc"
+            );
+        }
+
+        checkOwner(
+                customer.getOwnerId(),
+                userId,
+                scope
+        );
+
+        if (dao.existsTaxCode(
+                customer.getTaxCode(),
+                null)) {
+
+            throw new IllegalArgumentException(
+                    "Ma so thue da ton tai"
+            );
+        }
+    }
     public boolean update(
             long id,
             Customer customer,
