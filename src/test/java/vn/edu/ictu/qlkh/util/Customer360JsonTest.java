@@ -48,4 +48,60 @@ class Customer360JsonTest {
         assertTrue(json.indexOf("\"title\":\"new\"") <
                 json.indexOf("\"title\":\"old\""));
     }
+
+    @Test
+    void handles500ActivitiesUnder1500ms() {
+        assertTimeoutPreemptively(
+                java.time.Duration.ofMillis(1500),
+                () -> {
+                    var activities = new java.util.ArrayList<Customer360DTO.ActivityItem>();
+
+                    LocalDateTime start =
+                            LocalDateTime.parse("2026-01-01T00:00:00");
+
+                    for (int i = 0; i < 500; i++) {
+                        activities.add(
+                                new Customer360DTO.ActivityItem(
+                                        i + 1L,
+                                        "TEST",
+                                        "Activity " + (i + 1),
+                                        start.plusMinutes(i)
+                                )
+                        );
+                    }
+
+                    var dto = new Customer360DTO(
+                            customer(),
+                            List.of(),
+                            List.of(),
+                            activities,
+                            List.of(),
+                            new Customer360DTO.Availability(
+                                    false,
+                                    false,
+                                    true,
+                                    false
+                            )
+                    );
+
+                    assertEquals(500, dto.activities().size());
+
+                    // Newest activity must appear first.
+                    assertEquals(
+                            500L,
+                            dto.activities().get(0).id()
+                    );
+
+                    assertEquals(
+                            1L,
+                            dto.activities().get(499).id()
+                    );
+
+                    String json = Customer360Json.toJson(dto);
+
+                    assertTrue(json.contains("\"activities\":["));
+                    assertTrue(json.contains("\"Activity 500\""));
+                }
+        );
+    }
 }
