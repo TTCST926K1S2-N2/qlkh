@@ -1,225 +1,53 @@
 package vn.edu.ictu.qlkh.dao;
 
 import vn.edu.ictu.qlkh.model.Customer;
-import vn.edu.ictu.qlkh.model.CustomerDuplicate;
-import vn.edu.ictu.qlkh.util.DBConnection;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class CustomerDuplicateDAO {
+    private final CustomerDAO customerDAO = new CustomerDAO();
 
-    private static final String COLUMNS =
-            "c.id, c.company_name, c.tax_code, c.industry, " +
-            "c.company_size, c.website, c.address, c.owner_id, " +
-            "c.status, c.created_at, c.updated_at";
-
-    private Customer map(ResultSet rs) throws SQLException {
-        Customer c = new Customer();
-
-        c.setId(rs.getLong("id"));
-        c.setCompanyName(rs.getString("company_name"));
-        c.setTaxCode(rs.getString("tax_code"));
-        c.setIndustry(rs.getString("industry"));
-        c.setCompanySize(rs.getString("company_size"));
-        c.setWebsite(rs.getString("website"));
-        c.setAddress(rs.getString("address"));
-        c.setOwnerId(rs.getLong("owner_id"));
-        c.setStatus(rs.getString("status"));
-
-        if (rs.getTimestamp("created_at") != null) {
-            c.setCreatedAt(
-                    rs.getTimestamp("created_at").toLocalDateTime()
-            );
+    public List<Customer> findPotentialDuplicates(Customer base, long userId, String scope)
+            throws SQLException {
+        if (base == null || base.getId() == null) {
+            throw new IllegalArgumentException("Khach hang khong hop le");
         }
-
-        if (rs.getTimestamp("updated_at") != null) {
-            c.setUpdatedAt(
-                    rs.getTimestamp("updated_at").toLocalDateTime()
-            );
-        }
-
-        return c;
+        return customerDAO.findVisible(userId, scope).stream()
+                .filter(c -> !c.getId().equals(base.getId()))
+                .filter(c -> isDuplicate(base, c))
+                .toList();
     }
 
-    public List<CustomerDuplicate> findDuplicates(
-            long customerId,
-            long userId,
-            String scope) throws SQLException {
+    public boolean isDuplicate(Customer a, Customer b) {
+        if (a == null || b == null || a.getId() == null || b.getId() == null
+                || a.getId().equals(b.getId())) return false;
 
-        if (customerId <= 0) {
-            throw new IllegalArgumentException(
-                    "ID khach hang khong hop le"
-            );
-        }
+        String taxA = normalize(a.getTaxCode(), true);
+        String taxB = normalize(b.getTaxCode(), true);
+        if (taxA != null && taxA.equals(taxB)) return true;
 
-        String visibility;
+        String nameA = normalize(a.getCompanyName(), false);
+        String nameB = normalize(b.getCompanyName(), false);
+        if (nameA != null && nameA.equals(nameB)) return true;
 
-        if ("ALL".equals(scope)) {
-            visibility = "";
-        } else if ("TEAM".equals(scope)) {
-            visibility =
-                    " AND EXISTS (" +
-                    "SELECT 1 FROM user_business_groups me " +
-                    "JOIN user_business_groups owner_group " +
-                    "ON owner_group.group_id = me.group_id " +
-                    "WHERE me.user_id = ? " +
-                    "AND owner_group.user_id = c.owner_id" +
-                    ")";
-        } else if ("MY".equals(scope)) {
-            visibility = " AND c.owner_id = ?";
-        } else {
-            return List.of();
-        }
-
-        String sql =
-                "SELECT " + COLUMNS +
-                " FROM customers c " +
-                "JOIN customers source " +
-                "ON source.id = ? " +
-                "WHERE c.id <> ? " +
-                visibility +
-                " AND (" +
-                "    (source.tax_code IS NOT NULL " +
-                "     AND TRIM(source.tax_code) <> '' " +
-                "     AND c.tax_code = source.tax_code)" +
-                " OR " +
-                "    (source.company_name IS NOT NULL " +
-                "     AND TRIM(source.company_name) <> '' " +
-                "     AND LOWER(TRIM(c.company_name)) = " +
-                "         LOWER(TRIM(source.company_name)))" +
-                " OR " +
-                "    (source.website IS NOT NULL " +
-                "     AND TRIM(source.website) <> '' " +
-                "     AND LOWER(TRIM(c.website)) = " +
-                "         LOWER(TRIM(source.website)))" +
-                ")" +
-                " ORDER BY c.id DESC";
-
-        List<CustomerDuplicate> result = new ArrayList<>();
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps =
-                     conn.prepareStatement(sql)) {
-
-            ps.setLong(1, customerId);
-            ps.setLong(2, customerId);
-
-            if ("TEAM".equals(scope) ||
-                    "MY".equals(scope)) {
-                ps.setLong(3, userId);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Customer customer = map(rs);
-
-                    List<String> matchedFields =
-                            findMatchedFields(
-                                    customerId,
-                                    customer
-                            );
-
-                    result.add(
-                            new CustomerDuplicate(
-                                    customer,
-                                    matchedFields
-                            )
-                    );
-                }
-            }
-        }
-
-        return result;
+        String webA = normalizeWebsite(a.getWebsite());
+        String webB = normalizeWebsite(b.getWebsite());
+        return webA != null && webA.equals(webB);
     }
 
-    private List<String> findMatchedFields(
-            long sourceId,
-            Customer target) throws SQLException {
-
-        String sql =
-                "SELECT tax_code, company_name, website " +
-                "FROM customers WHERE id = ?";
-
-        List<String> fields = new ArrayList<>();
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps =
-                     conn.prepareStatement(sql)) {
-
-            ps.setLong(1, sourceId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return fields;
-                }
-
-                String sourceTaxCode =
-                        rs.getString("tax_code");
-
-                String sourceCompanyName =
-                        rs.getString("company_name");
-
-                String sourceWebsite =
-                        rs.getString("website");
-
-                if (sameValue(
-                        sourceTaxCode,
-                        target.getTaxCode())) {
-
-                    fields.add("taxCode");
-                }
-
-                if (sameText(
-                        sourceCompanyName,
-                        target.getCompanyName())) {
-
-                    fields.add("companyName");
-                }
-
-                if (sameText(
-                        sourceWebsite,
-                        target.getWebsite())) {
-
-                    fields.add("website");
-                }
-            }
-        }
-
-        return fields;
+    private String normalize(String value, boolean removeWhitespace) {
+        if (value == null || value.isBlank()) return null;
+        String s = value.trim().toLowerCase(Locale.ROOT);
+        return removeWhitespace ? s.replaceAll("\\s+", "") : s.replaceAll("\\s+", " ");
     }
 
-    private boolean sameValue(
-            String first,
-            String second) {
-
-        if (first == null ||
-                first.isBlank() ||
-                second == null ||
-                second.isBlank()) {
-            return false;
-        }
-
-        return first.trim().equals(second.trim());
-    }
-
-    private boolean sameText(
-            String first,
-            String second) {
-
-        if (first == null ||
-                first.isBlank() ||
-                second == null ||
-                second.isBlank()) {
-            return false;
-        }
-
-        return first.trim().equalsIgnoreCase(
-                second.trim()
-        );
+    private String normalizeWebsite(String value) {
+        if (value == null || value.isBlank()) return null;
+        String s = value.trim().toLowerCase(Locale.ROOT)
+                .replaceFirst("^https?://", "")
+                .replaceFirst("^www\\.", "");
+        while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
+        return s.isBlank() ? null : s;
     }
 }
