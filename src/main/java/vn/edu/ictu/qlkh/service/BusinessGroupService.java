@@ -120,4 +120,36 @@ public class BusinessGroupService {
 
         businessGroupDAO.removeUserFromGroup(userId);
     }
+    /**
+     * Cập nhật công ty/nhóm kinh doanh mẹ (Parent Group)
+     */
+    public void updateParentGroup(Long groupId, Long parentId) throws SQLException {
+        // 1. Kiểm tra ID nhóm hợp lệ
+        if (groupId == null || groupId <= 0) {
+            throw new IllegalArgumentException("Nhóm kinh doanh không hợp lệ.");
+        }
+
+        // 2. Kiểm tra nhóm tồn tại trong DB
+        if (!businessGroupDAO.existsById(groupId)) {
+            throw new IllegalArgumentException("Nhóm kinh doanh không tồn tại.");
+        }
+
+        // 3. Nếu gán parentId khác null, kiểm tra parentId có tồn tại không
+        if (parentId != null) {
+            if (parentId <= 0 || !businessGroupDAO.existsById(parentId)) {
+                throw new IllegalArgumentException("Nhóm kinh doanh mẹ không tồn tại.");
+            }
+
+            // 4. Kiểm tra vòng lặp (Chặn tự làm mẹ của chính mình hoặc vòng A -> B -> A)
+            if (businessGroupDAO.isCircularParent(groupId, parentId)) {
+                throw new IllegalArgumentException("Không thể chọn nhóm kinh doanh mẹ gây ra quan hệ vòng.");
+            }
+        }
+
+        // 5. Cập nhật vào DB
+        boolean updated = businessGroupDAO.updateParentGroup(groupId, parentId);
+        if (!updated) {
+            throw new SQLException("Cập nhật nhóm kinh doanh mẹ thất bại.");
+        }
+    }
 }

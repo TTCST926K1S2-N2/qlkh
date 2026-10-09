@@ -235,17 +235,69 @@ public class BusinessGroupDAO {
             statement.executeUpdate();
         }
     }
+// 1. Lấy parent_id của một group theo ID
+    public Long getParentIdById(Long groupId) {
+        String sql = "SELECT parent_id FROM business_group WHERE id = ?";
+        try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
+            statement.setLong(1, groupId);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    long parentId = rs.getLong("parent_id");
+                    return rs.wasNull() ? null : parentId;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
+    // 2. Kiểm tra quan hệ vòng (chặn tự chọn chính mình hoặc lặp A -> B -> A)
+    public boolean isCircularParent(Long groupId, Long parentId) {
+        if (parentId == null) return false;
+        if (groupId != null && groupId.equals(parentId)) return true;
+
+        Long currentParentId = parentId;
+        while (currentParentId != null) {
+            if (groupId != null && currentParentId.equals(groupId)) {
+                return true;
+            }
+            currentParentId = getParentIdById(currentParentId);
+        }
+        return false;
+    }
+
+    // 3. Cập nhật parent_id vào DB
+    public boolean updateParentGroup(Long groupId, Long parentId) {
+        String sql = "UPDATE business_group SET parent_id = ? WHERE id = ?";
+        try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
+            if (parentId != null) {
+                statement.setLong(1, parentId);
+            } else {
+                statement.setNull(1, java.sql.Types.BIGINT);
+            }
+            statement.setLong(2, groupId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     /**
      * Map ResultSet thành BusinessGroup.
      */
     private BusinessGroup mapBusinessGroup(
             ResultSet resultSet
     ) throws SQLException {
-
-        return new BusinessGroup(
-                resultSet.getLong("id"),
-                resultSet.getString("name")
+        BusinessGroup group = new BusinessGroup(
+            resultSet.getLong("id"),
+            resultSet.getString("name")
         );
+        long parentId = resultSet.getLong("parent_id");
+        if (!resultSet.wasNull()) {
+            group.setParentId(parentId);
+        }
+        return group;
+    }
     }
 }

@@ -36,4 +36,13 @@ public class BusinessGroup {
     public void setName(String name) {
         this.name = name;
     }
+    private Long parentId;
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
 }
