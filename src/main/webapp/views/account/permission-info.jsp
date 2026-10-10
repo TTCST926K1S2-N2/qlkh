@@ -73,9 +73,31 @@
 
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/assets/css/permission.css">
+<style id="qlkh-shared-layout">
+body {
+    display: flex !important;
+    min-height: 100vh;
+    margin: 0;
+    background: #f3f6fb;
+}
+
+.qlkh-page-content {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+}
+
+.qlkh-page-content > .qlkh-main-inner {
+    min-width: 0;
+}
+</style>
 </head>
 
 <body>
+<jsp:include page="/components/sidebar.jsp" />
+<div class="qlkh-page-content">
+<jsp:include page="/components/header.jsp" />
+<div class="qlkh-main-inner">
 
 <div class="permission-page"
      id="permission-container"
@@ -279,6 +301,7 @@
 
                 <div class="scope-grid">
 
+                    <c:if test="${currentDataScope == 'MY'}">
                     <!-- MY -->
                     <div class="scope-card
                          ${currentDataScope == 'MY'
@@ -314,6 +337,8 @@
                     </div>
 
 
+                    </c:if>
+                    <c:if test="${currentDataScope == 'TEAM'}">
                     <!-- TEAM -->
                     <div class="scope-card
                          ${currentDataScope == 'TEAM'
@@ -349,6 +374,8 @@
                     </div>
 
 
+                    </c:if>
+                    <c:if test="${currentDataScope == 'ALL'}">
                     <!-- ALL -->
                     <div class="scope-card
                          ${currentDataScope == 'ALL'
@@ -383,6 +410,7 @@
 
                     </div>
 
+                    </c:if>
                 </div>
 
 
@@ -602,5 +630,7 @@
 <script src="${pageContext.request.contextPath}/assets/js/permission.js">
 </script>
 
+</div>
+</div>
 </body>
 </html>

@@ -88,9 +88,7 @@
 
         <div class="sidebar-user">
 
-            <div class="user-avatar">
-                <%= userName.substring(0, 1).toUpperCase() %>
-            </div>
+            <div class="user-avatar"><span class="qlkh-avatar-initial"><%= userName.substring(0, 1).toUpperCase() %></span></div>
 
             <div class="user-information">
 
@@ -191,6 +189,17 @@
 
                     </a>
 
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/contacts.jsp"
+                       class="<%= currentURI.contains("/views/sales/contacts.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quản lý người liên hệ
+                        </span>
+                    </a>
                 </li>
                 <!-- DANH MỤC DÙNG CHUNG -->
                 <li>
@@ -429,13 +438,6 @@
 
                     </a>
 
-                </li>
-
-                <li>
-                    <a href="${pageContext.request.contextPath}/user/avatar.jsp" class="<%= currentURI.contains("/avatar") ? "active" : "" %>">
-                        <span class="menu-indicator"></span>
-                        <span class="menu-text">&#7842;nh &#273;&#7841;i di&#7879;n</span>
-                    </a>
                 </li>
 
 

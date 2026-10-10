@@ -67,6 +67,20 @@ public class AuthenticationFilter implements Filter {
          * API gia hạn phiên cần trả 401 để session.js biết
          * phiên không còn hợp lệ, không redirect HTML.
          */
+        if (path.equals("/api/v1/customers")
+                || path.startsWith("/api/v1/customers/")
+                || path.equals("/api/v1/contacts")
+                || path.startsWith("/api/v1/contacts/")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.getWriter().write(
+                    "{\"success\":false,\"message\":\"Chua dang nhap\"}"
+            );
+            return;
+        }
+
         if ("/extend-session".equals(path)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setCharacterEncoding("UTF-8");

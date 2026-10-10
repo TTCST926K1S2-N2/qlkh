@@ -331,3 +331,26 @@ body > .sidebar {
         width: 100%;
     }
 }
+
+
+/* PROFILE + AVATAR INTEGRATION */
+.profile-avatar-content {
+    padding-top: 0;
+}
+
+.profile-avatar-content .avatar-card {
+    max-width: none;
+    margin: 0;
+}
+
+.profile-avatar-content .avatar-preview-wrapper {
+    flex-wrap: wrap;
+}
+
+.profile-avatar-content .avatar-message {
+    margin-bottom: 20px;
+}
+
+.profile-avatar-content #avatarForm {
+    padding: 0;
+}
