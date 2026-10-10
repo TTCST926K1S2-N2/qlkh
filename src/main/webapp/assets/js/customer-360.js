@@ -76,6 +76,98 @@ document.addEventListener("DOMContentLoaded", () => {
         setWebsite(customer.website);
     }
 
+
+    function renderContacts(data) {
+        const container = document.getElementById("contacts-section");
+        if (!container) return;
+
+        container.replaceChildren();
+
+        if (data.availability?.contacts !== true) {
+            container.textContent =
+                "Chức năng người liên hệ chưa có nguồn dữ liệu.";
+            return;
+        }
+
+        const contacts = Array.isArray(data.contacts)
+            ? data.contacts
+            : [];
+
+        if (contacts.length === 0) {
+            container.textContent =
+                "Khách hàng này chưa có người liên hệ.";
+            return;
+        }
+
+        const list = document.createElement("div");
+        list.className = "customer360-contact-list";
+
+        contacts.forEach(contact => {
+            const item = document.createElement("div");
+            item.className = "customer360-contact-item";
+
+            const name = document.createElement("h3");
+            name.textContent = contact.fullName || "Chưa có tên";
+
+            const job = document.createElement("p");
+            job.textContent = contact.jobTitle || "Chưa có chức vụ";
+
+            const email = document.createElement("p");
+            email.textContent = contact.email || "Chưa có email";
+
+            const phone = document.createElement("p");
+            phone.textContent = contact.phone || "Chưa có số điện thoại";
+
+            item.append(name, job, email, phone);
+
+            if (contact.isPrimary === true) {
+                const primary = document.createElement("span");
+                primary.textContent = "Liên hệ chính";
+                primary.className = "status-badge";
+                item.appendChild(primary);
+            }
+
+            list.appendChild(item);
+        });
+
+        container.appendChild(list);
+    }
+
+    function renderUnavailableSections(data) {
+        const sections = [
+            ["opportunities-section", "opportunities", "cơ hội kinh doanh"],
+            ["activities-section", "activities", "dòng thời gian"],
+            ["attachments-section", "attachments", "tệp đính kèm"]
+        ];
+
+        sections.forEach(([id, key, label]) => {
+            const element = document.getElementById(id);
+            if (!element) return;
+
+            if (data.availability?.[key] !== true) {
+                element.textContent =
+                    `Chức năng ${label} chưa có nguồn dữ liệu.`;
+                return;
+            }
+
+            const items = data[key];
+
+            if (!Array.isArray(items)) {
+                element.textContent =
+                    `Không thể đọc dữ liệu ${label}.`;
+                return;
+            }
+
+            if (items.length === 0) {
+                element.textContent =
+                    `Khách hàng chưa có ${label}.`;
+                return;
+            }
+
+            element.textContent =
+                `Có ${items.length} bản ghi ${label}.`;
+        });
+    }
     async function loadCustomer() {
 
         const customerId = getCustomerId();
@@ -88,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
 
             const response = await fetch(
-                `${contextPath}/api/v1/customers/${encodeURIComponent(customerId)}`,
+                `${contextPath}/api/v1/customers/360/${encodeURIComponent(customerId)}`,
                 {
                     method: "GET",
                     headers: {
@@ -107,7 +199,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             }
 
-            renderCustomer(data);
+            if (!data.customer) {
+                throw new Error("API khong tra ve thong tin khach hang.");
+            }
+            renderCustomer(data.customer);
+            renderContacts(data);
+            renderUnavailableSections(data);
             showContent();
 
         } catch (err) {

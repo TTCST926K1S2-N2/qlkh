@@ -19,7 +19,7 @@
         <div>
             <a href="${pageContext.request.contextPath}/customers"
                class="back-link">
-                ← Danh sách khách hàng
+                Danh sách khách hàng
             </a>
 
             <h1>Customer 360°</h1>
@@ -90,15 +90,7 @@
                 </div>
             </div>
 
-            <div class="empty-state">
-
-                <h3>Chưa có dữ liệu</h3>
-
-                <p>
-                    Danh sách người liên hệ sẽ được hiển thị tại đây.
-                </p>
-
-            </div>
+            <div id="contacts-section" class="empty-state">Đang tải danh sách người liên hệ...</div>
 
         </section>
 
@@ -113,15 +105,7 @@
                 </div>
             </div>
 
-            <div class="empty-state">
-
-                <h3>Chưa có dữ liệu</h3>
-
-                <p>
-                    Các cơ hội đang mở hoặc đã đóng sẽ được hiển thị tại đây.
-                </p>
-
-            </div>
+            <div id="opportunities-section" class="empty-state">Dang tai du lieu...</div>
 
         </section>
 
@@ -136,15 +120,7 @@
                 </div>
             </div>
 
-            <div class="empty-state">
-
-                <h3>Chưa có dữ liệu</h3>
-
-                <p>
-                    Lịch sử hoạt động của khách hàng sẽ được hiển thị tại đây.
-                </p>
-
-            </div>
+            <div id="activities-section" class="empty-state">Dang tai du lieu...</div>
 
         </section>
 
@@ -159,15 +135,7 @@
                 </div>
             </div>
 
-            <div class="empty-state">
-
-                <h3>Chưa có dữ liệu</h3>
-
-                <p>
-                    Các tệp liên quan đến khách hàng sẽ được hiển thị tại đây.
-                </p>
-
-            </div>
+            <div id="attachments-section" class="empty-state">Dang tai du lieu...</div>
 
         </section>
 
