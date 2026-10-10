@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet("/customer-360")
-public class Customer360Servlet extends HttpServlet {
+public class Customer360PageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request,
