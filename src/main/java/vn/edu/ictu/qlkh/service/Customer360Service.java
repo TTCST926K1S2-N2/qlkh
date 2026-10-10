@@ -51,13 +51,16 @@ public class Customer360Service {
 
         Customer360DAO.ContactSection section =
                 customer360DAO.findContacts(customerId);
+        var activities =
+                customer360DAO.findContactTransferActivities(customerId);
+
         return new Customer360DTO(
                 customer,
                 section.items(),
-                List.of(), // No opportunity source in the current Sprint 3 base.
-                List.of(), // No activity source yet.
-                List.of(), // No attachment source yet.
+                customer360DAO.findOpportunities(customerId),
+                activities,
+                customer360DAO.findAttachments(customerId),
                 new Customer360DTO.Availability(
-                        section.available(), false, false, false));
+                        section.available(), true, true, true));
     }
 }

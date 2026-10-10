@@ -26,6 +26,22 @@ class Customer360ServiceTest {
     }
 
     private static class ContactsStub extends Customer360DAO {
+        int opportunityCalls;
+        int attachmentCalls;
+
+        @Override
+        public List<Customer360DTO.OpportunityItem> findOpportunities(
+                long customerId) throws SQLException {
+            opportunityCalls++;
+            return List.of();
+        }
+
+        @Override
+        public List<Customer360DTO.AttachmentItem> findAttachments(
+                long customerId) throws SQLException {
+            attachmentCalls++;
+            return List.of();
+        }
         int calls;
         ContactSection section = new ContactSection(List.of(), false);
         @Override
@@ -62,7 +78,11 @@ class Customer360ServiceTest {
         assertEquals(1, result.contacts().size());
         assertTrue(result.availability().contacts());
         assertTrue(result.opportunities().isEmpty());
-        assertFalse(result.availability().opportunities());
+        assertTrue(result.availability().opportunities());
+        assertTrue(result.attachments().isEmpty());
+        assertTrue(result.availability().attachments());
+        assertEquals(1, contacts.opportunityCalls);
+        assertEquals(1, contacts.attachmentCalls);
     }
 
     @Test
