@@ -1,6 +1,7 @@
 package vn.edu.ictu.qlkh.dao;
 
 import vn.edu.ictu.qlkh.dto.Customer360DTO.ContactItem;
+import vn.edu.ictu.qlkh.dto.Customer360DTO.ActivityItem;
 import vn.edu.ictu.qlkh.util.DBConnection;
 
 import java.sql.Connection;
@@ -59,6 +60,113 @@ public class Customer360DAO {
         }
     }
 
+    public List<ActivityItem> findContactTransferActivities(long customerId)
+            throws SQLException {
+        String sql = "SELECT id, contact_id, old_customer_id, "
+                + "new_customer_id, transferred_at "
+                + "FROM contact_customer_history "
+                + "WHERE old_customer_id = ? OR new_customer_id = ? "
+                + "ORDER BY transferred_at DESC, id DESC";
+
+        List<ActivityItem> items = new ArrayList<>();
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, customerId);
+            statement.setLong(2, customerId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    long contactId = rs.getLong("contact_id");
+                    long oldId = rs.getLong("old_customer_id");
+                    long newId = rs.getLong("new_customer_id");
+
+                    String title = oldId == customerId
+                            ? "Người liên hệ #" + contactId
+                                + " được chuyển sang khách hàng #" + newId
+                            : "Nhận người liên hệ #" + contactId
+                                + " từ khách hàng #" + oldId;
+
+                    items.add(new ActivityItem(
+                            rs.getLong("id"),
+                            "CONTACT_TRANSFER",
+                            title,
+                            date(rs.getTimestamp("transferred_at"))));
+                }
+            }
+        }
+
+        return items;
+    }
+    public List<vn.edu.ictu.qlkh.dto.Customer360DTO.OpportunityItem>
+            findOpportunities(long customerId) throws SQLException {
+
+        String sql = "SELECT o.id, o.name, s.name AS stage_name, "
+                + "o.expected_value, o.updated_at "
+                + "FROM opportunities o "
+                + "LEFT JOIN stages s ON s.id = o.stage_id "
+                + "WHERE o.customer_id = ? "
+                + "ORDER BY o.updated_at DESC, o.id DESC";
+
+        List<vn.edu.ictu.qlkh.dto.Customer360DTO.OpportunityItem> items =
+                new ArrayList<>();
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, customerId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    items.add(
+                            new vn.edu.ictu.qlkh.dto.Customer360DTO.OpportunityItem(
+                                    rs.getLong("id"),
+                                    rs.getString("name"),
+                                    rs.getString("stage_name"),
+                                    rs.getBigDecimal("expected_value"),
+                                    date(rs.getTimestamp("updated_at"))
+                            )
+                    );
+                }
+            }
+        }
+
+        return items;
+    }
+
+    public List<vn.edu.ictu.qlkh.dto.Customer360DTO.AttachmentItem>
+            findAttachments(long customerId) throws SQLException {
+
+        String sql = "SELECT id, file_name, uploaded_at "
+                + "FROM attachments "
+                + "WHERE customer_id = ? "
+                + "ORDER BY uploaded_at DESC, id DESC";
+
+        List<vn.edu.ictu.qlkh.dto.Customer360DTO.AttachmentItem> items =
+                new ArrayList<>();
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, customerId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    items.add(
+                            new vn.edu.ictu.qlkh.dto.Customer360DTO.AttachmentItem(
+                                    rs.getLong("id"),
+                                    rs.getString("file_name"),
+                                    null,
+                                    date(rs.getTimestamp("uploaded_at"))
+                            )
+                    );
+                }
+            }
+        }
+
+        return items;
+    }
     private static LocalDateTime date(Timestamp timestamp) {
         return timestamp == null ? null : timestamp.toLocalDateTime();
     }
