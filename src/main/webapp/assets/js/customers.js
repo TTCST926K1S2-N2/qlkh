@@ -95,13 +95,23 @@
       const actions = cell(tr, "");
       [
         ["Chi tiết", "view"],
+        ["Customer 360°", "360"],
         ["Sửa", "edit"],
       ].forEach(([label, mode]) => {
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = label;
         b.style.marginRight = "6px";
-        b.addEventListener("click", () => openCustomer(c.id, mode));
+        b.addEventListener("click", () => {
+          if (mode === "360") {
+            window.location.href =
+              window.customerContextPath +
+              "/customer-360?id=" +
+              encodeURIComponent(c.id);
+          } else {
+            openCustomer(c.id, mode);
+          }
+        });
         actions.appendChild(b);
       });
       rows.appendChild(tr);
