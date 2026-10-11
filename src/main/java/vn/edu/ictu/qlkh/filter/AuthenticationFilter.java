@@ -67,7 +67,9 @@ public class AuthenticationFilter implements Filter {
          * API gia hạn phiên cần trả 401 để session.js biết
          * phiên không còn hợp lệ, không redirect HTML.
          */
-        if (path.equals("/api/v1/customers")
+        if (path.equals("/api/v1/customer-relationships")
+                || path.startsWith("/api/v1/customer-relationships/")
+                || path.equals("/api/v1/customers")
                 || path.startsWith("/api/v1/customers/")
                 || path.equals("/api/v1/contacts")
                 || path.startsWith("/api/v1/contacts/")) {
