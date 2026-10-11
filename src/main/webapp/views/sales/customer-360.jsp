@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Customer 360° | QLKH</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer-360.css?v=2">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer-360.css?v=3">
 </head>
 <body>
 <div class="app-shell">
@@ -25,22 +25,25 @@
           <article class="stat-card"><div class="stat-top"><span>Cơ hội kinh doanh</span></div><strong id="stat-opportunities">—</strong><small id="stat-opportunities-note">Chưa tích hợp</small></article>
           <article class="stat-card"><div class="stat-top"><span>Tệp đính kèm</span></div><strong id="stat-attachments">—</strong><small id="stat-attachments-note">Chưa tích hợp</small></article>
         </section>
-        <section class="card" style="margin:20px 0;padding:20px">
-          <h2>Giá trị hợp đồng</h2>
-          <div id="contract-summary" role="status">Đang tải hợp đồng...</div>
-          <div id="contract-list" style="margin-top:14px">Đang tải danh sách hợp đồng...</div>
-          <form id="contract-form" style="display:none;margin-top:16px;gap:10px;flex-wrap:wrap;align-items:end">
-            <input type="hidden" name="contractId" id="contract-id">
-            <label>Mã hợp đồng <input name="contractCode" required maxlength="80"></label>
-            <label>Tên hợp đồng <input name="contractName" required maxlength="255"></label>
-            <label>Giá trị (VNĐ) <input name="contractValue" type="number" min="0" step="0.01" required></label>
-            <label>Trạng thái <select name="status"><option value="DRAFT">Nháp</option><option value="PENDING">Chờ ký</option><option value="SIGNED">Đã ký</option><option value="CANCELLED">Đã hủy</option></select></label>
-            <label>Ngày ký <input name="signedDate" type="date"></label>
-            <button type="submit">Lưu hợp đồng</button>
-            <button type="button" id="contract-reset">Nhập mới</button>
-          </form>
-          <p id="contract-message" role="status"></p>
-        </section>
+        <section class="card c360-contracts" id="contracts-section">
+  <div class="c360-contract-heading">
+    <div><span class="section-label">H&#7906;P &#272;&#7890;NG KH&#193;CH H&#192;NG</span><h2>Gi&#225; tr&#7883; h&#7907;p &#273;&#7891;ng</h2><p>Qu&#7843;n l&#253; gi&#225; tr&#7883; v&#224; t&#236;nh tr&#7841;ng h&#7907;p &#273;&#7891;ng</p></div>
+  </div>
+  <div id="contract-summary" class="c360-contract-summary" role="status">&#272;ang t&#7843;i th&#7889;ng k&#234;...</div>
+  <div class="c360-contract-subheading"><h3>Danh s&#225;ch h&#7907;p &#273;&#7891;ng</h3></div>
+  <div id="contract-list" class="c360-contract-list">&#272;ang t&#7843;i danh s&#225;ch...</div>
+  <form id="contract-form" class="c360-contract-form" style="display:none">
+    <div class="c360-contract-form-head"><h3>Th&#244;ng tin h&#7907;p &#273;&#7891;ng</h3><p>Nh&#7853;p th&#244;ng tin v&#224; l&#432;u h&#7907;p &#273;&#7891;ng cho kh&#225;ch h&#224;ng</p></div>
+    <input type="hidden" name="contractId" id="contract-id">
+    <label>M&#227; h&#7907;p &#273;&#7891;ng <input name="contractCode" required maxlength="80" placeholder="HD2026-001"></label>
+    <label>T&#234;n h&#7907;p &#273;&#7891;ng <input name="contractName" required maxlength="255" placeholder="Nh&#7853;p t&#234;n h&#7907;p &#273;&#7891;ng"></label>
+    <label>Gi&#225; tr&#7883; (VN&#272;) <input name="contractValue" type="number" min="0" step="0.01" required placeholder="0"></label>
+    <label>Tr&#7841;ng th&#225;i <select name="status"><option value="DRAFT">Nh&#225;p</option><option value="PENDING">Ch&#7901; k&#253;</option><option value="SIGNED">&#272;&#227; k&#253;</option><option value="CANCELLED">&#272;&#227; h&#7911;y</option></select></label>
+    <label>Ng&#224;y k&#253; <input name="signedDate" type="date"></label>
+    <div class="c360-contract-actions"><button type="button" id="contract-reset" class="c360-contract-reset">Nh&#7853;p m&#7899;i</button><button type="submit" class="c360-contract-save">L&#432;u h&#7907;p &#273;&#7891;ng</button></div>
+  </form>
+  <p id="contract-message" class="c360-contract-message" role="status"></p>
+</section>
         <section class="card" id="s308-support-section" style="margin:20px 0;padding:20px;">
           <div class="card-header">
             <div>
@@ -76,6 +79,6 @@
 window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';
 window.CONTRACT_CAN_WRITE = <%= ("ADMIN".equalsIgnoreCase(String.valueOf(session.getAttribute("userRole"))) || "MANAGER".equalsIgnoreCase(String.valueOf(session.getAttribute("userRole")))) ? "true" : "false" %>;
 </script>
-<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=6"></script>
 </body>
 </html>

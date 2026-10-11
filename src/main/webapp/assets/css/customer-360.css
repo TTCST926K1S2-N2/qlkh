@@ -98,3 +98,34 @@
         margin: 0;
     }
 }
+/* C360 CONTRACT UI V3 */
+.c360-contracts{margin:20px 0!important;padding:26px!important;border-radius:18px}
+.c360-contract-heading{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.c360-contract-heading h2{margin:7px 0 6px;font-size:23px;color:#102b4e}
+.c360-contract-heading p,.c360-contract-form-head p{margin:0;color:#7b8ba4;font-size:13px}
+.c360-contract-summary{padding:18px 20px;border:1px solid #dbe7f8;background:linear-gradient(110deg,#f0f6ff,#f9fbff);border-radius:12px;color:#24466e;font-weight:650;line-height:1.7;overflow-wrap:anywhere}
+.c360-contract-subheading{margin:24px 0 12px}.c360-contract-subheading h3{font-size:16px;color:#183557;margin:0}
+.c360-contract-list{display:grid;gap:12px}
+.c360-contract-item{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:19px;border:1px solid #e1e8f2;border-radius:13px;background:#fff;box-shadow:0 3px 12px rgba(30,54,92,.035)}
+.c360-contract-item-main{min-width:0;display:grid;gap:8px}
+.c360-contract-item-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.c360-contract-code{color:#194f9e;font-size:14px}
+.c360-contract-badge{border-radius:99px;padding:5px 10px;font-size:11px;font-weight:700;background:#e8efff;color:#365d9e}
+.c360-contract-badge[data-status="SIGNED"]{background:#dcfce7;color:#166534}
+.c360-contract-badge[data-status="PENDING"]{background:#fef3c7;color:#92400e}
+.c360-contract-badge[data-status="CANCELLED"]{background:#fee2e2;color:#991b1b}
+.c360-contract-name{font-size:14px;color:#263b58;font-weight:600;overflow-wrap:anywhere}
+.c360-contract-date{color:#8290a5;font-size:12px}
+.c360-contract-item-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}
+.c360-contract-amount{font-size:18px;color:#102e56}
+.c360-contract-edit,.c360-contract-reset{border:1px solid #cfdbed;background:#fff;color:#2456a2;border-radius:9px;padding:10px 15px;font-weight:600;cursor:pointer}
+.c360-contract-edit:hover,.c360-contract-reset:hover{background:#eef5ff}
+.c360-contract-form{grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 20px;padding:22px;border:1px solid #e3eaf4;border-radius:14px;background:#f9fbff;align-items:end;margin-top:22px}
+.c360-contract-form-head{grid-column:1/-1}.c360-contract-form-head h3{margin:0 0 6px;color:#1b365a}
+.c360-contract-form label{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:#34445e;min-width:0}
+.c360-contract-form input:not([type="hidden"]),.c360-contract-form select{box-sizing:border-box;width:100%;height:43px;padding:10px 12px;border:1px solid #d7e0ed;border-radius:9px;background:#fff;color:#22324b;font:inherit;font-weight:400;outline:none}
+.c360-contract-form input:focus,.c360-contract-form select:focus{border-color:#3973d4;box-shadow:0 0 0 3px rgba(57,115,212,.12)}
+.c360-contract-actions{grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:3px}
+.c360-contract-save{border:1px solid #245bc2;background:#245bc2;color:#fff;border-radius:9px;padding:11px 20px;font-weight:700;cursor:pointer}.c360-contract-save:hover{background:#19499f}
+.c360-contract-message{font-size:13px;color:#147d52;margin:12px 0 0}
+@media(max-width:760px){.c360-contracts{padding:18px!important}.c360-contract-form{grid-template-columns:1fr}.c360-contract-item{align-items:stretch;flex-direction:column}.c360-contract-item-side{align-items:flex-start}.c360-contract-actions{justify-content:stretch}.c360-contract-actions button{flex:1}}

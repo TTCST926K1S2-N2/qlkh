@@ -175,20 +175,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     list.replaceChildren();
     if (!contracts.length) {list.textContent='Chưa có hợp đồng.';return;}
     for (const c of contracts) {
-      const row = document.createElement('div');
-      row.style.cssText='padding:10px 0;border-bottom:1px solid #ddd';
-      const title = document.createElement('span');
-      title.textContent = c.contractCode + ' - ' + c.contractName + ' - ' + money(c.contractValue) + ' - ' + c.status;
-      row.append(title);
-      const edit = document.createElement('button');
-      edit.type='button';edit.textContent='Sửa';edit.style.marginLeft='12px';
-      edit.addEventListener('click',()=>{
-        form.elements.contractId.value=c.id;
-        for (const key of ['contractCode','contractName','contractValue','status','signedDate'])
-          form.elements[key].value=c[key] ?? '';
-        form.scrollIntoView({behavior:'smooth',block:'nearest'});
-      });
-      if (canWrite) row.append(edit);
+      const row = document.createElement('article');
+      row.className = 'c360-contract-item';
+      const main = document.createElement('div');
+      main.className = 'c360-contract-item-main';
+      const top = document.createElement('div');
+      top.className = 'c360-contract-item-top';
+      const code = document.createElement('strong');
+      code.className = 'c360-contract-code';
+      code.textContent = c.contractCode || '';
+      const badge = document.createElement('span');
+      badge.className = 'c360-contract-badge';
+      badge.dataset.status = c.status || '';
+      badge.textContent = ({DRAFT:'Nh\u00e1p',PENDING:'Ch\u1edd k\u00fd',SIGNED:'\u0110\u00e3 k\u00fd',CANCELLED:'\u0110\u00e3 h\u1ee7y'})[c.status] || c.status || '';
+      top.append(code, badge);
+      const name = document.createElement('div');
+      name.className = 'c360-contract-name';
+      name.textContent = c.contractName || '';
+      const date = document.createElement('div');
+      date.className = 'c360-contract-date';
+      date.textContent = c.signedDate ? ('Ng\u00e0y k\u00fd: ' + c.signedDate) : 'Ch\u01b0a c\u00f3 ng\u00e0y k\u00fd';
+      main.append(top, name, date);
+      const side = document.createElement('div');
+      side.className = 'c360-contract-item-side';
+      const amount = document.createElement('strong');
+      amount.className = 'c360-contract-amount';
+      amount.textContent = money(c.contractValue);
+      side.append(amount);
+      if (canWrite) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'c360-contract-edit';
+        edit.textContent = 'S\u1eeda';
+        edit.addEventListener('click', () => {
+          form.elements.contractId.value = c.id;
+          for (const key of ['contractCode','contractName','contractValue','status','signedDate'])
+            form.elements[key].value = c[key] ?? '';
+          form.scrollIntoView({behavior:'smooth',block:'nearest'});
+        });
+        side.append(edit);
+      }
+      row.append(main, side);
       list.append(row);
     }
   }
