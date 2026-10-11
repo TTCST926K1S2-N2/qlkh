@@ -18,7 +18,11 @@
         <div class="s304-header-actions">
           <button id="s304FindDuplicates" type="button" hidden>Phát hiện trùng lặp</button>
           <button id="openCustomerImport" type="button">Nhập Excel</button>
-          <button id="addCustomer" type="button">Thêm khách hàng</button>
+          <button style="background-color:#2563eb;color:#ffffff;border:1px solid #2563eb;border-radius:4px;padding:8px 12px;cursor:pointer;" id="openAdvancedCustomerSearch" type="button"
+        onclick="window.location.href='${pageContext.request.contextPath}/views/sales/customer-search.jsp'">
+    Tìm kiếm nâng cao
+</button>
+<button id="addCustomer" type="button">Thêm khách hàng</button>
         </div>
       </header>
       <section class="customer-box">
