@@ -238,6 +238,14 @@ public class CustomerService {
         return dao.insert(customer);
     }
 
+    public Customer findVisibleByTaxCode(String taxCode, long userId, String role) throws SQLException {
+        if (taxCode == null || taxCode.isBlank()) return null;
+        for (Customer c : list(userId, role)) {
+            if (c.getTaxCode() != null && c.getTaxCode().trim().equalsIgnoreCase(taxCode.trim())) return c;
+        }
+        return null;
+    }
+
     public void validateForImport(
             Customer customer,
             long userId,

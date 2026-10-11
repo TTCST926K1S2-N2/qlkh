@@ -140,3 +140,84 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadCustomer();
 });
+
+// S3-03 contract totals, loaded independently from the existing 360 endpoint.
+document.addEventListener('DOMContentLoaded', async () => {
+  const box=document.getElementById('contract-summary');
+  const id=new URLSearchParams(location.search).get('id');
+  if(!box || !id || !/^[1-9]\d*$/.test(id)) return;
+  try {
+    const response=await fetch((window.APP_CONTEXT_PATH||'')+'/api/v1/contracts/summary/'+encodeURIComponent(id),{credentials:'same-origin'});
+    if(!response.ok) throw new Error('Không thể tải số liệu hợp đồng');
+    const data=await response.json();
+    const money=v=>Number(v).toLocaleString('vi-VN')+' VNĐ';
+    box.textContent='Đã ký: '+data.signedCount+' hợp đồng, '+money(data.signedValue)+
+      ' | Chưa ký: '+data.unsignedCount+' hợp đồng, '+money(data.unsignedValue);
+  } catch(e) {box.textContent='Chưa thể tải dữ liệu hợp đồng. Kiểm tra migration database.';}
+});
+
+// Contracts are stored separately from customer-care tracking.
+document.addEventListener('DOMContentLoaded', async () => {
+  const id = new URLSearchParams(location.search).get('id');
+  const list = document.getElementById('contract-list');
+  const form = document.getElementById('contract-form');
+  const message = document.getElementById('contract-message');
+  if (!list || !form || !id || !/^[1-9]\d*$/.test(id)) return;
+  const api = (window.APP_CONTEXT_PATH || '') + '/api/v1/contracts';
+  const money = value => Number(value).toLocaleString('vi-VN') + ' VNĐ';
+  const canWrite = window.CONTRACT_CAN_WRITE === true;
+  form.style.display = canWrite ? 'flex' : 'none';
+  let contracts = [];
+  async function refresh() {
+    const res = await fetch(api + '?customerId=' + encodeURIComponent(id), {credentials:'same-origin'});
+    if (!res.ok) throw Error('Không thể tải danh sách hợp đồng');
+    contracts = await res.json();
+    list.replaceChildren();
+    if (!contracts.length) {list.textContent='Chưa có hợp đồng.';return;}
+    for (const c of contracts) {
+      const row = document.createElement('div');
+      row.style.cssText='padding:10px 0;border-bottom:1px solid #ddd';
+      const title = document.createElement('span');
+      title.textContent = c.contractCode + ' - ' + c.contractName + ' - ' + money(c.contractValue) + ' - ' + c.status;
+      row.append(title);
+      const edit = document.createElement('button');
+      edit.type='button';edit.textContent='Sửa';edit.style.marginLeft='12px';
+      edit.addEventListener('click',()=>{
+        form.elements.contractId.value=c.id;
+        for (const key of ['contractCode','contractName','contractValue','status','signedDate'])
+          form.elements[key].value=c[key] ?? '';
+        form.scrollIntoView({behavior:'smooth',block:'nearest'});
+      });
+      if (canWrite) row.append(edit);
+      list.append(row);
+    }
+  }
+  document.getElementById('contract-reset').addEventListener('click',()=>{form.reset();form.elements.contractId.value='';message.textContent='';});
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if (!canWrite) return;
+    message.textContent='Đang lưu...';
+    const data = new URLSearchParams(new FormData(form));
+    data.set('customerId',id);data.delete('contractId');
+    const contractId=form.elements.contractId.value;
+    const response=await fetch(api+(contractId?'/'+encodeURIComponent(contractId):''),{
+      method:contractId?'PUT':'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      credentials:'same-origin',body:data.toString()
+    }).catch(()=>null);
+    if (!response || !response.ok) {message.textContent='Không lưu được hợp đồng. Kiểm tra dữ liệu và quyền truy cập.';return;}
+    form.reset();form.elements.contractId.value='';message.textContent='Đã lưu hợp đồng.';
+    try {await refresh();const summary=document.getElementById('contract-summary');
+      const r=await fetch(api+'/summary/'+encodeURIComponent(id),{credentials:'same-origin'});
+      if(r.ok){const x=await r.json();summary.textContent='Đã ký: '+x.signedCount+' hợp đồng, '+money(x.signedValue)+' | Chưa ký: '+x.unsignedCount+' hợp đồng, '+money(x.unsignedValue);}
+    }catch(e){message.textContent='Đã lưu, nhưng chưa tải lại được danh sách.';}
+  });
+  try {
+    const res=await fetch(api+'?customerId='+encodeURIComponent(id),{credentials:'same-origin'});
+    if (!res.ok) throw Error('Không tải được hợp đồng');
+    contracts=await res.json();
+    // API returns 403 for writes by roles other than ADMIN and MANAGER.
+    // Keep the form hidden until a role signal is available in the page.
+    // Showing the form is harmless: server enforces write authorization.
+    await refresh();
+  }catch(e){list.textContent=e.message;}
+});

@@ -20,7 +20,7 @@ public class CustomerRelationshipService {
         List<CustomerRelationshipDAO.Link> result=new ArrayList<>();
         for(CustomerRelationshipDAO.Link link:dao.all()) {
             if(ids.contains(link.id())) result.add(new CustomerRelationshipDAO.Link(
-                    link.id(),link.name(),link.parentId()!=null && ids.contains(link.parentId()) ? link.parentId():null));
+                    link.id(),link.name(),link.parentId()!=null && ids.contains(link.parentId()) ? link.parentId():null,link.taxCode(),link.status()));
         }
         return result;
     }

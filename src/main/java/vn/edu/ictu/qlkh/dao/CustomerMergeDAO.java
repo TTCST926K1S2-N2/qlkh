@@ -92,6 +92,12 @@ public class CustomerMergeDAO {
                     WHERE customer_id = ?
                     """, targetId, sourceId);
 
+                // Preserve signed and unsigned contracts when accounts merge.
+                execute(conn, """
+                    UPDATE contracts SET customer_id = ?
+                    WHERE customer_id = ?
+                    """, targetId, sourceId);
+
                 execute(conn, """
                     INSERT INTO customer_merges
                         (source_customer_id, target_customer_id, merged_by)

@@ -165,6 +165,14 @@ public class ImportCustomerServlet extends HttpServlet {
                         request.getParameter("preview")
                 );
 
+        String duplicateMode = request.getParameter("duplicateMode");
+        if (duplicateMode == null || duplicateMode.isBlank()) duplicateMode = "error";
+        if (!java.util.Set.of("error", "skip", "update").contains(duplicateMode)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writeMessage(response, false, "duplicateMode phai la error, skip hoac update");
+            return;
+        }
+
         try (InputStream inputStream =
                      filePart.getInputStream()) {
 
@@ -174,13 +182,15 @@ public class ImportCustomerServlet extends HttpServlet {
                                     .previewCustomers(
                                             inputStream,
                                             user.id(),
-                                            user.role()
+                                            user.role(),
+                                            duplicateMode
                                     )
                             : importCustomerService
                                     .importCustomers(
                                             inputStream,
                                             user.id(),
-                                            user.role()
+                                            user.role(),
+                                            duplicateMode
                                     );
 
             writeImportResult(
