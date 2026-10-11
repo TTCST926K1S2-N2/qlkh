@@ -67,7 +67,7 @@ public class CustomerRelationshipServlet extends HttpServlet {
             for(CustomerRelationshipDAO.Link l:service.visible(a.id(),a.role())) {
                 j.add("{\"id\":"+l.id()+",\"companyName\":"+esc(l.name())+
                         ",\"parentId\":"+(l.parentId()==null?"null":l.parentId())+
-                        ",\"taxCode\":\""+esc(l.taxCode())+"\",\"status\":\""+esc(l.status())+"\"}");
+                        ",\"taxCode\":"+esc(l.taxCode())+",\"status\":"+esc(l.status())+"}");
             }
             send(res,200,j.toString());
         } catch(Exception ex) { handle(res,ex); }
