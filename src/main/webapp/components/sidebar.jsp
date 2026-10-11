@@ -201,6 +201,17 @@
                         </span>
                     </a>
                 </li>
+                                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/company-relationships.jsp"
+                       class="<%= currentURI.contains("/views/sales/company-relationships.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quan hệ công ty mẹ - con
+                        </span>
+                    </a>
+                </li>
                 <!-- DANH MỤC DÙNG CHUNG -->
                 <li>
                     <a href="${pageContext.request.contextPath}/views/sales/common-categories.jsp"

@@ -15,10 +15,6 @@ ALTER TABLE customers
     REFERENCES customers(id)
     ON DELETE SET NULL;
 
--- Ngan cong ty tu chon chinh minh lam cong ty me.
-ALTER TABLE customers
-    ADD CONSTRAINT chk_customers_not_self_parent
-    CHECK (parent_id IS NULL OR parent_id <> id);
 
 -- Kiem tra cau truc sau khi migration.
 SHOW CREATE TABLE customers;
