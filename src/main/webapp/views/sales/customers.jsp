@@ -9,7 +9,46 @@
       href="${pageContext.request.contextPath}/assets/css/customers.css"
     />
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer-import.css" />
-  </head>
+
+<style>
+.s3-care-button,
+#openAdvancedCustomerSearch {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: 1px solid #2563eb !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+
+.s3-care-button:hover,
+#openAdvancedCustomerSearch:hover {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+}
+</style>
+<style id="s308-toolbar-fix">
+#openAdvancedCustomerSearch,
+.s3-care-button {
+    display: inline-block !important;
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border: 1px solid #2563eb !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+
+#openAdvancedCustomerSearch:hover,
+.s3-care-button:hover {
+    background-color: #1d4ed8 !important;
+}
+</style>
+</head>
   <body>
     <jsp:include page="/components/sidebar.jsp"/>
     <main class="customer-main">
@@ -18,9 +57,16 @@
         <div class="s304-header-actions">
           <button id="s304FindDuplicates" type="button" hidden>Phát hiện trùng lặp</button>
           <button id="openCustomerImport" type="button">Nhập Excel</button>
-          <button style="background-color:#2563eb;color:#ffffff;border:1px solid #2563eb;border-radius:4px;padding:8px 12px;cursor:pointer;" id="openAdvancedCustomerSearch" type="button"
+          <button id="openAdvancedCustomerSearch"
+        type="button"
         onclick="window.location.href='${pageContext.request.contextPath}/views/sales/customer-search.jsp'">
     Tìm kiếm nâng cao
+</button>
+
+<button type="button"
+        class="s3-care-button"
+        onclick="window.location.href='${pageContext.request.contextPath}/views/sales/customer-care.jsp'">
+    Chăm sóc khách hàng
 </button>
 <button id="addCustomer" type="button">Thêm khách hàng</button>
         </div>
