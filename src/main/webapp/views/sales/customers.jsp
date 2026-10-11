@@ -68,6 +68,10 @@
         onclick="window.location.href='${pageContext.request.contextPath}/views/sales/customer-care.jsp'">
     Chăm sóc khách hàng
 </button>
+<a href="${pageContext.request.contextPath}/customer-care-list"
+   style="display:inline-block;background:#2563eb;color:#fff;padding:8px 12px;border-radius:5px;text-decoration:none;margin-left:6px;">
+    Khách hàng cần chăm sóc
+</a>
 <button id="addCustomer" type="button">Thêm khách hàng</button>
         </div>
       </header>
