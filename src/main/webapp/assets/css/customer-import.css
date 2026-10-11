@@ -1,0 +1,46 @@
+#openCustomerImport,
+#previewCustomerImport,
+#downloadCustomerTemplate {
+  background: #2563eb;
+  color: white;
+}
+
+#executeCustomerImport {
+  background: #16a34a;
+  color: white;
+}
+
+#customerImportDialog {
+  border: 0;
+  border-radius: 10px;
+  width: min(850px, 94vw);
+  max-height: 85vh;
+  overflow: auto;
+  padding: 24px;
+  box-shadow: 0 12px 40px #0003;
+}
+
+#customerImportDialog::backdrop {
+  background: #0008;
+}
+
+.customer-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+  align-items: center;
+}
+
+#customerImportMessage {
+  min-height: 22px;
+}
+
+#customerImportDialog [hidden] {
+  display: none !important;
+}
+
+#customerImportDialog button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

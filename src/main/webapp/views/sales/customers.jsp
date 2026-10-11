@@ -8,6 +8,7 @@
       rel="stylesheet"
       href="${pageContext.request.contextPath}/assets/css/customers.css"
     />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer-import.css" />
   </head>
   <body>
     <jsp:include page="/components/sidebar.jsp"/>
@@ -16,6 +17,7 @@
         <h2>Quản lý khách hàng doanh nghiệp</h2>
         <div class="s304-header-actions">
           <button id="s304FindDuplicates" type="button" hidden>Phát hiện trùng lặp</button>
+          <button id="openCustomerImport" type="button">Nhập Excel</button>
           <button id="addCustomer" type="button">Thêm khách hàng</button>
         </div>
       </header>
@@ -110,6 +112,43 @@
           </div>
         </form>
       </dialog>
+
+      <dialog id="customerImportDialog">
+        <h3>Nhập khách hàng từ Excel</h3>
+
+        <p>Tải tệp mẫu, điền dữ liệu và chọn tệp Excel để kiểm tra.</p>
+
+        <div class="customer-import-actions">
+          <button type="button" id="downloadCustomerTemplate">Tải tệp mẫu</button>
+          <input type="file" id="customerImportFile" accept=".xlsx,.xls">
+        </div>
+
+        <p id="customerImportMessage" role="status"></p>
+
+        <div id="customerImportPreview" hidden>
+          <h4>Kết quả kiểm tra</h4>
+          <p id="customerImportSummary"></p>
+
+          <div class="customer-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Dòng Excel</th>
+                  <th>Mã số thuế</th>
+                  <th>Chi tiết lỗi</th>
+                </tr>
+              </thead>
+              <tbody id="customerImportErrors"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="customer-import-actions">
+          <button type="button" id="previewCustomerImport">Kiểm tra Excel</button>
+          <button type="button" id="executeCustomerImport" disabled>Xác nhận nhập</button>
+          <button type="button" id="closeCustomerImport">Đóng</button>
+        </div>
+      </dialog>
     </main>
     <script>
       window.customerContextPath = "${pageContext.request.contextPath}";
@@ -119,5 +158,6 @@
       src="${pageContext.request.contextPath}/assets/js/customers.js"
       defer
     ></script>
+    <script src="${pageContext.request.contextPath}/assets/js/customer-import.js" defer></script>
   </body>
 </html>
