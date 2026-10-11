@@ -228,3 +228,125 @@
   });
   load();
 })();
+
+/* S3-04 DUPLICATE UI - reuse existing customers page */
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const root = window.customerContextPath || "";
+  const btn = $("s304FindDuplicates");
+  if (!btn) return;
+  const panel = $("s304Panel");
+  const dialog = $("s304Dialog");
+  const rows = $("s304Rows");
+  let selected = null;
+  const roleAllowed = window.s304CanMerge === true;
+  btn.hidden = !roleAllowed;
+  if (!roleAllowed) return;
+  const endpoint = root + "/api/v1/customers";
+  const showMessage = (id, text, error = false) => {
+    const el = $(id);
+    el.textContent = text;
+    el.className = error ? "customer-error" : "customer-success";
+  };
+  const field = (container, label, value) => {
+    const line = document.createElement("p");
+    const strong = document.createElement("strong");
+    strong.textContent = label + ": ";
+    line.append(strong, document.createTextNode(value == null || value === "" ? "—" : String(value)));
+    container.appendChild(line);
+  };
+  function displayCustomer(id, customer) {
+    const el = $(id);
+    el.replaceChildren();
+    field(el, "ID", customer.id);
+    field(el, "Doanh nghiệp", customer.companyName);
+    field(el, "Mã số thuế", customer.taxCode);
+    field(el, "Website", customer.website);
+    field(el, "Ngành nghề", customer.industry);
+    field(el, "Quy mô", customer.companySize);
+    field(el, "Địa chỉ", customer.address);
+    field(el, "Người phụ trách", customer.ownerId);
+    field(el, "Trạng thái", customer.status);
+  }
+  function openCompare(pair) {
+    selected = pair;
+    $("s304TargetFirst").checked = true;
+    displayCustomer("s304First", pair.first);
+    displayCustomer("s304Second", pair.second);
+    showMessage("s304DialogMessage", "");
+    dialog.showModal();
+  }
+  async function call(url, options = {}) {
+    const response = await fetch(url, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json", ...(options.body ? { "Content-Type": "application/json" } : {}) },
+      ...options,
+    });
+    if (response.status === 401) {
+      window.location.href = root + "/login";
+      throw Error("Phiên đăng nhập đã hết hạn");
+    }
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data || data.success === false) {
+      throw Error((data && data.message) || (response.status === 403 ? "Bạn không có quyền thực hiện thao tác này" : "Yêu cầu thất bại (" + response.status + ")"));
+    }
+    return data;
+  }
+  async function loadPairs() {
+    panel.hidden = false;
+    btn.disabled = true;
+    showMessage("s304Message", "Đang tìm khách hàng trùng lặp...");
+    rows.replaceChildren();
+    try {
+      const data = await call(endpoint + "/duplicates");
+      const pairs = Array.isArray(data.data) ? data.data : [];
+      showMessage("s304Message", "Tìm thấy " + pairs.length + " cặp khách hàng nghi ngờ trùng lặp.");
+      for (const [index, pair] of pairs.entries()) {
+        const tr = document.createElement("tr");
+        for (const value of [index + 1, pair.first.companyName, pair.second.companyName, pair.score, (pair.reasons || []).join(", ")]) {
+          const td = document.createElement("td");
+          td.textContent = String(value ?? "");
+          tr.appendChild(td);
+        }
+        const action = document.createElement("td");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = "So sánh & gộp";
+        b.addEventListener("click", () => openCompare(pair));
+        action.appendChild(b);
+        tr.appendChild(action);
+        rows.appendChild(tr);
+      }
+    } catch (e) {
+      showMessage("s304Message", e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  btn.addEventListener("click", loadPairs);
+  $("s304ClosePanel").addEventListener("click", () => { panel.hidden = true; });
+  $("s304Cancel").addEventListener("click", () => dialog.close());
+  $("s304Confirm").addEventListener("click", async () => {
+    if (!selected) return;
+    const keepFirst = $("s304TargetFirst").checked;
+    const source = keepFirst ? selected.second : selected.first;
+    const target = keepFirst ? selected.first : selected.second;
+    if (!window.confirm("Gộp khách hàng #" + source.id + " vào #" + target.id + "? Thao tác không thể hoàn tác trên giao diện.")) return;
+    const confirmButton = $("s304Confirm");
+    confirmButton.disabled = true;
+    try {
+      const result = await call(endpoint + "/merge", {
+        method: "POST",
+        body: JSON.stringify({ sourceId: source.id, targetId: target.id }),
+      });
+      dialog.close();
+      await loadPairs();
+      showMessage("s304Message", "Gộp thành công: " + result.contacts + " liên hệ, " + result.opportunities + " cơ hội, " + result.attachments + " tệp đính kèm. Hãy tải lại trang để cập nhật danh sách khách hàng.");
+    } catch (e) {
+      showMessage("s304DialogMessage", e.message, true);
+    } finally {
+      confirmButton.disabled = false;
+    }
+  });
+})();
