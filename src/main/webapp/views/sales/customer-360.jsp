@@ -25,6 +25,22 @@
           <article class="stat-card"><div class="stat-top"><span>Cơ hội kinh doanh</span></div><strong id="stat-opportunities">—</strong><small id="stat-opportunities-note">Chưa tích hợp</small></article>
           <article class="stat-card"><div class="stat-top"><span>Tệp đính kèm</span></div><strong id="stat-attachments">—</strong><small id="stat-attachments-note">Chưa tích hợp</small></article>
         </section>
+        <section class="card" id="s308-support-section" style="margin:20px 0;padding:20px;">
+          <div class="card-header">
+            <div>
+              <span class="section-label">CHĂM SÓC KHÁCH HÀNG</span>
+              <h2>Lịch sử yêu cầu hỗ trợ</h2>
+              <p>Theo dõi các yêu cầu hỗ trợ và tình trạng xử lý</p>
+            </div>
+          </div>
+          <div id="s308-risk" role="status" style="margin:14px 0;"></div>
+          <div id="s308-support-list">Đang tải lịch sử hỗ trợ...</div>
+          <a id="s308-support-link"
+             href="${pageContext.request.contextPath}/views/sales/customer-care.jsp"
+             style="display:inline-block;margin-top:16px;padding:10px 14px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none;">
+             Xem và quản lý yêu cầu hỗ trợ
+          </a>
+        </section>
         <div class="dashboard-grid">
           <div class="dashboard-primary">
             <section class="card" id="contacts-card"><div class="card-header"><div><span class="section-label">CONTACTS</span><h2>Người liên hệ</h2><p>Danh sách người liên hệ thuộc khách hàng</p></div></div><div id="contacts-section" class="section-body">Đang tải...</div></section>
@@ -41,6 +57,6 @@
   </div>
 </div>
 <script>window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';</script>
-<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=3"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=4"></script>
 </body>
 </html>
