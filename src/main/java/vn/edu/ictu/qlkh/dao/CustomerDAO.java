@@ -9,6 +9,8 @@ import java.util.List;
 
 public class CustomerDAO {
 
+    // S3-04: EXCLUDE MERGED CUSTOMERS
+
     private static final String COLUMNS =
         "c.id, c.company_name, c.tax_code, c.industry, " +
         "c.company_size, c.website, c.address, c.owner_id, " +
@@ -49,24 +51,24 @@ public class CustomerDAO {
 
         if ("ALL".equals(scope)) {
             sql = "SELECT " + COLUMNS +
-                  " FROM customers c ORDER BY c.id DESC";
+                  " FROM customers c WHERE NOT EXISTS (SELECT 1 FROM customer_merges cm WHERE cm.source_customer_id = c.id) ORDER BY c.id DESC";
 
         } else if ("TEAM".equals(scope)) {
             sql = "SELECT " + COLUMNS +
                   " FROM customers c " +
-                  "WHERE c.owner_id = ? OR EXISTS (" +
+                  "WHERE NOT EXISTS (SELECT 1 FROM customer_merges cm WHERE cm.source_customer_id = c.id) AND (c.owner_id = ? OR EXISTS (" +
                   "SELECT 1 FROM business_groups bg " +
                   "JOIN user_business_groups ubg " +
                   "ON ubg.group_id = bg.id " +
                   "WHERE bg.leader_id = ? " +
                   "AND bg.status = 'ACTIVE' " +
                   "AND ubg.user_id = c.owner_id" +
-                  ") ORDER BY c.id DESC";
+                  ")) ORDER BY c.id DESC";
 
         } else if ("MY".equals(scope)) {
             sql = "SELECT " + COLUMNS +
                   " FROM customers c " +
-                  "WHERE c.owner_id = ? ORDER BY c.id DESC";
+                  "WHERE c.owner_id = ? AND NOT EXISTS (SELECT 1 FROM customer_merges cm WHERE cm.source_customer_id = c.id) ORDER BY c.id DESC";
 
         } else {
             return List.of();
@@ -103,12 +105,15 @@ public class CustomerDAO {
 
         if ("ALL".equals(scope)) {
             sql = "SELECT " + COLUMNS +
-                  " FROM customers c WHERE c.id = ?";
+                  " FROM customers c WHERE c.id = ? AND NOT EXISTS (SELECT 1 FROM customer_merges cm WHERE cm.source_customer_id = c.id)";
 
         } else if ("TEAM".equals(scope)) {
             sql = "SELECT " + COLUMNS +
                   " FROM customers c " +
-                  "WHERE c.id = ? AND (c.owner_id = ? OR EXISTS (" +
+                  "WHERE c.id = ? AND NOT EXISTS (" +
+                  "SELECT 1 FROM customer_merges cm " +
+                  "WHERE cm.source_customer_id = c.id) " +
+                  "AND (c.owner_id = ? OR EXISTS (" +
                   "SELECT 1 FROM business_groups bg " +
                   "JOIN user_business_groups ubg " +
                   "ON ubg.group_id = bg.id " +
@@ -119,7 +124,10 @@ public class CustomerDAO {
         } else if ("MY".equals(scope)) {
             sql = "SELECT " + COLUMNS +
                   " FROM customers c " +
-                  "WHERE c.id = ? AND c.owner_id = ?";
+                  "WHERE c.id = ? AND c.owner_id = ? " +
+                  "AND NOT EXISTS (" +
+                  "SELECT 1 FROM customer_merges cm " +
+                  "WHERE cm.source_customer_id = c.id)";
 
         } else {
             return null;
@@ -256,7 +264,7 @@ public class CustomerDAO {
             "company_name = ?, tax_code = ?, industry = ?, " +
             "company_size = ?, website = ?, address = ?, " +
             "owner_id = ?, status = ? " +
-            "WHERE id = ?" + accessCondition;
+            "WHERE id = ? AND NOT EXISTS (SELECT 1 FROM customer_merges cm WHERE cm.source_customer_id = customers.id)" + accessCondition;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

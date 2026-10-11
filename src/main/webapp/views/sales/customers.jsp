@@ -14,7 +14,10 @@
     <main class="customer-main">
       <header class="customer-header">
         <h2>Quản lý khách hàng doanh nghiệp</h2>
-        <button id="addCustomer" type="button">Thêm khách hàng</button>
+        <div class="s304-header-actions">
+          <button id="s304FindDuplicates" type="button" hidden>Phát hiện trùng lặp</button>
+          <button id="addCustomer" type="button">Thêm khách hàng</button>
+        </div>
       </header>
       <section class="customer-box">
         <div class="customer-filters">
@@ -47,7 +50,35 @@
           </table>
         </div>
       </section>
-      <dialog id="customerDialog">
+            <!-- S3-04: Integrated duplicate detection and merge -->
+      <section id="s304Panel" class="customer-box s304-panel" hidden>
+        <div class="s304-panel-title">
+          <h3>Khách hàng nghi ngờ trùng lặp</h3>
+          <button id="s304ClosePanel" type="button">Đóng</button>
+        </div>
+        <p id="s304Message" role="status" aria-live="polite"></p>
+        <div class="customer-table-wrap">
+          <table>
+            <thead><tr><th>STT</th><th>Khách hàng 1</th><th>Khách hàng 2</th><th>Điểm</th><th>Lý do</th><th>Thao tác</th></tr></thead>
+            <tbody id="s304Rows"></tbody>
+          </table>
+        </div>
+      </section>
+      <dialog id="s304Dialog" class="s304-dialog">
+        <h3>So sánh và gộp khách hàng</h3>
+        <p>Chọn hồ sơ cần giữ lại. Liên hệ, cơ hội và tệp đính kèm sẽ được chuyển từ hồ sơ nguồn sang hồ sơ đích.</p>
+        <div class="s304-compare">
+          <div class="s304-customer-card"><label><input type="radio" name="s304Target" id="s304TargetFirst" value="first" checked /> Giữ khách hàng 1</label><div id="s304First"></div></div>
+          <div class="s304-customer-card"><label><input type="radio" name="s304Target" id="s304TargetSecond" value="second" /> Giữ khách hàng 2</label><div id="s304Second"></div></div>
+        </div>
+        <p class="s304-warning">Khách hàng nguồn sẽ được đánh dấu đã gộp và ẩn khỏi danh sách. Thao tác không thể hoàn tác trên giao diện.</p>
+        <p id="s304DialogMessage" role="alert" aria-live="polite"></p>
+        <div class="customer-actions">
+          <button id="s304Cancel" type="button">Hủy</button>
+          <button id="s304Confirm" type="button">Xác nhận gộp</button>
+        </div>
+      </dialog>
+<dialog id="customerDialog">
         <form id="customerForm">
           <p id="customerFormError" class="customer-error" role="alert" aria-live="assertive" hidden></p>
           <h3 id="customerFormTitle">Thông tin khách hàng</h3>
@@ -82,6 +113,7 @@
     </main>
     <script>
       window.customerContextPath = "${pageContext.request.contextPath}";
+      window.s304CanMerge = ${sessionScope.userRole eq "ADMIN" or sessionScope.userRole eq "MANAGER"};
     </script>
     <script
       src="${pageContext.request.contextPath}/assets/js/customers.js"

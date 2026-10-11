@@ -46,9 +46,9 @@ public final class DBConnection {
 
     public static Connection getConnection() throws SQLException {
 
-        String url = PROPERTIES.getProperty("db.url");
-        String username = PROPERTIES.getProperty("db.username");
-        String password = PROPERTIES.getProperty("db.password");
+        String url = System.getProperty("db.url", PROPERTIES.getProperty("db.url"));
+        String username = System.getProperty("db.username", PROPERTIES.getProperty("db.username"));
+        String password = System.getProperty("db.password", PROPERTIES.getProperty("db.password"));
 
         return DriverManager.getConnection(
                 url,
