@@ -97,6 +97,7 @@ public class CustomerServlet extends HttpServlet {
                             req.getParameter("industry"),
                             req.getParameter("status"),
                             req.getParameter("companySize"),
+                            req.getParameter("region"),
                             ownerId,
                             page,
                             size
@@ -200,7 +201,7 @@ public class CustomerServlet extends HttpServlet {
     private boolean hasSearchParameters(HttpServletRequest req) {
         String[] names = {
                 "keyword", "companyName", "taxCode", "phone",
-                "industry", "status", "companySize", "ownerId", "page", "size"
+                "industry", "status", "companySize", "region", "ownerId", "page", "size"
         };
 
         for (String name : names) {

@@ -119,7 +119,7 @@
                     </div>
                     <div class="form-group">
                         <label>Khu vực:</label>
-                        <input type="text" id="region" placeholder="Chưa hỗ trợ lọc khu vực" disabled>
+                        <input type="text" id="region" maxlength="255" placeholder="Nhập tỉnh, thành phố hoặc khu vực...">
                     </div>
                      <div class="form-group">
                         <label>Người phụ trách:</label>
@@ -127,7 +127,33 @@
                     </div>
                 </div>
 
-                <div class="action-buttons">
+                <div class="filter-section" style="margin-top: 15px;">
+    <div class="form-group">
+        <label for="favoriteFilterName">Tên bộ lọc yêu thích:</label>
+        <input type="text"
+               id="favoriteFilterName"
+               maxlength="80"
+               placeholder="Ví dụ: Khách hàng Thái Nguyên">
+    </div>
+
+    <div class="form-group">
+        <label for="favoriteFilterSelect">Bộ lọc đã lưu:</label>
+        <select id="favoriteFilterSelect"
+                onchange="applyFavoriteFilter()">
+            <option value="">-- Chọn bộ lọc --</option>
+        </select>
+    </div>
+
+    <div class="form-group" style="justify-content: flex-end;">
+        <button type="button"
+                class="btn btn-danger"
+                onclick="deleteFavoriteFilter()">
+            Xóa bộ lọc đã lưu
+        </button>
+    </div>
+</div>
+
+<div class="action-buttons">
                     <button type="button" class="btn btn-secondary" onclick="saveFilter()">Lưu bộ lọc</button>
                     <button type="button" class="btn btn-danger" onclick="clearFilter()">Xóa bộ lọc</button>
                     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
@@ -187,6 +213,7 @@
                 status: document.getElementById('status').value,
                 industry: document.getElementById('industry').value,
                 companySize: document.getElementById('scale').value,
+                region: document.getElementById('region').value,
                 ownerId: document.getElementById('owner').value,
                 page: page
             };
@@ -263,34 +290,212 @@
             }
         }
 
-        // 4. Lưu bộ lọc
-        function saveFilter() {
-            const filterParams = {
-                keyword: document.getElementById('keyword').value,
-                phone: document.getElementById('phone').value,
-                status: document.getElementById('status').value,
-                industry: document.getElementById('industry').value,
-                scale: document.getElementById('scale').value,
-                region: document.getElementById('region').value,
-                owner: document.getElementById('owner').value
-            };
-            localStorage.setItem('savedCustomerFilters', JSON.stringify(filterParams));
-            alert('Đã lưu bộ lọc thành công! Các thiết lập sẽ được giữ nguyên cho lần sau truy cập.');
+        // 4. Quan ly nhieu bo loc yeu thich
+        const FAVORITES_KEY = 'customerFavoriteFiltersV1';
+        const FAVORITE_FIELDS = [
+            'keyword', 'phone', 'status',
+            'industry', 'scale', 'region', 'owner'
+        ];
+
+        function readFavoriteFilters() {
+            try {
+                const parsed = JSON.parse(
+                    localStorage.getItem(FAVORITES_KEY) || '[]'
+                );
+
+                if (!Array.isArray(parsed)) return [];
+
+                return parsed.filter(item =>
+                    item &&
+                    typeof item.name === 'string' &&
+                    item.filters &&
+                    typeof item.filters === 'object' &&
+                    !Array.isArray(item.filters)
+                );
+            } catch (error) {
+                console.warn('Khong doc duoc bo loc yeu thich:', error);
+                return [];
+            }
         }
 
-        // 5. Xóa bộ lọc và khôi phục giao diện mặc định
+        function getCurrentFilters() {
+            const filters = {};
+
+            for (const field of FAVORITE_FIELDS) {
+                filters[field] = document.getElementById(field).value;
+            }
+
+            return filters;
+        }
+
+        function restoreFilters(filters) {
+            document.getElementById('filterForm').reset();
+
+            for (const field of FAVORITE_FIELDS) {
+                if (typeof filters[field] === 'string') {
+                    document.getElementById(field).value = filters[field];
+                }
+            }
+        }
+
+        function renderFavoriteFilters(selectedName = '') {
+            const select = document.getElementById('favoriteFilterSelect');
+            const favorites = readFavoriteFilters();
+
+            select.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '-- Chọn bộ lọc --';
+            select.appendChild(placeholder);
+
+            for (const item of favorites) {
+                const option = document.createElement('option');
+                option.value = item.name;
+                option.textContent = item.name;
+                select.appendChild(option);
+            }
+
+            select.value = selectedName;
+        }
+
+        function saveFilter() {
+            const input = document.getElementById('favoriteFilterName');
+            const name = input.value.trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên bộ lọc yêu thích.');
+                input.focus();
+                return;
+            }
+
+            const favorites = readFavoriteFilters();
+
+            const existingIndex = favorites.findIndex(
+                item => item.name.toLowerCase() === name.toLowerCase()
+            );
+
+            if (existingIndex >= 0) {
+                if (!confirm('Bộ lọc đã tồn tại. Bạn muốn cập nhật không?')) {
+                    return;
+                }
+
+                favorites[existingIndex] = {
+                    name: favorites[existingIndex].name,
+                    filters: getCurrentFilters()
+                };
+            } else {
+                favorites.push({
+                    name: name,
+                    filters: getCurrentFilters()
+                });
+            }
+
+            try {
+                localStorage.setItem(
+                    FAVORITES_KEY,
+                    JSON.stringify(favorites)
+                );
+
+                localStorage.setItem(
+                    'savedCustomerFilters',
+                    JSON.stringify(getCurrentFilters())
+                );
+
+                renderFavoriteFilters(
+                    existingIndex >= 0
+                        ? favorites[existingIndex].name
+                        : name
+                );
+
+                alert('Đã lưu bộ lọc yêu thích thành công.');
+            } catch (error) {
+                console.error('Khong luu duoc bo loc:', error);
+                alert('Không thể lưu bộ lọc. Vui lòng thử lại.');
+            }
+        }
+
+        function applyFavoriteFilter() {
+            const name = document.getElementById(
+                'favoriteFilterSelect'
+            ).value;
+
+            if (!name) return;
+
+            const favorite = readFavoriteFilters().find(
+                item => item.name === name
+            );
+
+            if (!favorite) return;
+
+            restoreFilters(favorite.filters);
+
+            document.getElementById(
+                'favoriteFilterName'
+            ).value = favorite.name;
+
+            localStorage.setItem(
+                'savedCustomerFilters',
+                JSON.stringify(getCurrentFilters())
+            );
+
+            handleSearch(null, 1);
+        }
+
+        function deleteFavoriteFilter() {
+            const select = document.getElementById(
+                'favoriteFilterSelect'
+            );
+
+            const name = select.value;
+
+            if (!name) {
+                alert('Vui lòng chọn bộ lọc muốn xóa.');
+                return;
+            }
+
+            if (!confirm('Bạn có chắc muốn xóa bộ lọc "' + name + '"?')) {
+                return;
+            }
+
+            const favorites = readFavoriteFilters().filter(
+                item => item.name !== name
+            );
+
+            try {
+                localStorage.setItem(
+                    FAVORITES_KEY,
+                    JSON.stringify(favorites)
+                );
+
+                document.getElementById(
+                    'favoriteFilterName'
+                ).value = '';
+
+                renderFavoriteFilters();
+                alert('Đã xóa bộ lọc yêu thích.');
+            } catch (error) {
+                console.error('Khong xoa duoc bo loc:', error);
+                alert('Không thể xóa bộ lọc. Vui lòng thử lại.');
+            }
+        }
+
+        // Xoa dieu kien dang ap dung, khong xoa danh sach yeu thich
         function clearFilter() {
             document.getElementById('filterForm').reset();
+
+            document.getElementById(
+                'favoriteFilterName'
+            ).value = '';
+
+            document.getElementById(
+                'favoriteFilterSelect'
+            ).value = '';
+
             localStorage.removeItem('savedCustomerFilters');
 
-            // Đưa bảng về trạng thái chờ
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('errorState').style.display = 'none';
-            document.getElementById('customerTable').style.display = 'table';
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align: center;">Vui lòng nhập điều kiện và bấm Tìm kiếm.</td></tr>';
-            document.getElementById('pagination').innerHTML = '';
+            handleSearch(null, 1);
         }
-
         // Các hàm phụ trợ hiển thị lỗi/trống
         function showEmptyState() {
             document.getElementById('customerTable').style.display = 'none';
@@ -304,20 +509,37 @@
             document.getElementById('pagination').innerHTML = '';
         }
 
-        // 6. Tự động load lại dữ liệu lọc đã lưu khi người dùng mở trang
+        // 6. Khôi phục bộ lọc và tự động tìm kiếm
         document.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('savedCustomerFilters');
-            if (saved) {
+            renderFavoriteFilters();
+            try {
+                const saved = localStorage.getItem('savedCustomerFilters');
+                if (!saved) return;
+
                 const filters = JSON.parse(saved);
-                if (filters.keyword) document.getElementById('keyword').value = filters.keyword;
-                if (filters.phone) document.getElementById('phone').value = filters.phone;
-                if (filters.status) document.getElementById('status').value = filters.status;
-                if (filters.industry) document.getElementById('industry').value = filters.industry;
-                if (filters.scale) document.getElementById('scale').value = filters.scale;
-                if (filters.region) document.getElementById('region').value = filters.region;
-                if (filters.owner) document.getElementById('owner').value = filters.owner;
+
+                if (!filters || typeof filters !== 'object' ||
+                    Array.isArray(filters)) {
+                    throw new Error('Du lieu bo loc khong hop le');
+                }
+
+                const fields = [
+                    'keyword', 'phone', 'status',
+                    'industry', 'scale', 'region', 'owner'
+                ];
+
+                for (const field of fields) {
+                    if (typeof filters[field] === 'string') {
+                        document.getElementById(field).value = filters[field];
+                    }
+                }
+
+                handleSearch(null, 1);
+            } catch (error) {
+                console.warn('Khong the khoi phuc bo loc:', error);
             }
         });
+
     </script>
 </body>
 </html>

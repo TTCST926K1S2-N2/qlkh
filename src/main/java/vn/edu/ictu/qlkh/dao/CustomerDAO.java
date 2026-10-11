@@ -483,11 +483,109 @@ public class CustomerDAO {
         return new SearchPageData(items, totalItems);
     }
 
+    public SearchPageData searchVisible(
+            long userId, String scope, String keyword, String companyName,
+            String taxCode, String phone, String industry, String status,
+            String companySize, String region, Long ownerId,
+            int page, int size) throws SQLException {
+
+        if (region == null || region.isBlank()) {
+            return searchVisible(userId, scope, keyword, companyName,
+                    taxCode, phone, industry, status, companySize,
+                    ownerId, page, size);
+        }
+
+        if (page < 1 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("Tham so phan trang khong hop le");
+        }
+        if (userId <= 0) {
+            throw new SecurityException("Nguoi dung khong hop le");
+        }
+
+        SearchQuery dataQuery = buildSearchQuery(userId, scope,
+                keyword, companyName, taxCode, phone, industry,
+                status, ownerId, false);
+
+        SearchQuery countQuery = buildSearchQuery(userId, scope,
+                keyword, companyName, taxCode, phone, industry,
+                status, ownerId, true);
+
+        String dataSql = dataQuery.sql;
+        String countSql = countQuery.sql;
+        List<String> patterns = new ArrayList<>();
+
+        if (companySize != null && !companySize.isBlank()) {
+            String normalized = companySize.trim()
+                    .replace('\u2013', '-')
+                    .replace('\u2014', '-');
+
+            String sizePattern = "%" + normalized
+                    .replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_") + "%";
+
+            String condition =
+                    "REPLACE(REPLACE(c.company_size, '\u2013', '-'), '\u2014', '-') LIKE ?";
+
+            dataSql = addCompanySizeCondition(dataSql, condition);
+            countSql = addCompanySizeCondition(countSql, condition);
+            patterns.add(sizePattern);
+        }
+
+        String regionPattern = "%" + region.trim()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_") + "%";
+
+        dataSql = addCompanySizeCondition(dataSql, "c.address LIKE ?");
+        countSql = addCompanySizeCondition(countSql, "c.address LIKE ?");
+        patterns.add(regionPattern);
+
+        List<Customer> items = new ArrayList<>();
+        long totalItems = 0;
+
+        try (Connection conn = DBConnection.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(countSql)) {
+                bindSearchParams(ps, countQuery.params);
+
+                int next = countQuery.params.size() + 1;
+                for (String pattern : patterns) {
+                    ps.setString(next++, pattern);
+                }
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        totalItems = rs.getLong(1);
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(dataSql)) {
+                bindSearchParams(ps, dataQuery.params);
+
+                int next = dataQuery.params.size() + 1;
+                for (String pattern : patterns) {
+                    ps.setString(next++, pattern);
+                }
+
+                ps.setInt(next++, size);
+                ps.setLong(next, (long) (page - 1) * size);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        items.add(mapSearchResult(rs));
+                    }
+                }
+            }
+        }
+
+        return new SearchPageData(items, totalItems);
+    }
     private String addCompanySizeCondition(String sql, String condition) {
-        int order = sql.indexOf(" ORDER BY ");
+        int order = sql.lastIndexOf(" ORDER BY c.id DESC LIMIT ? OFFSET ?");
         String head = order >= 0 ? sql.substring(0, order) : sql;
         String tail = order >= 0 ? sql.substring(order) : "";
-        return head + (head.contains(" WHERE ") ? " AND " : " WHERE ")
+        return head + (head.indexOf(" WHERE ", head.lastIndexOf(" FROM customers c ")) >= 0 ? " AND " : " WHERE ")
                 + condition + tail;
     }
 
