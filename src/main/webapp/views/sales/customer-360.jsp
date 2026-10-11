@@ -25,6 +25,22 @@
           <article class="stat-card"><div class="stat-top"><span>Cơ hội kinh doanh</span></div><strong id="stat-opportunities">—</strong><small id="stat-opportunities-note">Chưa tích hợp</small></article>
           <article class="stat-card"><div class="stat-top"><span>Tệp đính kèm</span></div><strong id="stat-attachments">—</strong><small id="stat-attachments-note">Chưa tích hợp</small></article>
         </section>
+        <section class="card" style="margin:20px 0;padding:20px">
+          <h2>Giá trị hợp đồng</h2>
+          <div id="contract-summary" role="status">Đang tải hợp đồng...</div>
+          <div id="contract-list" style="margin-top:14px">Đang tải danh sách hợp đồng...</div>
+          <form id="contract-form" style="display:none;margin-top:16px;gap:10px;flex-wrap:wrap;align-items:end">
+            <input type="hidden" name="contractId" id="contract-id">
+            <label>Mã hợp đồng <input name="contractCode" required maxlength="80"></label>
+            <label>Tên hợp đồng <input name="contractName" required maxlength="255"></label>
+            <label>Giá trị (VNĐ) <input name="contractValue" type="number" min="0" step="0.01" required></label>
+            <label>Trạng thái <select name="status"><option value="DRAFT">Nháp</option><option value="PENDING">Chờ ký</option><option value="SIGNED">Đã ký</option><option value="CANCELLED">Đã hủy</option></select></label>
+            <label>Ngày ký <input name="signedDate" type="date"></label>
+            <button type="submit">Lưu hợp đồng</button>
+            <button type="button" id="contract-reset">Nhập mới</button>
+          </form>
+          <p id="contract-message" role="status"></p>
+        </section>
         <section class="card" id="s308-support-section" style="margin:20px 0;padding:20px;">
           <div class="card-header">
             <div>
@@ -56,7 +72,10 @@
     </div>
   </div>
 </div>
-<script>window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';</script>
-<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=4"></script>
+<script>
+window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';
+window.CONTRACT_CAN_WRITE = <%= ("ADMIN".equalsIgnoreCase(String.valueOf(session.getAttribute("userRole"))) || "MANAGER".equalsIgnoreCase(String.valueOf(session.getAttribute("userRole")))) ? "true" : "false" %>;
+</script>
+<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=5"></script>
 </body>
 </html>

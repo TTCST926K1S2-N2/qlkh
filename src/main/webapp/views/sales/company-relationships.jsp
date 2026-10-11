@@ -170,7 +170,9 @@
 
             <!-- YÊU CẦU 4: Hiển thị giá trị hợp đồng tổng hợp -->
             <div id="totalSummaryBox" class="total-summary" style="display: none;">
-                Tổng giá trị hợp đồng từ các công ty con: <span id="totalContractValue">0</span> VNĐ
+                Giá trị hợp đồng toàn nhóm (bao gồm công ty đang chọn và các công ty con ở mọi cấp):
+                Đã ký: <span id="totalContractValue">0</span> VNĐ;
+                Chưa ký: <span id="totalUnsignedValue">0</span> VNĐ
             </div>
         </section>
     </main>
@@ -278,6 +280,16 @@
             c => Number(c.parentId) === currentId
         );
 
+        // The backend traverses all descendants and includes the parent once.
+        fetch('${pageContext.request.contextPath}/api/v1/contracts/summary/group/' + encodeURIComponent(currentId), {credentials:'same-origin'})
+          .then(r => {if (!r.ok) throw Error('HTTP '+r.status); return r.json();})
+          .then(data => {
+              document.getElementById('totalContractValue').textContent = Number(data.signedValue).toLocaleString('vi-VN');
+              document.getElementById('totalUnsignedValue').textContent = Number(data.unsignedValue).toLocaleString('vi-VN');
+              totalSummaryBox.style.display = 'block';
+          })
+          .catch(() => {document.getElementById('totalContractValue').textContent = 'Không có quyền hoặc chưa có dữ liệu';totalSummaryBox.style.display='block';});
+
         if (children.length === 0) {
             subsidiaryTable.style.display = 'none';
             emptyState.style.display = 'block';
@@ -293,9 +305,9 @@
             const values = [
                 String(index + 1),
                 company.companyName,
-                'Chưa có dữ liệu',
-                'Chưa có dữ liệu',
-                'Chưa có dữ liệu hợp đồng'
+                company.taxCode || '—',
+                company.status || '—',
+                'Đang tải...'
             ];
 
             values.forEach(value => {
@@ -305,6 +317,13 @@
             });
 
             tableBody.appendChild(row);
+            fetch('${pageContext.request.contextPath}/api/v1/contracts/summary/' + encodeURIComponent(company.id), {credentials:'same-origin'})
+              .then(r => {if (!r.ok) throw Error('HTTP '+r.status); return r.json();})
+              .then(data => {
+                const amount = Number(data.signedValue);
+                row.cells[4].textContent = amount.toLocaleString('vi-VN');
+              })
+              .catch(() => {row.cells[4].textContent = 'Không thể tải';});
         });
     }
 

@@ -38,12 +38,7 @@ public class ImportCustomerService {
             String role)
             throws IOException {
 
-        return process(
-                inputStream,
-                userId,
-                role,
-                false
-        );
+        return importCustomers(inputStream, userId, role, "error");
     }
 
     public ImportCustomerResult previewCustomers(
@@ -52,20 +47,29 @@ public class ImportCustomerService {
             String role)
             throws IOException {
 
-        return process(
-                inputStream,
-                userId,
-                role,
-                true
-        );
+        return previewCustomers(inputStream, userId, role, "error");
+    }
+
+    public ImportCustomerResult importCustomers(InputStream stream, long userId, String role,
+                                                String duplicateMode) throws IOException {
+        return process(stream, userId, role, false, duplicateMode);
+    }
+
+    public ImportCustomerResult previewCustomers(InputStream stream, long userId, String role,
+                                                 String duplicateMode) throws IOException {
+        return process(stream, userId, role, true, duplicateMode);
     }
 
     private ImportCustomerResult process(
             InputStream inputStream,
             long userId,
             String role,
-            boolean preview)
+            boolean preview,
+            String duplicateMode)
             throws IOException {
+        if (!Set.of("error", "skip", "update").contains(duplicateMode)) {
+            throw new IllegalArgumentException("Che do xu ly trung khong hop le");
+        }
 
         ImportCustomerResult result =
                 new ImportCustomerResult();
@@ -143,18 +147,25 @@ public class ImportCustomerService {
                      * - ma so thue
                      * - trung ma so thue trong DB
                      */
-                    customerService.validateForImport(
-                            customer,
-                            userId,
-                            role
-                    );
-
-                    if (!preview) {
-                        customerService.create(
-                                customer,
-                                userId,
-                                role
-                        );
+                    Customer existing = normalizedTaxCode == null ? null
+                            : customerService.findVisibleByTaxCode(taxCode, userId, role);
+                    if (existing != null && "skip".equals(duplicateMode)) {
+                        result.addError(excelRow, taxCode, "Bo qua khach hang trung ma so thue");
+                        continue;
+                    }
+                    if (existing != null && "update".equals(duplicateMode)) {
+                        // Keep owner and existing values for blank optional Excel cells.
+                        customer.setOwnerId(existing.getOwnerId());
+                        if (customer.getIndustry() == null) customer.setIndustry(existing.getIndustry());
+                        if (customer.getCompanySize() == null) customer.setCompanySize(existing.getCompanySize());
+                        if (customer.getWebsite() == null) customer.setWebsite(existing.getWebsite());
+                        if (customer.getAddress() == null) customer.setAddress(existing.getAddress());
+                        if (customer.getStatus() == null) customer.setStatus(existing.getStatus());
+                        if (!preview && !customerService.update(existing.getId(), customer, userId, role))
+                            throw new IllegalArgumentException("Khong the cap nhat khach hang");
+                    } else {
+                        customerService.validateForImport(customer, userId, role);
+                        if (!preview) customerService.create(customer, userId, role);
                     }
 
                     if (normalizedTaxCode != null) {

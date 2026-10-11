@@ -74,6 +74,9 @@ public class AuthenticationFilter implements Filter {
                 || path.startsWith("/api/v1/customer-relationships/")
                 || path.equals("/api/v1/customers")
                 || path.startsWith("/api/v1/customers/")
+                || path.equals("/api/v1/contracts")
+                || path.startsWith("/api/v1/contracts/")
+
                 || path.equals("/api/v1/contacts")
                 || path.startsWith("/api/v1/contacts/")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

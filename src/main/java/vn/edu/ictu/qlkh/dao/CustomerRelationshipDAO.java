@@ -5,10 +5,10 @@ import java.sql.*;
 import java.util.*;
 
 public class CustomerRelationshipDAO {
-    public record Link(long id, String name, Long parentId) {}
+    public record Link(long id, String name, Long parentId, String taxCode, String status) {}
 
     public List<Link> all() throws SQLException {
-        String sql = "SELECT c.id,c.company_name,c.parent_id FROM customers c " +
+        String sql = "SELECT c.id,c.company_name,c.parent_id,c.tax_code,c.status FROM customers c " +
                 "WHERE NOT EXISTS (SELECT 1 FROM customer_merges m WHERE m.source_customer_id=c.id) ORDER BY c.id";
         try (Connection con=DBConnection.getConnection();
              PreparedStatement ps=con.prepareStatement(sql);
@@ -16,7 +16,7 @@ public class CustomerRelationshipDAO {
             List<Link> links=new ArrayList<>();
             while(rs.next()) {
                 long p=rs.getLong("parent_id");
-                links.add(new Link(rs.getLong("id"),rs.getString("company_name"),rs.wasNull()?null:p));
+                links.add(new Link(rs.getLong("id"),rs.getString("company_name"),rs.wasNull()?null:p,rs.getString("tax_code"),rs.getString("status")));
             }
             return links;
         }
