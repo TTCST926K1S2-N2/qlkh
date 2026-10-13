@@ -194,10 +194,76 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        message.textContent =
-            "Thông tin đã hợp lệ nhưng yêu cầu CHƯA được gửi. " +
-            "Chức năng gửi và lưu Lead sẽ hoạt động sau khi tích hợp Backend.";
+        const params = new URLSearchParams();
 
-        message.hidden = false;
+        fieldNames.forEach(function (name) {
+            params.set(name, getValue(name));
+        });
+
+        params.set("sourceForm", "website-default");
+        const honeypotField = form.elements.namedItem("website");
+        params.set("website", honeypotField ? honeypotField.value : "");
+
+        const contextPath = window.location.pathname.split("/")[1];
+        const apiUrl = "/" + contextPath + "/api/v1/lead-capture";
+
+        setSubmitState("loading");
+
+        fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+            },
+            body: params.toString(),
+            credentials: "same-origin"
+        })
+        .then(async function (response) {
+            let data = null;
+
+            try {
+                data = await response.json();
+            } catch (error) {
+                throw new Error("Phản hồi từ máy chủ không hợp lệ.");
+            }
+
+            if (response.status === 201 && data.success === true) {
+                setSubmitState(
+                    "success",
+                    "Đã gửi yêu cầu tư vấn thành công."
+                );
+                form.reset();
+                return;
+            }
+
+            if (response.status === 429) {
+                throw new Error(
+                    "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
+                );
+            }
+
+            if (response.status === 400) {
+                throw new Error(
+                    "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
+                );
+            }
+
+            if (response.status === 413) {
+                throw new Error("Nội dung yêu cầu quá lớn.");
+            }
+
+            if (response.status === 415) {
+                throw new Error("Định dạng dữ liệu không được hỗ trợ.");
+            }
+
+            throw new Error(
+                "Không thể gửi yêu cầu. Vui lòng thử lại sau."
+            );
+        })
+        .catch(function (error) {
+            setSubmitState(
+                "error",
+                error.message || "Lỗi kết nối đến máy chủ."
+            );
+        });
     });
 });

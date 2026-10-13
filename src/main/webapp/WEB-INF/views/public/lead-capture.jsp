@@ -16,12 +16,25 @@
                 <span>HỆ THỐNG QLKH</span>
             </div>
 
+            <a class="lead-back-link"
+   href="${pageContext.request.contextPath}/home">Quay về trang chủ</a>
+
             <header class="lead-heading">
                 <h1>Đăng ký nhận tư vấn</h1>
                 <p>Vui lòng để lại thông tin để đội ngũ tư vấn liên hệ với bạn.</p>
             </header>
 
             <form id="leadCaptureForm" novalidate>
+                <div class="honeypot-field"
+                     aria-hidden="true"
+                     style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+                    <label for="website">Website</label>
+                    <input type="text"
+                           id="website"
+                           name="website"
+                           tabindex="-1"
+                           autocomplete="off">
+                </div>
                 <input type="hidden"
                        id="formId"
                        name="formId"

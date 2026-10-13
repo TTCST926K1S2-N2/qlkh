@@ -230,3 +230,23 @@ body {
 #embedMessage:empty {
     display: none;
 }
+/* S4-01: Back navigation */
+.lead-back-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 24px;
+    padding: 10px 14px;
+    border: 1px solid #d4dfe9;
+    border-radius: 8px;
+    background: #f5f9fd;
+    color: #1975d2;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.lead-back-link:hover,
+.lead-back-link:focus-visible {
+    background: #e7f3ff;
+    border-color: #3498db;
+}

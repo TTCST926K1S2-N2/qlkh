@@ -54,7 +54,8 @@ public class AuthorizationFilter implements Filter {
          * Không kiểm tra lại chính trang Access Denied.
          * Tránh vòng lặp khi request bị từ chối và được forward đến đây.
          */
-        if ("/lead-capture".equals(path)
+        if ("/api/v1/lead-capture".equals(path)
+                || "/lead-capture".equals(path)
                 || "/access-denied".equals(path)
                 || path.startsWith("/views/errors/")
                 || path.startsWith("/assets/")
