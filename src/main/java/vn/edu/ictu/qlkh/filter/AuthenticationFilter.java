@@ -122,7 +122,8 @@ public class AuthenticationFilter implements Filter {
             return false;
         }
 
-        return path.equals("/login")
+        return path.equals("/lead-capture")
+                || path.equals("/login")
                 || path.equals("/logout")
                 || path.equals("/forgot-password")
                 || path.equals("/reset-password")
