@@ -8,6 +8,73 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    function initializeEmbedCode() {
+        const embedCode = document.getElementById("embedCode");
+        const copyButton = document.getElementById("copyEmbedCode");
+        const embedMessage = document.getElementById("embedMessage");
+        const formIdField = document.getElementById("formId");
+
+        if (!embedCode || !copyButton || !embedMessage || !formIdField) {
+            return;
+        }
+
+        const formUrl = new URL(window.location.href);
+        formUrl.search = "";
+        formUrl.hash = "";
+        formUrl.searchParams.set("formId", formIdField.value);
+
+        const iframeCode =
+            '<iframe src="' + formUrl.href + '"' +
+            ' title="Đăng ký nhận tư vấn"' +
+            ' width="100%" height="720"' +
+            ' style="border:0;max-width:100%;"' +
+            ' loading="lazy"></iframe>';
+
+        embedCode.value = iframeCode;
+
+        copyButton.addEventListener("click", async function () {
+            try {
+                await navigator.clipboard.writeText(embedCode.value);
+                embedMessage.textContent = "Đã sao chép mã nhúng.";
+            } catch (error) {
+                embedCode.focus();
+                embedCode.select();
+                embedMessage.textContent =
+                    "Không thể sao chép tự động. Hãy nhấn Ctrl+C để sao chép.";
+            }
+        });
+    }
+
+    initializeEmbedCode();
+    const submitButton = document.getElementById("leadSubmitButton");
+    const submitText = document.getElementById("leadSubmitText");
+
+    let isSubmitting = false;
+
+    function setSubmitState(state, text) {
+        if (!submitButton || !submitText) {
+            return;
+        }
+
+        isSubmitting = state === "loading";
+        submitButton.disabled = isSubmitting;
+        submitButton.setAttribute("aria-busy", String(isSubmitting));
+
+        submitText.textContent = isSubmitting
+            ? "Đang gửi..."
+            : "Gửi yêu cầu tư vấn";
+
+        if (state === "success") {
+            message.textContent = text || "Yêu cầu đã được gửi thành công.";
+            message.hidden = false;
+        } else if (state === "error") {
+            message.textContent = text || "Gửi yêu cầu thất bại. Vui lòng thử lại.";
+            message.hidden = false;
+        } else if (state === "loading") {
+            message.textContent = "Hệ thống đang xử lý yêu cầu...";
+            message.hidden = false;
+        }
+    }
     const fieldNames = [
         "fullName",
         "email",
@@ -107,6 +174,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     form.addEventListener("submit", function (event) {
         event.preventDefault();
+
+        if (isSubmitting) {
+            return;
+        }
 
         message.hidden = true;
 

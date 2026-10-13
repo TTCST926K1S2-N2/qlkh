@@ -22,6 +22,10 @@
             </header>
 
             <form id="leadCaptureForm" novalidate>
+                <input type="hidden"
+                       id="formId"
+                       name="formId"
+                       value="public-consultation">
                 <div class="form-group">
                     <label for="fullName">Họ và tên <span>*</span></label>
                     <input id="fullName" name="fullName"
@@ -69,10 +73,32 @@
                 <div id="leadMessage" class="lead-message"
                      role="status" aria-live="polite" hidden></div>
 
-                <button type="submit" class="submit-btn">
-                    Gửi yêu cầu tư vấn
+                <button type="submit"
+                        id="leadSubmitButton"
+                        class="submit-btn">
+                    <span id="leadSubmitText">Gửi yêu cầu tư vấn</span>
                 </button>
             </form>
+
+            <section class="lead-embed" aria-labelledby="embedHeading">
+                <h2 id="embedHeading">Lấy mã nhúng biểu mẫu</h2>
+                <p>Sao chép mã HTML để nhúng biểu mẫu vào website khác.</p>
+
+                <textarea id="embedCode"
+                          rows="4"
+                          readonly
+                          aria-label="Mã nhúng iframe"></textarea>
+
+                <button type="button"
+                        id="copyEmbedCode"
+                        class="submit-btn">
+                    Sao chép mã nhúng
+                </button>
+
+                <p id="embedMessage"
+                   role="status"
+                   aria-live="polite"></p>
+            </section>
         </section>
     </main>
 
