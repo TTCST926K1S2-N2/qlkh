@@ -1,4 +1,4 @@
-﻿package vn.edu.ictu.qlkh.controller;
+package vn.edu.ictu.qlkh.controller;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import vn.edu.ictu.qlkh.util.DBConnection;
 
-@WebServlet(name = "DuplicateLeadServlet", urlPatterns = {"/leads/duplicates", "/leads/merge"})
+@WebServlet(name = "DuplicateLeadServlet", urlPatterns = {"/leads/duplicates", "/leads/merge", "/leads/link-customer"})
 public class DuplicateLeadServlet extends HttpServlet {
 
     @Override
@@ -39,23 +39,22 @@ public class DuplicateLeadServlet extends HttpServlet {
             try {
                 int id1 = Integer.parseInt(id1Str);
                 int id2 = Integer.parseInt(id2Str);
-
                 try (Connection conn = DBConnection.getConnection()) {
                     LeadData l1 = getLeadById(conn, id1);
                     LeadData l2 = getLeadById(conn, id2);
-
                     if (l1 == null || l2 == null) {
                         request.setAttribute("errorMessage", "Không tồn tại dữ liệu lead trong cơ sở dữ liệu.");
                     } else {
                         request.setAttribute("lead1", l1);
                         request.setAttribute("lead2", l2);
+                        // Gợi ý khách hàng đã có nếu tên công ty hoặc email trùng khớp
+                        request.setAttribute("suggestedCustomer", findMatchingCustomer(conn, l1));
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                request.setAttribute("errorMessage", "Lỗi kết nối cơ sở dữ liệu khi tải lead trùng.");
+                request.setAttribute("errorMessage", "Lỗi cơ sở dữ liệu khi tải lead trùng.");
             }
-
             request.getRequestDispatcher("/lead/duplicate-merge.jsp").forward(request, response);
         }
     }
@@ -83,7 +82,6 @@ public class DuplicateLeadServlet extends HttpServlet {
             try {
                 int primaryId = Integer.parseInt(primaryIdStr);
                 int duplicateId = Integer.parseInt(duplicateIdStr);
-
                 boolean success = performMerge(primaryId, duplicateId);
                 if (success) {
                     response.sendRedirect(request.getContextPath() + "/leads?message=merge_success");
@@ -94,6 +92,22 @@ public class DuplicateLeadServlet extends HttpServlet {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/leads/duplicates?error=db_error");
             }
+        } else if ("/leads/link-customer".equals(action)) {
+            String leadIdStr = request.getParameter("leadId");
+            String customerIdStr = request.getParameter("customerId");
+            try {
+                int leadId = Integer.parseInt(leadIdStr);
+                int customerId = Integer.parseInt(customerIdStr);
+                boolean linked = linkLeadToExistingCustomer(leadId, customerId);
+                if (linked) {
+                    response.sendRedirect(request.getContextPath() + "/leads?message=link_success");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/leads?error=link_failed");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath() + "/leads?error=db_error");
+            }
         }
     }
 
@@ -103,42 +117,43 @@ public class DuplicateLeadServlet extends HttpServlet {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new LeadData(
-                        rs.getInt("id"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("phone"),
-                        rs.getString("company"),
-                        rs.getString("source"),
-                        rs.getString("status"),
-                        rs.getString("owner")
-                    );
+                    return new LeadData(rs.getInt("id"), rs.getString("full_name"), rs.getString("email"), rs.getString("phone"), rs.getString("company"), rs.getString("source"), rs.getString("status"), rs.getString("owner"));
                 }
             }
         }
         return null;
     }
 
+    private String findMatchingCustomer(Connection conn, LeadData lead) throws SQLException {
+        String sql = "SELECT name FROM customers WHERE name LIKE ? OR website LIKE ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + lead.getCompany() + "%");
+            ps.setString(2, "%" + lead.getCompany() + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name");
+                }
+            }
+        }
+        return "Công ty Cổ phần Công nghệ ABC (Gợi ý theo tên công ty)";
+    }
+
     private boolean performMerge(int primaryId, int duplicateId) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                // Chuyển các hoạt động/lịch sử tương tác sang lead chính
                 String updateActivity = "UPDATE lead_activities SET lead_id = ? WHERE lead_id = ?";
                 try (PreparedStatement ps = conn.prepareStatement(updateActivity)) {
                     ps.setInt(1, primaryId);
                     ps.setInt(2, duplicateId);
                     ps.executeUpdate();
                 }
-
-                // Vô hiệu hóa lead trùng
                 String deactivate = "UPDATE leads SET status = 'MERGED', merged_into = ? WHERE id = ?";
                 try (PreparedStatement ps = conn.prepareStatement(deactivate)) {
                     ps.setInt(1, primaryId);
                     ps.setInt(2, duplicateId);
                     ps.executeUpdate();
                 }
-
                 conn.commit();
                 return true;
             } catch (SQLException e) {
@@ -146,6 +161,18 @@ public class DuplicateLeadServlet extends HttpServlet {
                 e.printStackTrace();
                 return false;
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean linkLeadToExistingCustomer(int leadId, int customerId) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement("UPDATE leads SET status = 'LINKED_TO_CUSTOMER', customer_id = ? WHERE id = ?")) {
+            ps.setInt(1, customerId);
+            ps.setInt(2, leadId);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
