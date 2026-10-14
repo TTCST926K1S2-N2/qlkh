@@ -178,15 +178,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 acceptButton.type = "button";
                 acceptButton.className = "sla-action primary";
                 acceptButton.textContent = "Tiếp nhận";
-                acceptButton.disabled = true;
-                acceptButton.title = "Chờ tích hợp API Backend";
+                acceptButton.addEventListener("click", () => {
+                    submitLeadAction(lead.id, "accept");
+                });
 
                 const rejectButton = document.createElement("button");
                 rejectButton.type = "button";
                 rejectButton.className = "sla-action";
                 rejectButton.textContent = "Từ chối";
-                rejectButton.disabled = true;
-                rejectButton.title = "Chờ tích hợp API Backend";
+                rejectButton.addEventListener("click", () => {
+                    submitLeadAction(lead.id, "reject");
+                });
 
                 actionCell.append(acceptButton, rejectButton);
             } else {
@@ -197,17 +199,161 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function refreshLeads() {
-        // Không gọi API khi chưa thống nhất hợp đồng Backend.
-        dataLoaded = false;
-        leads = [];
+    let actionPending = false;
 
-        renderLeads();
+    async function submitLeadAction(leadId, action) {
+        if (actionPending) return;
 
-        showMessage(
-            "Chưa tích hợp API Backend S4-07. " +
-            "Danh sách và thao tác tiếp nhận/từ chối chưa khả dụng."
-        );
+        if (!Number.isSafeInteger(Number(leadId)) ||
+            Number(leadId) <= 0) {
+            showMessage("ID Lead không hợp lệ.", "error");
+            return;
+        }
+
+        if (action !== "accept" && action !== "reject") return;
+
+        let reason = "";
+
+        if (action === "reject") {
+            const input = window.prompt(
+                "Nhập lý do từ chối Lead (tối đa 1000 ký tự):"
+            );
+
+            if (input === null) return;
+
+            reason = input.trim();
+
+            if (!reason || reason.length > 1000) {
+                showMessage(
+                    "Lý do từ chối phải có từ 1 đến 1000 ký tự.",
+                    "error"
+                );
+                return;
+            }
+        } else {
+            if (!window.confirm(
+                "Bạn có chắc muốn tiếp nhận Lead #" + leadId + "?"
+            )) {
+                return;
+            }
+        }
+
+        actionPending = true;
+        refreshButton.disabled = true;
+
+        tableBody.querySelectorAll("button").forEach(button => {
+            button.disabled = true;
+        });
+
+        showMessage("Đang xử lý Lead #" + leadId + "...");
+
+        try {
+            const body = new URLSearchParams();
+
+            if (action === "reject") {
+                body.set("reason", reason);
+            }
+
+            const response = await fetch(
+                "/qlkh/api/v1/leads/" +
+                encodeURIComponent(leadId) +
+                "/" + action,
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type":
+                            "application/x-www-form-urlencoded;charset=UTF-8"
+                    },
+                    body: body.toString()
+                }
+            );
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!contentType.toLowerCase().includes("application/json")) {
+                throw new Error(
+                    "Phiên đăng nhập hết hạn hoặc API trả về HTML."
+                );
+            }
+
+            const result = await response.json();
+
+            if (!response.ok || result.success !== true) {
+                throw new Error(
+                    result.message || "Không thể xử lý Lead."
+                );
+            }
+
+            await refreshLeads();
+
+        } catch (error) {
+            showMessage(error.message, "error");
+            renderLeads();
+        } finally {
+            actionPending = false;
+            refreshButton.disabled = false;
+        }
+    }
+    async function refreshLeads() {
+        refreshButton.disabled = true;
+        showMessage("Đang tải danh sách Lead...");
+
+        try {
+            const response = await fetch(
+                "/qlkh/api/v1/leads/sla",
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!contentType.toLowerCase().includes("application/json")) {
+                throw new Error(
+                    "Phiên đăng nhập hết hạn hoặc API trả về HTML."
+                );
+            }
+
+            const result = await response.json();
+
+            if (!response.ok || result.success !== true) {
+                throw new Error(
+                    result.message || "Không thể tải danh sách Lead."
+                );
+            }
+
+            if (!Array.isArray(result.leads)) {
+                throw new Error("Dữ liệu Lead không hợp lệ.");
+            }
+
+            leads = result.leads;
+            dataLoaded = true;
+
+            renderLeads();
+
+            showMessage(
+                leads.length === 0
+                    ? "Chưa có Lead được phân công cho tài khoản này."
+                    : "Đã tải " + leads.length + " Lead.",
+                "success"
+            );
+        } catch (error) {
+            leads = [];
+            dataLoaded = false;
+
+            renderLeads();
+            showMessage(error.message, "error");
+        } finally {
+            refreshButton.disabled = false;
+        }
     }
 
     searchInput.addEventListener("input", renderLeads);
