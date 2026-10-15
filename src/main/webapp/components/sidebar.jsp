@@ -201,7 +201,19 @@
                         </span>
                     </a>
                 </li>
-                                <li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/lead-sla.jsp"
+                       class="<%= currentURI.contains("/views/sales/lead-sla.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quản lý SLA Lead
+                        </span>
+                    </a>
+                </li>
+
+                <li>
                     <a href="${pageContext.request.contextPath}/views/sales/company-relationships.jsp"
                        class="<%= currentURI.contains("/views/sales/company-relationships.jsp")
                                ? "active"
@@ -227,7 +239,7 @@
 
                     </a>
                 </li>
-                                <li>
+                <li>
                     <a href="${pageContext.request.contextPath}/views/product/product-service.jsp"
                        class="<%= currentURI.contains("/views/product/product-service.jsp")
                                ? "active"
@@ -397,7 +409,7 @@
                     </a>
 
                 </li>
-            <li>
+                <li>
                 <a
                     href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
                     class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
