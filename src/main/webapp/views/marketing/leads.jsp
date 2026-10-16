@@ -181,7 +181,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Import thành công ${data.successCount}/${data.totalRows} bản ghi!`);
+                    alert('Import thành công ' + data.successCount + '/' + data.totalRows + ' bản ghi!');
                     location.reload();
                 } else {
                     alert('Lỗi Import: ' + (data.message || 'Lưu dữ liệu thất bại'));
@@ -234,27 +234,25 @@
                 const tr = document.createElement('tr');
 
                 // Highlight bản ghi lỗi (màu đỏ) hoặc trùng lặp (màu vàng)
-                if (!row.valid) {
-                    tr.classList.add('table-danger');
-                } else if (row.duplicate) {
+                if (row.duplicate) {
                     tr.classList.add('table-warning');
+                } else if (!row.valid) {
+                    tr.classList.add('table-danger');
                 }
 
-                tr.innerHTML = `
-                    <td>${row.row}</td>
-                    <td>${escapeHtml(row.companyName)}</td>
-                    <td>${escapeHtml(row.contactName)}</td>
-                    <td>${escapeHtml(row.email)}</td>
-                    <td>${escapeHtml(row.phone)}</td>
-                    <td>
-                        ${!row.valid 
-                            ? `<span class="badge bg-danger">${escapeHtml(row.message || 'Không hợp lệ')}</span>`
-                            : (row.duplicate 
-                                ? '<span class="badge bg-warning text-dark">Bản ghi trùng lặp</span>' 
-                                : '<span class="badge bg-success">Hợp lệ</span>')
-                        }
-                    </td>
-                `;
+                const statusHtml = row.duplicate
+                    ? '<span class="badge bg-warning text-dark">Bản ghi trùng lặp</span>'
+                    : (!row.valid
+                        ? '<span class="badge bg-danger">' + escapeHtml(row.message || 'Không hợp lệ') + '</span>'
+                        : '<span class="badge bg-success">Hợp lệ</span>');
+
+                tr.innerHTML =
+                    '<td>' + row.row + '</td>' +
+                    '<td>' + escapeHtml(row.companyName) + '</td>' +
+                    '<td>' + escapeHtml(row.contactName) + '</td>' +
+                    '<td>' + escapeHtml(row.email) + '</td>' +
+                    '<td>' + escapeHtml(row.phone) + '</td>' +
+                    '<td>' + statusHtml + '</td>';
                 tbody.appendChild(tr);
             });
 
