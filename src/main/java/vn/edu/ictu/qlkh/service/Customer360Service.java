@@ -28,6 +28,44 @@ public class Customer360Service {
         this.permissionService = Objects.requireNonNull(permissionService);
     }
 
+    /**
+     * Tao co hoi kinh doanh sau khi kiem tra quyen truy cap khach hang.
+     */
+    public long createOpportunity(
+            long customerId,
+            long userId,
+            String role,
+            String name,
+            Long stageId,
+            java.math.BigDecimal expectedValue,
+            java.time.LocalDate expectedCloseDate)
+            throws SQLException {
+
+        if (customerId <= 0 || userId <= 0) {
+            throw new IllegalArgumentException("ID khong hop le");
+        }
+
+        DataScope scope = permissionService.resolveDataScope(role);
+
+        if (scope == null) {
+            throw new SecurityException("Khong co quyen truy cap");
+        }
+
+        Customer customer = customerDAO.findVisibleById(
+                customerId, userId, scope.name());
+
+        if (customer == null) {
+            throw new SecurityException("Khong co quyen voi khach hang");
+        }
+
+        return customer360DAO.createOpportunity(
+                customerId,
+                name,
+                stageId,
+                expectedValue,
+                expectedCloseDate
+        );
+    }
     /** Returns null for missing OR inaccessible customers (no ID disclosure). */
     public Customer360DTO get(long customerId, long userId, String role)
             throws SQLException {

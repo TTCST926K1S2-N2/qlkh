@@ -101,6 +101,72 @@ public class Customer360Servlet extends HttpServlet {
         }
     }
 
+    /**
+     * POST /api/v1/customers/360/{id}
+     * Tao co hoi kinh doanh cho khach hang.
+     */
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws IOException {
+
+        try {
+            Actor actor = actor(req);
+
+            if (actor == null) {
+                error(res, 401, "Chua dang nhap");
+                return;
+            }
+
+            if (!Set.of("SALES", "MANAGER", "ADMIN").contains(actor.role())) {
+                error(res, 403, "Khong co quyen truy cap");
+                return;
+            }
+
+            long customerId = pathId(req);
+
+            req.setCharacterEncoding("UTF-8");
+
+            String name = req.getParameter("name");
+
+            String stageText = req.getParameter("stageId");
+            Long stageId = stageText == null || stageText.isBlank()
+                    ? null : Long.valueOf(stageText);
+
+            String valueText = req.getParameter("expectedValue");
+            java.math.BigDecimal expectedValue =
+                    valueText == null || valueText.isBlank()
+                    ? null : new java.math.BigDecimal(valueText);
+
+            String dateText = req.getParameter("expectedCloseDate");
+            java.time.LocalDate expectedCloseDate =
+                    dateText == null || dateText.isBlank()
+                    ? null : java.time.LocalDate.parse(dateText);
+
+            long opportunityId = service.createOpportunity(
+                    customerId,
+                    actor.id(),
+                    actor.role(),
+                    name,
+                    stageId,
+                    expectedValue,
+                    expectedCloseDate
+            );
+
+            send(res, 201,
+                    "{\"success\":true,\"id\":" + opportunityId + "}");
+
+        } catch (IllegalArgumentException ex) {
+            error(res, 400, "Du lieu khong hop le");
+        } catch (SecurityException ex) {
+            error(res, 403, "Khong co quyen truy cap");
+        } catch (SQLException ex) {
+            log("Customer 360 create opportunity database error", ex);
+            error(res, 500, "Loi co so du lieu");
+        } catch (RuntimeException ex) {
+            log("Customer 360 create opportunity error", ex);
+            error(res, 500, "Loi he thong");
+        }
+    }
     private void error(HttpServletResponse res, int status, String message)
             throws IOException {
         send(res, status, "{\"success\":false,\"message\":"

@@ -67,8 +67,58 @@
           </div>
           <div class="dashboard-secondary">
             <section class="card"><div class="card-header"><div><span class="section-label">COMPANY PROFILE</span><h2>Thông tin doanh nghiệp</h2></div></div><div class="company-grid"><div class="info-item"><span>Ngành nghề</span><strong id="industry">-</strong></div><div class="info-item"><span>Quy mô</span><strong id="company-size">-</strong></div><div class="info-item"><span>Website</span><strong id="website">-</strong></div><div class="info-item"><span>Địa chỉ</span><strong id="address">-</strong></div></div></section>
-            <section class="card"><div class="card-header"><div><span class="section-label">OPPORTUNITIES</span><h2>Cơ hội kinh doanh</h2></div></div><div id="opportunities-section" class="section-body">Đang tải...</div></section>
-            <section class="card"><div class="card-header"><div><span class="section-label">ATTACHMENTS</span><h2>Tệp đính kèm</h2></div></div><div id="attachments-section" class="section-body">Đang tải...</div></section>
+            <section class="card"><div class="card-header"><div><span class="section-label">OPPORTUNITIES</span><h2>Cơ hội kinh doanh</h2></div></div><div id="opportunities-section" class="section-body">Đang tải...</div>
+
+<div style="padding:16px">
+  <button type="button" id="opportunity-toggle"
+    style="padding:10px 16px;border:0;border-radius:6px;background:#2563eb;color:white;cursor:pointer">
+    Thêm cơ hội
+  </button>
+
+  <form id="opportunity-form" hidden style="margin-top:16px">
+    <label style="display:block;margin-bottom:10px">
+      Tên cơ hội
+      <input name="name" required maxlength="255"
+        style="display:block;width:100%;padding:9px;box-sizing:border-box">
+    </label>
+
+    <label style="display:block;margin-bottom:10px">
+      Giai đoạn bán hàng
+      <select name="stageId" id="opportunity-stage"
+        style="display:block;width:100%;padding:9px;box-sizing:border-box">
+        <option value="">Chọn giai đoạn</option>
+      </select>
+    </label>
+
+    <label style="display:block;margin-bottom:10px">
+      Giá trị dự kiến (VNĐ)
+      <input name="expectedValue" type="number" min="0" step="0.01"
+        style="display:block;width:100%;padding:9px;box-sizing:border-box">
+    </label>
+
+    <label style="display:block;margin-bottom:10px">
+      Ngày dự kiến chốt
+      <input name="expectedCloseDate" type="date"
+        style="display:block;width:100%;padding:9px;box-sizing:border-box">
+    </label>
+
+    <button type="submit"
+      style="padding:10px 16px;border:0;border-radius:6px;background:#2563eb;color:white;cursor:pointer">
+      Lưu cơ hội
+    </button>
+  </form>
+
+  <p id="opportunity-message" role="status"></p>
+</div></section>
+            <section class="card"><div class="card-header"><div><span class="section-label">ATTACHMENTS</span><h2>Tệp đính kèm</h2></div></div><div id="attachments-section" class="section-body">Đang tải...</div>
+<div style="padding:16px">
+  <form id="attachment-upload-form" enctype="multipart/form-data">
+    <label for="attachment-file">Chọn tệp (PDF, PNG, JPG, DOCX, XLSX; tối đa 10 MB)</label>
+    <input id="attachment-file" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx" required style="display:block;margin:10px 0;max-width:100%">
+    <button type="submit" style="padding:10px 16px;border:0;border-radius:6px;background:#2563eb;color:white;cursor:pointer">Tải tệp lên</button>
+  </form>
+  <p id="attachment-upload-message" role="status"></p>
+</div></section>
           </div>
         </div>
       </main>
@@ -79,6 +129,6 @@
 window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';
 window.CONTRACT_CAN_WRITE = <%= ("ADMIN".equalsIgnoreCase(String.valueOf(session.getAttribute("userRole"))) || "MANAGER".equalsIgnoreCase(String.valueOf(session.getAttribute("userRole")))) ? "true" : "false" %>;
 </script>
-<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=6"></script>
+<script src="${pageContext.request.contextPath}/assets/js/customer-360.js?v=7"></script>
 </body>
 </html>

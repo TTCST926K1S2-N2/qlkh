@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateStat(key,items,available){const count=$("stat-"+key),note=$("stat-"+key+"-note");count.textContent=available?String(items.length):"—";note.textContent=available?(items.length?"Bản ghi hiện có":"Chưa có bản ghi"):"Chưa tích hợp nguồn dữ liệu";}
   function renderContacts(data){const el=$("contacts-section");el.replaceChildren();const available=data.availability?.contacts===true,items=Array.isArray(data.contacts)?data.contacts:[];updateStat("contacts",items,available);if(!available){el.append(empty("♙","Chưa tích hợp","Nguồn dữ liệu người liên hệ chưa sẵn sàng."));return;}if(!items.length){el.append(empty("♙","Chưa có người liên hệ","Chưa ghi nhận người liên hệ cho khách hàng này."));return;}const list=document.createElement("div");list.className="customer360-contact-list";items.forEach(c=>{const item=document.createElement("article");item.className="customer360-contact-item";const avatar=document.createElement("div");avatar.className="contact-avatar";avatar.textContent=(c.fullName||"?").trim().slice(0,1).toUpperCase();const main=document.createElement("div");main.className="contact-main";const nameLine=document.createElement("div");nameLine.className="contact-name-line";const name=document.createElement("h3");name.textContent=c.fullName||"Chưa có tên";nameLine.append(name);if(c.isPrimary){const badge=document.createElement("span");badge.className="primary-tag";badge.textContent="Liên hệ chính";nameLine.append(badge);}const job=document.createElement("p");job.className="contact-job";job.textContent=c.jobTitle||"Chưa có chức vụ";const details=document.createElement("div");details.className="contact-details";for(const [icon,v] of [["✉",c.email],["☎",c.phone]]){if(v){const span=document.createElement("span");span.textContent=icon+" "+v;details.append(span);}}main.append(nameLine,job,details);item.append(avatar,main);list.append(item);});el.append(list);}
   function renderTimeline(data){const el=$("activities-section");el.replaceChildren();const available=data.availability?.activities===true,items=Array.isArray(data.activities)?data.activities:[];updateStat("activities",items,available);if(!available){el.append(empty("◷","Chưa tích hợp","Nguồn dữ liệu lịch sử hoạt động chưa sẵn sàng."));return;}if(!items.length){el.append(empty("◷","Chưa có hoạt động","Chưa ghi nhận sự kiện cho khách hàng này."));return;}const list=document.createElement("div");list.className="timeline-list";items.forEach(a=>{const item=document.createElement("article");item.className="timeline-event";const type=document.createElement("div");type.className="timeline-type";type.textContent=a.type==="CONTACT_TRANSFER"?"CHUYỂN NGƯỜI LIÊN HỆ":(a.type||"HOẠT ĐỘNG").replaceAll("_"," ");const title=document.createElement("h3");title.textContent=a.title||"Hoạt động khách hàng";const time=document.createElement("time");time.textContent=formatDate(a.occurredAt);item.append(type,title,time);list.append(item);});el.append(list);}
-  function renderFutureSection(data,key,sectionId,icon,label){const el=$(sectionId);el.replaceChildren();const available=data.availability?.[key]===true,items=Array.isArray(data[key])?data[key]:[];updateStat(key,items,available);if(!available){el.append(empty(icon,"Chưa tích hợp nguồn dữ liệu",`Phần ${label} chưa có dữ liệu từ Backend.`));return;}if(!items.length){el.append(empty(icon,"Chưa có bản ghi",`Khách hàng chưa có ${label}.`));return;}const list=document.createElement("div");list.className="customer360-contact-list";items.forEach(item=>{const row=document.createElement("div");row.className="customer360-contact-item";const main=document.createElement("div");main.className="contact-main";const title=document.createElement("h3");title.textContent=item.name||item.fileName||item.title||"Bản ghi";main.append(title);const meta=document.createElement("p");meta.className="contact-job";meta.textContent=[item.stage,item.expectedValue!=null?String(item.expectedValue):null,item.updatedAt||item.uploadedAt].filter(Boolean).join(" · ");main.append(meta);if(key==="attachments"&&item.downloadUrl){try{const u=new URL(item.downloadUrl,location.origin);if(u.origin===location.origin&&u.pathname.startsWith(contextPath+"/")){const a=document.createElement("a");a.href=u.href;a.textContent="Xem tệp";main.append(a);}}catch{}}row.append(main);list.append(row);});el.append(list);}
+  function renderFutureSection(data,key,sectionId,icon,label){const el=$(sectionId);el.replaceChildren();const available=data.availability?.[key]===true,items=Array.isArray(data[key])?data[key]:[];updateStat(key,items,available);if(!available){el.append(empty(icon,"Chưa tích hợp nguồn dữ liệu",`Phần ${label} chưa có dữ liệu từ Backend.`));return;}if(!items.length){el.append(empty(icon,"Chưa có bản ghi",`Khách hàng chưa có ${label}.`));return;}const list=document.createElement("div");list.className="customer360-contact-list";items.forEach(item=>{const row=document.createElement("div");row.className="customer360-contact-item";const main=document.createElement("div");main.className="contact-main";const title=document.createElement("h3");title.textContent=item.name||item.fileName||item.title||"Bản ghi";main.append(title);const meta=document.createElement("p");meta.className="contact-job";meta.textContent=[item.stage,item.expectedValue!=null?String(item.expectedValue):null,item.updatedAt||item.uploadedAt].filter(Boolean).join(" · ");main.append(meta);if(key==="attachments"&&item.downloadUrl){try{const u=new URL(item.downloadUrl.startsWith("/api/")?contextPath+item.downloadUrl:item.downloadUrl,location.origin);if(u.origin===location.origin&&u.pathname.startsWith(contextPath+"/")){const a=document.createElement("a");a.href=u.href;a.textContent="Tải xuống";main.append(a);}}catch{}}row.append(main);list.append(row);});el.append(list);}
   async function loadCustomer(){const id=new URLSearchParams(location.search).get("id");if(!id||!/^[1-9]\d*$/.test(id)){showError("ID khách hàng không hợp lệ.");return;}try{const res=await fetch(`${contextPath}/api/v1/customers/360/${encodeURIComponent(id)}`,{headers:{Accept:"application/json"},credentials:"same-origin"});if(res.redirected&&new URL(res.url).pathname===contextPath+"/login"){location.replace(contextPath+"/login");return;}if(res.status===401){location.replace(contextPath+"/login");return;}const data=await res.json();if(!res.ok)throw Error(data.message||"Không thể tải thông tin khách hàng.");if(!data.customer)throw Error("API không trả về thông tin khách hàng.");renderCustomer(data.customer);renderContacts(data);renderTimeline(data);renderFutureSection(data,"opportunities","opportunities-section","◎","cơ hội kinh doanh");renderFutureSection(data,"attachments","attachments-section","▤","tệp đính kèm");showContent();}catch(e){console.error("Customer 360:",e);showError(e.message||"Có lỗi khi tải dữ liệu.");}}
 
   async function loadS308Support(customerId) {
@@ -247,4 +247,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Showing the form is harmless: server enforces write authorization.
     await refresh();
   }catch(e){list.textContent=e.message;}
+});
+
+
+// CUSTOMER360_OPPORTUNITY_FORM_V1
+document.addEventListener("DOMContentLoaded", () => {
+  const contextPath = window.APP_CONTEXT_PATH || "";
+  const id = new URLSearchParams(location.search).get("id");
+  const toggle = document.getElementById("opportunity-toggle");
+  const form = document.getElementById("opportunity-form");
+  const stage = document.getElementById("opportunity-stage");
+  const message = document.getElementById("opportunity-message");
+
+  if (!toggle || !form || !stage || !message ||
+      !id || !/^[1-9]\d*$/.test(id)) return;
+
+  toggle.addEventListener("click", async () => {
+    form.hidden = !form.hidden;
+    if (form.hidden) return;
+
+    message.textContent = "Đang tải giai đoạn...";
+
+    try {
+      const response = await fetch(
+        `${contextPath}/api/v1/customers/360/stages`,
+        { credentials: "same-origin" }
+      );
+
+      if (!response.ok) throw new Error("Không tải được giai đoạn");
+
+      const stages = await response.json();
+
+      stage.replaceChildren();
+      const first = new Option("Chọn giai đoạn", "");
+      stage.append(first);
+
+      for (const item of stages) {
+        stage.append(new Option(item.name, String(item.id)));
+      }
+
+      message.textContent = "";
+    } catch (error) {
+      message.textContent = error.message;
+    }
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submit = form.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    message.textContent = "Đang lưu cơ hội...";
+
+    try {
+      const data = new URLSearchParams(new FormData(form));
+
+      const response = await fetch(
+        `${contextPath}/api/v1/customers/360/${encodeURIComponent(id)}`,
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            "Accept": "application/json"
+          },
+          body: data.toString()
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Không lưu được cơ hội");
+      }
+
+      message.textContent = "Đã tạo cơ hội thành công.";
+      form.reset();
+
+      // Tải lại trang để cập nhật danh sách và thống kê.
+      location.reload();
+
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
+});
+// CUSTOMER360_ATTACHMENT_UPLOAD_V1
+ document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("attachment-upload-form");
+  const message = document.getElementById("attachment-upload-message");
+  const id = new URLSearchParams(location.search).get("id");
+  if (!form || !message || !id || !/^[1-9]\d*$/.test(id)) return;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = form.elements.file.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { message.textContent = "Tệp vượt quá 10 MB."; return; }
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+    message.textContent = "Đang tải tệp lên...";
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      const response = await fetch(`${window.APP_CONTEXT_PATH || ""}/api/v1/customer-attachments/${encodeURIComponent(id)}`, {
+        method: "POST", credentials: "same-origin", body: data
+      });
+      if (!response.ok) throw new Error(`Tải tệp thất bại (HTTP ${response.status}).`);
+      message.textContent = "Đã tải tệp lên thành công.";
+      form.reset();
+      location.reload();
+    } catch (error) { message.textContent = error.message; }
+    finally { button.disabled = false; }
+  });
 });
