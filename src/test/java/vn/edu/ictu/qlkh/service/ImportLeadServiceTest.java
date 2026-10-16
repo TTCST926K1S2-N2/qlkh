@@ -7,15 +7,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import vn.edu.ictu.qlkh.model.Contact;
-import vn.edu.ictu.qlkh.model.Customer;
+import vn.edu.ictu.qlkh.dao.LeadDAO;
 import vn.edu.ictu.qlkh.model.ImportLeadResult;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -23,33 +21,14 @@ import static org.mockito.Mockito.*;
 
 class ImportLeadServiceTest {
 
-    private CustomerService customerService;
-    private ContactService contactService;
+    private LeadDAO leadDAO;
 
     private ImportLeadService service;
 
     @BeforeEach
-    void setUp() throws Exception {
-
-        customerService =
-                mock(CustomerService.class);
-
-        contactService =
-                mock(ContactService.class);
-
-        service =
-                new ImportLeadService(
-                        customerService,
-                        contactService
-                );
-
-        /*
-         * Mac dinh database khong co Lead nao.
-         */
-        when(customerService.list(
-                anyLong(),
-                anyString()
-        )).thenReturn(List.of());
+    void setUp() {
+        leadDAO = mock(LeadDAO.class);
+        service = new ImportLeadService(leadDAO);
     }
 
     /*
@@ -118,24 +97,22 @@ class ImportLeadServiceTest {
         );
 
         /*
-         * Preview tuyet doi khong INSERT.
+         * Preview tuyet doi khong INSERT Lead.
          */
         verify(
-                customerService,
+                leadDAO,
                 never()
-        ).create(
-                any(Customer.class),
-                anyLong(),
-                anyString()
-        );
-
-        verify(
-                contactService,
-                never()
-        ).create(
-                any(Contact.class),
-                anyLong(),
-                anyString()
+        ).createImportedLead(
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class),
+                nullable(String.class)
         );
     }
 
@@ -278,41 +255,16 @@ class ImportLeadServiceTest {
 
     /*
      * CASE 4:
-     * Email da ton tai trong Lead
-     * POTENTIAL cua database.
+     * Email da ton tai trong bang leads.
      */
     @Test
     void duplicateEmailFromExistingLeadIsDetected()
             throws Exception {
 
-        Customer existing =
-                new Customer();
-
-        existing.setId(10L);
-        existing.setStatus("POTENTIAL");
-
-        Contact existingContact =
-                new Contact();
-
-        existingContact.setCustomerId(10L);
-        existingContact.setEmail(
-                "existing@example.com"
-        );
-
-        when(customerService.list(
-                1L,
-                "SALES"
-        )).thenReturn(
-                List.of(existing)
-        );
-
-        when(contactService.list(
-                10L,
-                1L,
-                "SALES"
-        )).thenReturn(
-                List.of(existingContact)
-        );
+        when(leadDAO.existsByEmailOrPhone(
+                eq("existing@example.com"),
+                isNull()
+        )).thenReturn(true);
 
         InputStream excel =
                 createExcel(
@@ -365,21 +317,14 @@ class ImportLeadServiceTest {
 
     /*
      * CASE 5:
-     * Import that phai tao:
+     * Import that phai tao mot ban ghi trong bang leads.
      *
-     * Customer status POTENTIAL
-     *        +
-     * Contact primary=true.
+     * source = EXCEL va status = NEW
+     * duoc co dinh ben trong LeadDAO.
      */
     @Test
-    void importValidLeadCreatesCustomerAndContact()
+    void importValidLeadCreatesLeadRecord()
             throws Exception {
-
-        when(customerService.create(
-                any(Customer.class),
-                eq(1L),
-                eq("SALES")
-        )).thenReturn(100L);
 
         InputStream excel =
                 createExcel(
@@ -411,40 +356,25 @@ class ImportLeadServiceTest {
                 result.getSuccessCount()
         );
 
-        verify(
-                customerService,
-                times(1)
-        ).create(
-                argThat(customer ->
-                        "Cong ty ABC".equals(
-                                customer.getCompanyName()
-                        )
-                        &&
-                        "POTENTIAL".equals(
-                                customer.getStatus()
-                        )
-                ),
-                eq(1L),
-                eq("SALES")
+        assertEquals(
+                0,
+                result.getFailedCount()
         );
 
         verify(
-                contactService,
+                leadDAO,
                 times(1)
-        ).create(
-                argThat(contact ->
-                        Long.valueOf(100L).equals(
-                                contact.getCustomerId()
-                        )
-                        &&
-                        "Nguyen Van A".equals(
-                                contact.getFullName()
-                        )
-                        &&
-                        contact.isPrimary()
-                ),
-                eq(1L),
-                eq("SALES")
+        ).createImportedLead(
+                eq("Nguyen Van A"),
+                eq("a@example.com"),
+                eq("0901234567"),
+                eq("Cong ty ABC"),
+                eq("Truong phong"),
+                isNull(),
+                eq("Cong nghe thong tin"),
+                eq("50-100"),
+                isNull(),
+                eq("Ha Noi")
         );
     }
 
