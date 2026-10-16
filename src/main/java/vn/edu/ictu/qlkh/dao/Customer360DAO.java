@@ -157,7 +157,7 @@ public class Customer360DAO {
                             new vn.edu.ictu.qlkh.dto.Customer360DTO.AttachmentItem(
                                     rs.getLong("id"),
                                     rs.getString("file_name"),
-                                    null,
+                                    "/api/v1/customer-attachments/" + customerId + "/" + rs.getLong("id"),
                                     date(rs.getTimestamp("uploaded_at"))
                             )
                     );
@@ -166,6 +166,81 @@ public class Customer360DAO {
         }
 
         return items;
+    }
+    /**
+     * Tao co hoi kinh doanh cho khach hang.
+     * Phan quyen phai duoc kiem tra tai Service truoc khi goi DAO.
+     */
+    public long createOpportunity(
+            long customerId,
+            String name,
+            Long stageId,
+            java.math.BigDecimal expectedValue,
+            java.time.LocalDate expectedCloseDate)
+            throws SQLException {
+
+        if (customerId <= 0) {
+            throw new IllegalArgumentException("Khach hang khong hop le");
+        }
+
+        if (name == null || name.isBlank() || name.length() > 255) {
+            throw new IllegalArgumentException("Ten co hoi khong hop le");
+        }
+
+        if (expectedValue != null && expectedValue.signum() < 0) {
+            throw new IllegalArgumentException("Gia tri du kien khong hop le");
+        }
+
+        if (stageId != null && stageId <= 0) {
+            throw new IllegalArgumentException("Giai doan khong hop le");
+        }
+
+        String sql = """
+                INSERT INTO opportunities
+                    (customer_id, name, stage_id, expected_value,
+                     expected_close_date, status)
+                VALUES (?, ?, ?, ?, ?, 'OPEN')
+                """;
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setLong(1, customerId);
+            ps.setString(2, name.trim());
+
+            if (stageId == null) {
+                ps.setNull(3, java.sql.Types.BIGINT);
+            } else {
+                ps.setLong(3, stageId);
+            }
+
+            if (expectedValue == null) {
+                ps.setNull(4, java.sql.Types.DECIMAL);
+            } else {
+                ps.setBigDecimal(4, expectedValue);
+            }
+
+            if (expectedCloseDate == null) {
+                ps.setNull(5, java.sql.Types.DATE);
+            } else {
+                ps.setDate(5, java.sql.Date.valueOf(expectedCloseDate));
+            }
+
+            int rows = ps.executeUpdate();
+
+            if (rows != 1) {
+                throw new SQLException("Khong tao duoc co hoi");
+            }
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getLong(1);
+                }
+            }
+
+            throw new SQLException("Khong lay duoc ID co hoi");
+        }
     }
     private static LocalDateTime date(Timestamp timestamp) {
         return timestamp == null ? null : timestamp.toLocalDateTime();

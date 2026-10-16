@@ -28,7 +28,9 @@ public class LeadDAO {
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+                     INSERT_SQL,
+                     Statement.RETURN_GENERATED_KEYS
+             )) {
 
             statement.setString(1, fullName);
             statement.setString(2, email);
