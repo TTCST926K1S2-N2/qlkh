@@ -21,7 +21,10 @@ public class ConvertLeadServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         String role = (session != null) ? (String) session.getAttribute("role") : null;
-        if (role == null) {
+        String userRole = (session != null) ? (String) session.getAttribute("userRole") : null;
+        
+        // Kiểm tra phân quyền thống nhất giữa 'role' và 'userRole'
+        if (role == null && userRole == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -29,7 +32,7 @@ public class ConvertLeadServlet extends HttpServlet {
         String action = request.getServletPath();
         if ("/leads/convert".equals(action)) {
             String idStr = request.getParameter("id");
-            if (idStr == null || idStr.isEmpty()) {
+            if (idStr == null || idStr.trim().isEmpty()) {
                 response.sendRedirect(request.getContextPath() + "/leads?error=not_found");
                 return;
             }
@@ -41,7 +44,9 @@ public class ConvertLeadServlet extends HttpServlet {
                     if (lead == null) {
                         request.setAttribute("errorMessage", "Không tìm thấy thông tin Lead trong hệ thống.");
                     } else {
-                        boolean isQualified = "Đủ điều kiện".equals(lead.getStatus()) || "Tiềm năng".equals(lead.getStatus()) || "Mới".equals(lead.getStatus());
+                        boolean isQualified = "Đủ điều kiện".equalsIgnoreCase(lead.getStatus()) 
+                                           || "Tiềm năng".equalsIgnoreCase(lead.getStatus()) 
+                                           || "Mới".equalsIgnoreCase(lead.getStatus());
                         request.setAttribute("lead", lead);
                         request.setAttribute("isQualified", isQualified);
                     }
@@ -60,7 +65,9 @@ public class ConvertLeadServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession(false);
         String role = (session != null) ? (String) session.getAttribute("role") : null;
-        if (role == null) {
+        String userRole = (session != null) ? (String) session.getAttribute("userRole") : null;
+        
+        if (role == null && userRole == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -68,14 +75,14 @@ public class ConvertLeadServlet extends HttpServlet {
         String action = request.getServletPath();
         if ("/leads/execute-convert".equals(action)) {
             String idStr = request.getParameter("leadId");
-            if (idStr == null || idStr.isEmpty()) {
+            if (idStr == null || idStr.trim().isEmpty()) {
                 response.sendRedirect(request.getContextPath() + "/leads?error=invalid_lead");
                 return;
             }
 
             try {
                 int leadId = Integer.parseInt(idStr);
-                boolean success = convertLeadToCustomer(leadId);
+                boolean success = convertLeadToCustomerAndContact(leadId);
                 if (success) {
                     response.sendRedirect(request.getContextPath() + "/leads?message=convert_success");
                 } else {
@@ -110,20 +117,21 @@ public class ConvertLeadServlet extends HttpServlet {
         return null;
     }
 
-    private boolean convertLeadToCustomer(int leadId) {
+    private boolean convertLeadToCustomerAndContact(int leadId) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
                 LeadInfo lead = getLeadById(conn, leadId);
-                if (lead == null) {
+                if (lead == null || "CONVERTED".equalsIgnoreCase(lead.getStatus())) {
                     conn.rollback();
                     return false;
                 }
 
+                // 1. Tạo Customer mới
                 String insertCust = "INSERT INTO customers (name, tax_code, industry, scale, website, address, owner, status) VALUES (?, '', 'Khác', 'Nhỏ', '', '', ?, 'ACTIVE')";
                 int newCustomerId = 0;
                 try (PreparedStatement psCust = conn.prepareStatement(insertCust, Statement.RETURN_GENERATED_KEYS)) {
-                    psCust.setString(1, lead.getCompany() != null && !lead.getCompany().isEmpty() ? lead.getCompany() : lead.getFullName());
+                    psCust.setString(1, (lead.getCompany() != null && !lead.getCompany().trim().isEmpty()) ? lead.getCompany() : lead.getFullName());
                     psCust.setString(2, lead.getOwner());
                     psCust.executeUpdate();
                     try (ResultSet rsKeys = psCust.getGeneratedKeys()) {
@@ -138,6 +146,17 @@ public class ConvertLeadServlet extends HttpServlet {
                     return false;
                 }
 
+                // 2. Tạo Contact liên kết với Customer vừa tạo
+                String insertContact = "INSERT INTO contacts (customer_id, full_name, email, phone, position) VALUES (?, ?, ?, ?, 'Đại diện')";
+                try (PreparedStatement psContact = conn.prepareStatement(insertContact)) {
+                    psContact.setInt(1, newCustomerId);
+                    psContact.setString(2, lead.getFullName());
+                    psContact.setString(3, lead.getEmail());
+                    psContact.setString(4, lead.getPhone());
+                    psContact.executeUpdate();
+                }
+
+                // 3. Cập nhật trạng thái Lead thành CONVERTED
                 String updateLead = "UPDATE leads SET status = 'CONVERTED' WHERE id = ?";
                 try (PreparedStatement psLead = conn.prepareStatement(updateLead)) {
                     psLead.setInt(1, leadId);
