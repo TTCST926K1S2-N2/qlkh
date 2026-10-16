@@ -197,7 +197,6 @@
             </button>
         </div>
 
-        <!-- BỔ SUNG: Khối Thống kê theo yêu cầu của Story -->
         <div class="kpi-cards" id="kpiSection" style="display: none;">
             <div class="kpi-card leads">
                 <div class="kpi-header">
@@ -228,7 +227,6 @@
                 Danh sách Lead đang quản lý
             </h3>
             
-            <!-- Trạng thái trống và lỗi -->
             <div id="emptyState" class="state-message state-empty">
                 Không tìm thấy lead nào phù hợp với bộ lọc chiến dịch và nguồn này.
             </div>
@@ -236,7 +234,6 @@
                 Đã xảy ra lỗi khi tải dữ liệu từ hệ thống. Vui lòng thử lại sau!
             </div>
 
-            <!-- Bảng dữ liệu -->
             <table id="leadTable">
                 <thead>
                     <tr>
@@ -255,7 +252,8 @@
     </div>
 
     <script>
-        const API_URL = '/api/v1/leads/tracking';
+        // Yêu cầu 2: Cập nhật đường dẫn API kèm context path /qlkh
+        const API_URL = '/qlkh/api/v1/leads/tracking';
 
         function fetchLeads() {
             const campaign = document.getElementById('campaignFilter').value;
@@ -265,6 +263,8 @@
             document.getElementById('kpiSection').style.display = 'none';
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('errorState').style.display = 'none';
+            
+            // Hàm khởi tạo không chứa dữ liệu API, chỉ là text tĩnh nên có thể dùng innerHTML
             document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">Đang tải dữ liệu...</td></tr>';
 
             let queryUrl = `${API_URL}?1=1`;
@@ -277,7 +277,6 @@
                     return res.json();
                 })
                 .then(data => {
-                    // Xử lý render KPI và Bảng
                     renderKPI(data.summary);
                     renderTable(data.items);
                 })
@@ -288,7 +287,6 @@
                 });
         }
 
-        // Hàm mới: Render số liệu thống kê
         function renderKPI(summary) {
             if(!summary) return;
             document.getElementById('kpiLeads').innerText = summary.totalLeads || 0;
@@ -297,9 +295,10 @@
             document.getElementById('kpiSection').style.display = 'grid';
         }
 
+        // Yêu cầu 3: Sửa lại hàm renderTable thay innerHTML bằng DOM Element an toàn (XSS Protection)
         function renderTable(leads) {
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+            tbody.innerHTML = ''; // Làm sạch bảng
 
             if (!leads || leads.length === 0) {
                 document.getElementById('leadTable').style.display = 'none';
@@ -309,22 +308,57 @@
 
             leads.forEach(lead => {
                 const tr = document.createElement('tr');
+                
                 let statusClass = 'default';
                 if(lead.status === 'Đang chăm sóc') statusClass = 'care';
                 if(lead.status === 'Chốt Deal (Win)') statusClass = 'win';
 
-                tr.innerHTML = `
-                    <td><strong style="color: var(--text-main); font-weight: 700;">${lead.name || '---'}</strong></td>
-                    <td style="font-weight: 500;">${lead.phone || '---'}</td>
-                    <td><span class="badge-campaign">${lead.campaign || '---'}</span></td>
-                    <td><span class="badge-source">${lead.source || '---'}</span></td>
-                    <td><span class="status-pill ${statusClass}">${lead.status || 'Mới'}</span></td>
-                `;
+                // Tạo Cột Tên
+                const tdName = document.createElement('td');
+                const strongName = document.createElement('strong');
+                strongName.style.color = 'var(--text-main)';
+                strongName.style.fontWeight = '700';
+                strongName.textContent = lead.name || '---'; // Dùng textContent an toàn
+                tdName.appendChild(strongName);
+
+                // Tạo Cột Số điện thoại
+                const tdPhone = document.createElement('td');
+                tdPhone.style.fontWeight = '500';
+                tdPhone.textContent = lead.phone || '---';
+
+                // Tạo Cột Chiến dịch
+                const tdCampaign = document.createElement('td');
+                const spanCampaign = document.createElement('span');
+                spanCampaign.className = 'badge-campaign';
+                spanCampaign.textContent = lead.campaign || '---';
+                tdCampaign.appendChild(spanCampaign);
+
+                // Tạo Cột Nguồn
+                const tdSource = document.createElement('td');
+                const spanSource = document.createElement('span');
+                spanSource.className = 'badge-source';
+                spanSource.textContent = lead.source || '---';
+                tdSource.appendChild(spanSource);
+
+                // Tạo Cột Trạng thái
+                const tdStatus = document.createElement('td');
+                const spanStatus = document.createElement('span');
+                spanStatus.className = `status-pill ${statusClass}`;
+                spanStatus.textContent = lead.status || 'Mới';
+                tdStatus.appendChild(spanStatus);
+
+                // Gắn các cột vào hàng (tr)
+                tr.appendChild(tdName);
+                tr.appendChild(tdPhone);
+                tr.appendChild(tdCampaign);
+                tr.appendChild(tdSource);
+                tr.appendChild(tdStatus);
+
+                // Gắn hàng vào bảng (tbody)
                 tbody.appendChild(tr);
             });
         }
 
-        // Chạy lần đầu khi mở trang
         document.addEventListener('DOMContentLoaded', () => {
             fetchLeads();
         });

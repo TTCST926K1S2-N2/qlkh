@@ -111,9 +111,5 @@ public class CustomerSupportRequest {
 
     public void setResolvedAt(LocalDateTime resolvedAt) {
         this.resolvedAt = resolvedAt;
-    }
-    public Long getCustomerId() {
-    return customerId;
-}
-    
+    } 
 }
