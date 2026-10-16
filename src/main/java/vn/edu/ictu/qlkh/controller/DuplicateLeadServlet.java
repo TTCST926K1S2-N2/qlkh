@@ -20,7 +20,10 @@ public class DuplicateLeadServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         String role = (session != null) ? (String) session.getAttribute("role") : null;
-        if (role == null) {
+        String userRole = (session != null) ? (String) session.getAttribute("userRole") : null;
+        
+        // Kiểm tra phân quyền đăng nhập thống nhất
+        if (role == null && userRole == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -30,7 +33,7 @@ public class DuplicateLeadServlet extends HttpServlet {
             String id1Str = request.getParameter("id1");
             String id2Str = request.getParameter("id2");
 
-            if (id1Str == null || id2Str == null || id1Str.isEmpty() || id2Str.isEmpty()) {
+            if (id1Str == null || id2Str == null || id1Str.trim().isEmpty() || id2Str.trim().isEmpty()) {
                 request.setAttribute("errorMessage", "Không tìm thấy thông tin lead trùng để đối chiếu.");
                 request.getRequestDispatcher("/lead/duplicate-merge.jsp").forward(request, response);
                 return;
@@ -47,7 +50,6 @@ public class DuplicateLeadServlet extends HttpServlet {
                     } else {
                         request.setAttribute("lead1", l1);
                         request.setAttribute("lead2", l2);
-                        // Gợi ý khách hàng đã có nếu tên công ty hoặc email trùng khớp
                         request.setAttribute("suggestedCustomer", findMatchingCustomer(conn, l1));
                     }
                 }
@@ -64,7 +66,9 @@ public class DuplicateLeadServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession(false);
         String role = (session != null) ? (String) session.getAttribute("role") : null;
-        if (role == null) {
+        String userRole = (session != null) ? (String) session.getAttribute("userRole") : null;
+        
+        if (role == null && userRole == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -125,6 +129,9 @@ public class DuplicateLeadServlet extends HttpServlet {
     }
 
     private String findMatchingCustomer(Connection conn, LeadData lead) throws SQLException {
+        if (lead.getCompany() == null || lead.getCompany().trim().isEmpty()) {
+            return null;
+        }
         String sql = "SELECT name FROM customers WHERE name LIKE ? OR website LIKE ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + lead.getCompany() + "%");
@@ -135,7 +142,7 @@ public class DuplicateLeadServlet extends HttpServlet {
                 }
             }
         }
-        return "Công ty Cổ phần Công nghệ ABC (Gợi ý theo tên công ty)";
+        return null;
     }
 
     private boolean performMerge(int primaryId, int duplicateId) {
@@ -148,12 +155,14 @@ public class DuplicateLeadServlet extends HttpServlet {
                     ps.setInt(2, duplicateId);
                     ps.executeUpdate();
                 }
+
                 String deactivate = "UPDATE leads SET status = 'MERGED', merged_into = ? WHERE id = ?";
                 try (PreparedStatement ps = conn.prepareStatement(deactivate)) {
                     ps.setInt(1, primaryId);
                     ps.setInt(2, duplicateId);
                     ps.executeUpdate();
                 }
+
                 conn.commit();
                 return true;
             } catch (SQLException e) {
