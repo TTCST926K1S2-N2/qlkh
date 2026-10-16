@@ -166,6 +166,7 @@
 
         /* States */
         .state-empty { text-align: center; padding: 48px; color: #b45309; background: #fffbeb; border-radius: 12px; border: 1px dashed #fcd34d; display: none; font-weight: 600;}
+        .state-error { text-align: center; padding: 48px; color: #b91c1c; background: #fef2f2; border-radius: 12px; border: 1px dashed #fecaca; display: none; font-weight: 600;}
     </style>
 </head>
 <body>
@@ -180,6 +181,8 @@
         </div>
 
         <div class="content-box">
+            <!-- Thêm state báo lỗi API -->
+            <div id="errorState" class="state-error">Đã xảy ra lỗi khi kết nối với hệ thống. Vui lòng tải lại trang!</div>
             <div id="emptyState" class="state-empty">Chưa có quy tắc phân bổ nào được thiết lập.</div>
             
             <table id="rulesTable">
@@ -194,7 +197,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <!-- Dữ liệu render tại đây -->
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -205,6 +208,9 @@
         <div class="modal-content" id="modalCard">
             <div class="modal-header" id="modalTitle">✍️ Thêm quy tắc phân bổ mới</div>
             <div class="form-grid">
+                <!-- Thêm trường ẩn lưu ID khi sửa -->
+                <input type="hidden" id="ruleId">
+                
                 <div class="form-group full-width">
                     <label>📝 Tên quy tắc <span style="color:red">*</span></label>
                     <input type="text" id="ruleName" class="form-control" placeholder="VD: Phân bổ khách hàng miền Bắc">
@@ -240,29 +246,57 @@
                     </select>
                 </div>
             </div>
+            
+            <!-- Thêm thông báo lỗi lưu modal -->
+            <div id="saveErrorMsg" class="error-msg" style="text-align: center; margin-bottom: 15px; font-size: 14px;"></div>
+            
             <div class="modal-actions">
                 <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
-                <button class="btn btn-primary" onclick="saveRule()">Lưu quy tắc</button>
+                <button class="btn btn-primary" id="btnSaveRule" onclick="saveRule()">Lưu quy tắc</button>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = '/api/v1/lead-assignment-rules';
+        // Sửa 1: Cập nhật đúng đường dẫn API (Thêm context path /qlkh)
+        const API_URL = '/qlkh/api/v1/lead-assignment-rules';
         
         function fetchRules() {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Đang tải dữ liệu...</td></tr>';
+            document.getElementById('rulesTable').style.display = 'table';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
             
-            fetch(API_URL)
-                .then(res => res.json())
-                .then(data => renderTable(data))
-                .catch(err => console.error("Lỗi API:", err));
-        }
-
-        function renderTable(rules) {
+            // Render text tĩnh báo đang tải
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+            const loadingTr = document.createElement('tr');
+            const loadingTd = document.createElement('td');
+            loadingTd.colSpan = 6;
+            loadingTd.style.textAlign = 'center';
+            loadingTd.style.color = 'var(--text-muted)';
+            loadingTd.textContent = 'Đang tải dữ liệu...';
+            loadingTr.appendChild(loadingTd);
+            tbody.appendChild(loadingTr);
             
+            fetch(API_URL)
+                .then(res => {
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(data => renderTable(data))
+                .catch(err => {
+                    console.error("Lỗi API:", err);
+                    document.getElementById('rulesTable').style.display = 'none';
+                    document.getElementById('errorState').style.display = 'block';
+                });
+        }
+
+        // Sửa 3: Xử lý hiển thị an toàn chống XSS
+        function renderTable(rules) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; // Làm sạch bảng
+            
+            // Sửa 4: Xử lý ngoại lệ trường hợp không có dữ liệu
             if(!rules || rules.length === 0) {
                 document.getElementById('rulesTable').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'block';
@@ -272,19 +306,63 @@
             document.getElementById('rulesTable').style.display = 'table';
             document.getElementById('emptyState').style.display = 'none';
 
+            // Sắp xếp theo ưu tiên
             rules.sort((a, b) => a.priority - b.priority).forEach(rule => {
-                const statusBadge = rule.status === 'Hoạt động' ? 'badge-active' : 'badge-inactive';
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align: center;"><span class="priority-badge">#${rule.priority}</span></td>
-                    <td><strong style="color: var(--text-main); font-weight: 700;">${rule.name}</strong></td>
-                    <td><strong>${rule.conditionType}:</strong> ${rule.conditionValue}</td>
-                    <td>${rule.method}</td>
-                    <td><span class="badge ${statusBadge}">${rule.status}</span></td>
-                    <td style="text-align: right;">
-                        <span class="action-link" onclick="editRule(${rule.id})">Sửa</span>
-                    </td>
-                `;
+                
+                // Cột Ưu tiên
+                const tdPriority = document.createElement('td');
+                tdPriority.style.textAlign = 'center';
+                const spanPriority = document.createElement('span');
+                spanPriority.className = 'priority-badge';
+                spanPriority.textContent = `#${rule.priority || 0}`;
+                tdPriority.appendChild(spanPriority);
+
+                // Cột Tên
+                const tdName = document.createElement('td');
+                const strongName = document.createElement('strong');
+                strongName.style.color = 'var(--text-main)';
+                strongName.style.fontWeight = '700';
+                strongName.textContent = rule.name || '---';
+                tdName.appendChild(strongName);
+
+                // Cột Điều kiện
+                const tdCondition = document.createElement('td');
+                const strongCond = document.createElement('strong');
+                strongCond.textContent = `${rule.conditionType || '---'}: `;
+                tdCondition.appendChild(strongCond);
+                tdCondition.appendChild(document.createTextNode(rule.conditionValue || '---'));
+
+                // Cột Phương thức
+                const tdMethod = document.createElement('td');
+                tdMethod.textContent = rule.method || '---';
+
+                // Cột Trạng thái
+                const tdStatus = document.createElement('td');
+                const spanStatus = document.createElement('span');
+                const statusBadge = rule.status === 'Hoạt động' ? 'badge-active' : 'badge-inactive';
+                spanStatus.className = `badge ${statusBadge}`;
+                spanStatus.textContent = rule.status || '---';
+                tdStatus.appendChild(spanStatus);
+
+                // Cột Thao tác
+                const tdAction = document.createElement('td');
+                tdAction.style.textAlign = 'right';
+                const spanAction = document.createElement('span');
+                spanAction.className = 'action-link';
+                spanAction.textContent = 'Sửa';
+                // Gắn sự kiện click an toàn
+                spanAction.onclick = () => editRule(rule);
+                tdAction.appendChild(spanAction);
+
+                // Gắn các cột vào hàng
+                tr.appendChild(tdPriority);
+                tr.appendChild(tdName);
+                tr.appendChild(tdCondition);
+                tr.appendChild(tdMethod);
+                tr.appendChild(tdStatus);
+                tr.appendChild(tdAction);
+
                 tbody.appendChild(tr);
             });
         }
@@ -297,6 +375,7 @@
                 card.style.transform = 'scale(1)';
             }, 50);
             document.getElementById('nameError').style.display = 'none';
+            document.getElementById('saveErrorMsg').style.display = 'none';
         }
         
         function closeModal() {
@@ -305,22 +384,95 @@
             card.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 overlay.style.display = 'none';
+                resetForm();
             }, 150);
         }
 
+        function resetForm() {
+            document.getElementById('ruleId').value = '';
+            document.getElementById('ruleName').value = '';
+            document.getElementById('ruleConditionType').value = 'Khu vực';
+            document.getElementById('ruleConditionValue').value = '';
+            document.getElementById('ruleMethod').value = 'Xoay vòng (Round-Robin)';
+            document.getElementById('rulePriority').value = '1';
+            document.getElementById('ruleStatus').value = 'Hoạt động';
+            document.getElementById('modalTitle').innerText = '✍️ Thêm quy tắc phân bổ mới';
+        }
+
+        // Sửa 2: Đảm bảo cấu trúc JSON khi lưu (thêm/sửa)
         function saveRule() {
             const nameInput = document.getElementById('ruleName').value.trim();
+            document.getElementById('nameError').style.display = 'none';
+            document.getElementById('saveErrorMsg').style.display = 'none';
+
             if(!nameInput) {
                 document.getElementById('nameError').style.display = 'block';
                 return;
             }
-            alert("Đã gửi dữ liệu lưu quy tắc thành công!");
-            closeModal();
-            fetchRules();
+
+            const ruleId = document.getElementById('ruleId').value;
+            const method = ruleId ? 'PUT' : 'POST';
+            const targetUrl = ruleId ? `${API_URL}/${ruleId}` : API_URL;
+
+            // Xây dựng JSON payload
+            const payload = {
+                name: nameInput,
+                conditionType: document.getElementById('ruleConditionType').value,
+                conditionValue: document.getElementById('ruleConditionValue').value.trim(),
+                method: document.getElementById('ruleMethod').value,
+                priority: parseInt(document.getElementById('rulePriority').value) || 1,
+                status: document.getElementById('ruleStatus').value
+            };
+
+            const btnSave = document.getElementById('btnSaveRule');
+            btnSave.disabled = true;
+            btnSave.textContent = 'Đang xử lý...';
+
+            fetch(targetUrl, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    if (res.status === 403 || res.status === 401) {
+                         throw new Error('Bạn không có quyền thực hiện thao tác này!');
+                    }
+                    throw new Error('Lỗi lưu dữ liệu. Vui lòng thử lại!');
+                }
+                return res.json();
+            })
+            .then(() => {
+                alert("Lưu quy tắc thành công!");
+                closeModal();
+                fetchRules();
+            })
+            .catch(err => {
+                // Hiển thị lỗi ngay trên modal
+                const errorDiv = document.getElementById('saveErrorMsg');
+                errorDiv.textContent = err.message || "Lỗi hệ thống!";
+                errorDiv.style.display = 'block';
+                console.error("Lỗi Save:", err);
+            })
+            .finally(() => {
+                btnSave.disabled = false;
+                btnSave.textContent = 'Lưu quy tắc';
+            });
         }
 
-        function editRule(id) {
+        function editRule(rule) {
             document.getElementById('modalTitle').innerText = 'Chỉnh sửa quy tắc';
+            document.getElementById('ruleId').value = rule.id;
+            document.getElementById('ruleName').value = rule.name || '';
+            document.getElementById('ruleConditionType').value = rule.conditionType || 'Khu vực';
+            document.getElementById('ruleConditionValue').value = rule.conditionValue || '';
+            document.getElementById('ruleMethod').value = rule.method || 'Xoay vòng (Round-Robin)';
+            document.getElementById('rulePriority').value = rule.priority || 1;
+            document.getElementById('ruleStatus').value = rule.status || 'Hoạt động';
+            
             openModal();
         }
 
