@@ -315,7 +315,16 @@
 
                 <% } %>
 
-            </ul>
+                            <% if ("ADMIN".equals(role) || "MANAGER".equals(role)) { %>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/marketing/lead-scoring.jsp"
+                       class="<%= currentURI.contains("/views/marketing/lead-scoring.jsp") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Chấm điểm Lead</span>
+                    </a>
+                </li>
+                <% } %>
+</ul>
 
         <%
             }

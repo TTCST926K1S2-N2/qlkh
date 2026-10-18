@@ -12,6 +12,10 @@
 </head>
 <body>
     <div class="page-container">
+    <a class="s405-back-home"
+       href="${pageContext.request.contextPath}/home">
+        Quay lại trang chủ
+    </a>
         <header class="page-header">
             <div>
                 <h1>Cấu hình chấm điểm Lead</h1>
@@ -40,59 +44,57 @@
 
                 <form id="scoringConfigForm" novalidate>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label for="expectedValueWeight">
-                                Giá trị kỳ vọng (%)
-                            </label>
-                            <input
-                                type="number"
-                                id="expectedValueWeight"
-                                name="expectedValueWeight"
-                                min="0"
-                                max="100"
-                                step="1"
-                                required>
-                            <small>
-                                Đánh giá giá trị kinh doanh dự kiến của Lead.
-                            </small>
-                        </div>
+    <div class="form-group">
+        <label for="industryWeight">Ngành nghề phù hợp (%)</label>
+        <input type="number" id="industryWeight"
+               name="industryWeight" min="0" max="100"
+               step="1" value="30" required>
+    </div>
 
-                        <div class="form-group">
-                            <label for="completenessWeight">
-                                Độ đầy đủ thông tin (%)
-                            </label>
-                            <input
-                                type="number"
-                                id="completenessWeight"
-                                name="completenessWeight"
-                                min="0"
-                                max="100"
-                                step="1"
-                                required>
-                            <small>
-                                Đánh giá mức độ hoàn thiện thông tin khách hàng.
-                            </small>
-                        </div>
+    <div class="form-group">
+        <label for="companySizeWeight">Quy mô công ty (%)</label>
+        <input type="number" id="companySizeWeight"
+               name="companySizeWeight" min="0" max="100"
+               step="1" value="25" required>
+    </div>
 
-                        <div class="form-group">
-                            <label for="openOpportunityWeight">
-                                Cơ hội đang mở (%)
-                            </label>
-                            <input
-                                type="number"
-                                id="openOpportunityWeight"
-                                name="openOpportunityWeight"
-                                min="0"
-                                max="100"
-                                step="1"
-                                required>
-                            <small>
-                                Đánh giá việc Lead có cơ hội kinh doanh đang mở.
-                            </small>
-                        </div>
-                    </div>
+    <div class="form-group">
+        <label for="sourceWeight">Nguồn Lead (%)</label>
+        <input type="number" id="sourceWeight"
+               name="sourceWeight" min="0" max="100"
+               step="1" value="20" required>
+    </div>
 
-                    <div class="weight-summary">
+    <div class="form-group">
+        <label for="interestWeight">Mức độ quan tâm (%)</label>
+        <input type="number" id="interestWeight"
+               name="interestWeight" min="0" max="100"
+               step="1" value="25" required>
+    </div>
+
+    <div class="form-group">
+        <label for="hotThreshold">Ngưỡng Lead Nóng</label>
+        <input type="number" id="hotThreshold"
+               name="hotThreshold" min="0" max="100"
+               step="1" value="70" required>
+    </div>
+
+    <div class="form-group">
+        <label for="warmThreshold">Ngưỡng Lead Ấm</label>
+        <input type="number" id="warmThreshold"
+               name="warmThreshold" min="0" max="100"
+               step="1" value="40" required>
+    </div>
+</div>
+<div class="form-group">
+    <label for="targetIndustries">Danh sách ngành nghề mục tiêu</label>
+    <textarea id="targetIndustries"
+              name="targetIndustries"
+              rows="4"
+              placeholder="Mỗi ngành nghề một dòng"></textarea>
+    <small>Nhập mỗi ngành nghề trên một dòng.</small>
+</div>
+<div class="weight-summary">
                         <span>Tổng trọng số</span>
                         <strong id="weightTotal">Đang tính...</strong>
                     </div>
