@@ -214,6 +214,17 @@
                 </li>
 
                 <li>
+                    <a href="${pageContext.request.contextPath}/leads/duplicates"
+                       class="<%= currentURI.contains("/leads/duplicates")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Xử lý Lead trùng
+                        </span>
+                    </a>
+                </li>
+                <li>
                     <a href="${pageContext.request.contextPath}/views/sales/company-relationships.jsp"
                        class="<%= currentURI.contains("/views/sales/company-relationships.jsp")
                                ? "active"
