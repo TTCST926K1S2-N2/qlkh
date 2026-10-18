@@ -214,6 +214,13 @@
                 </li>
 
                 <li>
+                    <a href="${pageContext.request.contextPath}/leads/duplicates"
+                       class="<%= currentURI.contains("/leads/duplicates") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Xử lý Lead trùng</span>
+                    </a>
+                </li>
+                <li>
                     <a href="${pageContext.request.contextPath}/lead-campaign-tracking"
                        class="<%= currentURI.contains("/lead-campaign-tracking") ? "active" : "" %>">
                         <span class="menu-indicator"></span>
@@ -334,7 +341,16 @@
 
                 <% } %>
 
-            </ul>
+                            <% if ("ADMIN".equals(role) || "MANAGER".equals(role)) { %>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/marketing/lead-scoring.jsp"
+                       class="<%= currentURI.contains("/views/marketing/lead-scoring.jsp") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Chấm điểm Lead</span>
+                    </a>
+                </li>
+                <% } %>
+</ul>
 
         <%
             }

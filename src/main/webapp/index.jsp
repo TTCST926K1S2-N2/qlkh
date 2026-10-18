@@ -49,6 +49,8 @@
 <div class="header"><div><div class="eyebrow">Hệ thống quản lý khách hàng</div><h1>Tổng quan</h1><div class="sub">Thống kê dữ liệu thực theo quyền truy cập hiện tại</div></div><div class="dashboard-nav-actions">
     <a class="lead-nav-button"
        href="${pageContext.request.contextPath}/lead-capture">Đăng ký tư vấn</a>
+    <a class="lead-nav-button"
+       href="${pageContext.request.contextPath}/leads/duplicates">Xử lý Lead trùng</a>
     <span class="scope"><%=esc(scopeLabel)%></span>
 </div></div>
 <% if(request.getAttribute("dashboardError")!=null){ %><div class="error"><%=esc(request.getAttribute("dashboardError"))%></div><% } %>
