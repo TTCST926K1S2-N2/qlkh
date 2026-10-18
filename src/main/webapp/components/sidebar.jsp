@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
     String role = (String) session.getAttribute("userRole");
@@ -199,6 +199,13 @@
                         <span class="menu-text">
                             Quản lý người liên hệ
                         </span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/lead-list"
+                       class="<%= currentURI.contains("/lead-list") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Danh sách Lead</span>
                     </a>
                 </li>
                 <li>
