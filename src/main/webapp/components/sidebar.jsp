@@ -214,6 +214,13 @@
                 </li>
 
                 <li>
+                    <a href="${pageContext.request.contextPath}/lead-campaign-tracking"
+                       class="<%= currentURI.contains("/lead-campaign-tracking") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Theo dõi Lead theo Chiến dịch &amp; Nguồn</span>
+                    </a>
+                </li>
+                <li>
                     <a href="${pageContext.request.contextPath}/views/sales/company-relationships.jsp"
                        class="<%= currentURI.contains("/views/sales/company-relationships.jsp")
                                ? "active"
