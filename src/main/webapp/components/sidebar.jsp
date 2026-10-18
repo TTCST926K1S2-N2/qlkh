@@ -215,13 +215,16 @@
 
                 <li>
                     <a href="${pageContext.request.contextPath}/leads/duplicates"
-                       class="<%= currentURI.contains("/leads/duplicates")
-                               ? "active"
-                               : "" %>">
+                       class="<%= currentURI.contains("/leads/duplicates") ? "active" : "" %>">
                         <span class="menu-indicator"></span>
-                        <span class="menu-text">
-                            Xử lý Lead trùng
-                        </span>
+                        <span class="menu-text">Xử lý Lead trùng</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/lead-campaign-tracking"
+                       class="<%= currentURI.contains("/lead-campaign-tracking") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Theo dõi Lead theo Chiến dịch &amp; Nguồn</span>
                     </a>
                 </li>
                 <li>
