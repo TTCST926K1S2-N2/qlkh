@@ -6,8 +6,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
+import vn.edu.ictu.qlkh.dao.LeadDAO;
 import vn.edu.ictu.qlkh.model.Contact;
-import vn.edu.ictu.qlkh.model.Customer;
 import vn.edu.ictu.qlkh.model.ImportLeadResult;
 
 import java.io.IOException;
@@ -52,6 +52,7 @@ public class ImportLeadService {
                     "\\d{10}(-\\d{3})?"
             );
 
+    private final LeadDAO leadDAO = new LeadDAO();
     private final CustomerService customerService;
     private final ContactService contactService;
 
@@ -217,28 +218,6 @@ public class ImportLeadService {
 
                         throw new IllegalArgumentException(
                                 "Ma so thue bi trung trong tep Excel"
-                        );
-                    }
-
-                    /*
-                     * Lead khong bat buoc co MST.
-                     *
-                     * Neu co MST thi dung validation hien co
-                     * cua CustomerService de Preview cung
-                     * phat hien MST da ton tai trong database.
-                     */
-                    if (lead.taxCode != null) {
-
-                        Customer customerToValidate =
-                                buildCustomer(
-                                        lead,
-                                        userId
-                                );
-
-                        customerService.validateForImport(
-                                customerToValidate,
-                                userId,
-                                role
                         );
                     }
 
@@ -418,58 +397,7 @@ public class ImportLeadService {
             Set<String> phones) throws IOException {
 
         try {
-
-            List<Customer> customers =
-                    customerService.list(
-                            userId,
-                            role
-                    );
-
-            for (Customer customer : customers) {
-
-                if (!"POTENTIAL".equalsIgnoreCase(
-                        customer.getStatus())) {
-                    continue;
-                }
-
-                if (customer.getId() == null ||
-                        customer.getId() <= 0) {
-                    continue;
-                }
-
-                List<Contact> contacts =
-                        contactService.list(
-                                customer.getId(),
-                                userId,
-                                role
-                        );
-
-                if (contacts == null) {
-                    continue;
-                }
-
-                for (Contact contact : contacts) {
-
-                    String email =
-                            normalizeEmail(
-                                    contact.getEmail()
-                            );
-
-                    String phone =
-                            normalizePhone(
-                                    contact.getPhone()
-                            );
-
-                    if (!email.isEmpty()) {
-                        emails.add(email);
-                    }
-
-                    if (!phone.isEmpty()) {
-                        phones.add(phone);
-                    }
-                }
-            }
-
+            leadDAO.findExistingLeadKeys(emails, phones);
         } catch (SQLException exception) {
             throw new IOException(
                     "Khong the kiem tra Lead trung lap",
@@ -706,53 +634,6 @@ public class ImportLeadService {
     }
 
     /*
-     * Tao object Customer tu mot dong Lead.
-     *
-     * Ham nay CHUA ghi database.
-     */
-    private Customer buildCustomer(
-            LeadRow lead,
-            long userId) {
-
-        Customer customer =
-                new Customer();
-
-        customer.setCompanyName(
-                lead.companyName
-        );
-
-        customer.setTaxCode(
-                lead.taxCode
-        );
-
-        customer.setIndustry(
-                lead.industry
-        );
-
-        customer.setCompanySize(
-                lead.companySize
-        );
-
-        customer.setWebsite(
-                lead.website
-        );
-
-        customer.setAddress(
-                lead.address
-        );
-
-        customer.setOwnerId(
-                userId
-        );
-
-        customer.setStatus(
-                "POTENTIAL"
-        );
-
-        return customer;
-    }
-
-    /*
      * Import that mot Lead.
      *
      * Buoc 1: tao Customer status POTENTIAL.
@@ -764,48 +645,17 @@ public class ImportLeadService {
             long userId,
             String role) throws SQLException {
 
-        Customer customer =
-                buildCustomer(
-                        lead,
-                        userId
-                );
-
-        long customerId =
-                customerService.create(
-                        customer,
-                        userId,
-                        role
-                );
-
-        Contact contact =
-                new Contact();
-
-        contact.setCustomerId(
-                customerId
-        );
-
-        contact.setFullName(
-                lead.contactName
-        );
-
-        contact.setJobTitle(
-                lead.jobTitle
-        );
-
-        contact.setEmail(
-                lead.email
-        );
-
-        contact.setPhone(
-                lead.phone
-        );
-
-        contact.setPrimary(true);
-
-        contactService.create(
-                contact,
-                userId,
-                role
+        leadDAO.createImportedLead(
+                lead.contactName,
+                lead.email,
+                lead.phone,
+                lead.companyName,
+                lead.jobTitle,
+                lead.taxCode,
+                lead.industry,
+                lead.companySize,
+                lead.website,
+                lead.address
         );
     }
 

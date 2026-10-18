@@ -56,7 +56,12 @@
         <h2>Quản lý khách hàng doanh nghiệp</h2>
         <div class="s304-header-actions">
           <button id="s304FindDuplicates" type="button" hidden>Phát hiện trùng lặp</button>
-          <button id="openCustomerImport" type="button">Nhập Excel</button>
+          <a id="openLeadImport"
+   href="${pageContext.request.contextPath}/views/marketing/leads.jsp"
+   style="display:inline-block;padding:8px 12px;background:#2563eb;color:white;border-radius:4px;text-decoration:none;font-size:12px;font-weight:600;">
+    Import Lead
+</a>
+<button id="openCustomerImport" type="button">Nhập Excel</button>
           <button id="openAdvancedCustomerSearch"
         type="button"
         onclick="window.location.href='${pageContext.request.contextPath}/views/sales/customer-search.jsp'">
