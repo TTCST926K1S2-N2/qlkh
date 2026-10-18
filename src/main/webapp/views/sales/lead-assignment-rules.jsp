@@ -166,6 +166,87 @@
         /* States */
         .state-empty { text-align: center; padding: 48px; color: #b45309; background: #fffbeb; border-radius: 12px; border: 1px dashed #fcd34d; display: none; font-weight: 600;}
         .state-error { text-align: center; padding: 48px; color: #b91c1c; background: #fef2f2; border-radius: 12px; border: 1px dashed #fecaca; display: none; font-weight: 600;}
+        /* S406-135 layout */
+        body {
+            justify-content: flex-start;
+            align-items: stretch;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        .main-content {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: none;
+            width: auto;
+            padding: 32px;
+            margin: 0;
+        }
+
+        .page-header {
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .page-header h2 {
+            font-size: clamp(24px, 2vw, 32px);
+        }
+
+        .content-box {
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+
+        #rulesTable {
+            width: 100%;
+            min-width: 850px;
+        }
+
+        #rulesTable th,
+        #rulesTable td {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .modal-content {
+            box-sizing: border-box;
+            max-width: min(600px, calc(100vw - 32px));
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .content-box {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main-content {
+                padding: 16px;
+            }
+
+            .page-header {
+                align-items: flex-start;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -221,6 +302,7 @@
                     <select id="ruleConditionType" class="form-control">
                         <option value="REGION">Khu vực</option>
                         <option value="SOURCE">Nguồn Lead</option>
+                        <option value="INDUSTRY">Ngành nghề</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -240,11 +322,11 @@
                 </div>
                 <div class="form-group">
                     <label> Mức độ ưu tiên (Số nhỏ ưu tiên cao)</label>
-                    <input type="number" id="rulePriority" class="form-control" disabled value="1" min="1">
+                    <input type="number" id="rulePriority" class="form-control" value="1" min="1">
                 </div>
                 <div class="form-group">
                     <label> Trạng thái</label>
-                    <select id="ruleStatus" class="form-control" disabled>
+                    <select id="ruleStatus" class="form-control">
                         <option value="Hoạt động">Hoạt động</option>
                         <option value="Vô hiệu hóa">Vô hiệu hóa</option>
                     </select>
@@ -263,7 +345,7 @@
 
     <script>
         // Sửa 1: Cập nhật đúng đường dẫn API (Thêm context path /qlkh)
-        const API_URL = '/qlkh/api/assignment-rules';
+        const API_URL = "<%= request.getContextPath() %>/api/assignment-rules";
 
         async function readApiJson(response) {
             const type = response.headers.get('content-type') || '';
@@ -301,10 +383,7 @@
             tbody.appendChild(loadingTr);
 
             fetch(API_URL)
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return readApiJson(res);
-                })
+                .then(res => readApiJson(res))
                 .then(data => {
                     if (!data || !Array.isArray(data.rules)) {
                         throw new Error('Backend chưa trả danh sách quy tắc.');

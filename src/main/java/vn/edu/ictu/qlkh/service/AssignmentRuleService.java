@@ -5,7 +5,15 @@ import vn.edu.ictu.qlkh.model.AssignmentRule;
 import java.util.List;
 
 public class AssignmentRuleService {
-    private final AssignmentRuleDAO assignmentRuleDAO = new AssignmentRuleDAO();
+    private final AssignmentRuleDAO assignmentRuleDAO;
+
+    public AssignmentRuleService() {
+        this(new AssignmentRuleDAO());
+    }
+
+    public AssignmentRuleService(AssignmentRuleDAO assignmentRuleDAO) {
+        this.assignmentRuleDAO = java.util.Objects.requireNonNull(assignmentRuleDAO);
+    }
 
     public List<AssignmentRule> getAllRules() {
         return assignmentRuleDAO.getAllRules();
@@ -19,15 +27,39 @@ public class AssignmentRuleService {
     }
 
     public Long determineAssignedUserId(String region, String source) {
+        return determineAssignedUserId(region, source, null);
+    }
+
+    public Long determineAssignedUserId(String region, String source, String industry) {
         List<AssignmentRule> activeRules = assignmentRuleDAO.getActiveRulesSortedByPriority();
+
         for (AssignmentRule rule : activeRules) {
-            if ("REGION".equalsIgnoreCase(rule.getConditionType()) && rule.getConditionValue().equalsIgnoreCase(region)) {
+            String type = rule.getConditionType();
+            String value = rule.getConditionValue();
+
+            if (type == null || value == null) {
+                continue;
+            }
+
+            if ("REGION".equalsIgnoreCase(type)
+                    && region != null
+                    && value.equalsIgnoreCase(region.trim())) {
                 return rule.getAssignToUserId();
             }
-            if ("SOURCE".equalsIgnoreCase(rule.getConditionType()) && rule.getConditionValue().equalsIgnoreCase(source)) {
+
+            if ("SOURCE".equalsIgnoreCase(type)
+                    && source != null
+                    && value.equalsIgnoreCase(source.trim())) {
+                return rule.getAssignToUserId();
+            }
+
+            if ("INDUSTRY".equalsIgnoreCase(type)
+                    && industry != null
+                    && value.equalsIgnoreCase(industry.trim())) {
                 return rule.getAssignToUserId();
             }
         }
+
         return null;
     }
 
@@ -65,6 +97,6 @@ public class AssignmentRuleService {
         }
 
         String method = rule.getAssignmentMethod();
-        return "DIRECT".equals(method) || "ROUND_ROBIN".equals(method);
+        return "DIRECT".equals(method);
     }
 }

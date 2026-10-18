@@ -14,7 +14,16 @@ import java.util.List;
 
 @WebServlet("/api/assignment-rules")
 public class AssignmentRuleController extends HttpServlet {
-    private final AssignmentRuleService assignmentRuleService = new AssignmentRuleService();
+    private final AssignmentRuleService assignmentRuleService;
+
+    public AssignmentRuleController() {
+        this(new AssignmentRuleService());
+    }
+
+    AssignmentRuleController(AssignmentRuleService assignmentRuleService) {
+        this.assignmentRuleService =
+                java.util.Objects.requireNonNull(assignmentRuleService);
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -149,7 +158,7 @@ public class AssignmentRuleController extends HttpServlet {
                 method = "DIRECT";
             }
 
-            if (!("DIRECT".equals(method) || "ROUND_ROBIN".equals(method))) {
+            if (!"DIRECT".equals(method)) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write(
                     "{\"status\":\"error\",\"message\":\"Phương thức phân bổ không hợp lệ\"}"
@@ -163,6 +172,15 @@ public class AssignmentRuleController extends HttpServlet {
             rule.setConditionValue(conditionValue.trim());
             rule.setAssignToUserId(userId);
             rule.setPriority(priority);
+            if (activeText != null
+                    && !("true".equals(activeText) || "false".equals(activeText))) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(
+                    "{\"status\":\"error\",\"message\":\"Invalid active value\"}"
+                );
+                return;
+            }
+
             rule.setActive(activeText == null || Boolean.parseBoolean(activeText));
             rule.setAssignmentMethod(method);
 
@@ -208,9 +226,30 @@ public class AssignmentRuleController extends HttpServlet {
             String conditionType = params.get("conditionType");
             String conditionValue = params.get("conditionValue");
             String method = params.getOrDefault("assignmentMethod", "DIRECT");
-            boolean active = Boolean.parseBoolean(
-                params.getOrDefault("active", "true")
-            );
+            String activeText = params.getOrDefault("active", "true");
+
+            if (!("true".equals(activeText) || "false".equals(activeText))) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(
+                    "{\"status\":\"error\",\"message\":\"Invalid active value\"}"
+                );
+                return;
+            }
+
+            boolean active = Boolean.parseBoolean(activeText);
+
+            if (name == null || name.trim().isEmpty()
+                    || conditionValue == null || conditionValue.trim().isEmpty()
+                    || !("SOURCE".equals(conditionType)
+                         || "REGION".equals(conditionType)
+                         || "INDUSTRY".equals(conditionType))
+                    || !"DIRECT".equals(method)) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(
+                    "{\"status\":\"error\",\"message\":\"Invalid assignment rule data\"}"
+                );
+                return;
+            }
 
             AssignmentRule rule = new AssignmentRule();
             rule.setId(id);
@@ -243,7 +282,7 @@ public class AssignmentRuleController extends HttpServlet {
                 );
             }
 
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (IllegalArgumentException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(
                 "{\"status\":\"error\",\"message\":\"ID hoặc độ ưu tiên không hợp lệ\"}"
@@ -294,7 +333,7 @@ public class AssignmentRuleController extends HttpServlet {
                 );
             }
 
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (IllegalArgumentException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(
                 "{\"status\":\"error\",\"message\":\"ID không hợp lệ\"}"
