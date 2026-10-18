@@ -6,189 +6,660 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.ictu.qlkh.service.LeadConversionService;
+import vn.edu.ictu.qlkh.service.LeadConversionService.ConversionResult;
+import vn.edu.ictu.qlkh.util.DBConnection;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import vn.edu.ictu.qlkh.util.DBConnection;
+import java.util.Locale;
+import java.util.Set;
 
-@WebServlet(name = "ConvertLeadServlet", urlPatterns = {"/leads/convert", "/leads/execute-convert"})
+@WebServlet(
+        name = "ConvertLeadServlet",
+        urlPatterns = {
+                "/leads/convert",
+                "/leads/execute-convert",
+                "/api/v1/leads/convert"
+        }
+)
 public class ConvertLeadServlet extends HttpServlet {
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        String role = (session != null) ? (String) session.getAttribute("role") : null;
-        String userRole = (session != null) ? (String) session.getAttribute("userRole") : null;
-        
-        // Kiểm tra phân quyền thống nhất giữa 'role' và 'userRole'
-        if (role == null && userRole == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+    private static final Set<String> ALLOWED_ROLES =
+            Set.of("SALES", "MANAGER", "ADMIN");
 
-        String action = request.getServletPath();
-        if ("/leads/convert".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr == null || idStr.trim().isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/leads?error=not_found");
-                return;
-            }
+    private static final Set<String> CONVERTIBLE_STATUSES =
+            Set.of("NEW", "ASSIGNED", "IN_PROGRESS");
 
-            try {
-                int leadId = Integer.parseInt(idStr);
-                try (Connection conn = DBConnection.getConnection()) {
-                    LeadInfo lead = getLeadById(conn, leadId);
-                    if (lead == null) {
-                        request.setAttribute("errorMessage", "Không tìm thấy thông tin Lead trong hệ thống.");
-                    } else {
-                        boolean isQualified = "Đủ điều kiện".equalsIgnoreCase(lead.getStatus()) 
-                                           || "Tiềm năng".equalsIgnoreCase(lead.getStatus()) 
-                                           || "Mới".equalsIgnoreCase(lead.getStatus());
-                        request.setAttribute("lead", lead);
-                        request.setAttribute("isQualified", isQualified);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                request.setAttribute("errorMessage", "Lỗi cơ sở dữ liệu khi tải thông tin lead.");
-            }
+    private final LeadConversionService conversionService;
 
-            request.getRequestDispatcher("/lead/convert.jsp").forward(request, response);
-        }
+    public ConvertLeadServlet() {
+        this(new LeadConversionService());
+    }
+
+    ConvertLeadServlet(LeadConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
+    private record Actor(long id, String role) {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        HttpSession session = request.getSession(false);
-        String role = (session != null) ? (String) session.getAttribute("role") : null;
-        String userRole = (session != null) ? (String) session.getAttribute("userRole") : null;
-        
-        if (role == null && userRole == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
+
+        String action = request.getServletPath();
+
+        if ("/api/v1/leads/convert".equals(action)) {
+            sendJson(
+                    response,
+                    HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                    jsonError(
+                            "METHOD_NOT_ALLOWED",
+                            "API này chỉ hỗ trợ POST."
+                    )
+            );
             return;
         }
 
-        String action = request.getServletPath();
-        if ("/leads/execute-convert".equals(action)) {
-            String idStr = request.getParameter("leadId");
-            if (idStr == null || idStr.trim().isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/leads?error=invalid_lead");
-                return;
-            }
+        Actor actor = actor(request);
 
-            try {
-                int leadId = Integer.parseInt(idStr);
-                boolean success = convertLeadToCustomerAndContact(leadId);
-                if (success) {
-                    response.sendRedirect(request.getContextPath() + "/leads?message=convert_success");
+        if (actor == null) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
+
+        if (!ALLOWED_ROLES.contains(actor.role())) {
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN
+            );
+            return;
+        }
+
+        if (!"/leads/convert".equals(action)) {
+            response.sendError(
+                    HttpServletResponse.SC_NOT_FOUND
+            );
+            return;
+        }
+
+        String idStr = request.getParameter("id");
+
+        if (idStr == null || idStr.isBlank()) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/leads?error=not_found"
+            );
+            return;
+        }
+
+        try {
+            long leadId = Long.parseLong(idStr);
+
+            try (Connection conn =
+                         DBConnection.getConnection()) {
+
+                LeadInfo lead =
+                        getLeadById(conn, leadId);
+
+                if (lead == null) {
+
+                    request.setAttribute(
+                            "errorMessage",
+                            "Không tìm thấy thông tin Lead trong hệ thống."
+                    );
+
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/leads/convert?id=" + leadId + "&error=convert_failed");
+
+                    boolean isQualified =
+                            CONVERTIBLE_STATUSES.contains(
+                                    normalizeStatus(
+                                            lead.getStatus()
+                                    )
+                            )
+                            && lead.getConvertedCustomerId() == null
+                            && lead.getConvertedContactId() == null;
+
+                    request.setAttribute(
+                            "lead",
+                            lead
+                    );
+
+                    request.setAttribute(
+                            "isQualified",
+                            isQualified
+                    );
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                response.sendRedirect(request.getContextPath() + "/leads?error=db_error");
+            }
+
+        } catch (NumberFormatException ex) {
+
+            request.setAttribute(
+                    "errorMessage",
+                    "Mã Lead không hợp lệ."
+            );
+
+        } catch (SQLException ex) {
+
+            ex.printStackTrace();
+
+            request.setAttribute(
+                    "errorMessage",
+                    "Lỗi cơ sở dữ liệu khi tải thông tin Lead."
+            );
+        }
+
+        request.getRequestDispatcher(
+                "/lead/convert.jsp"
+        ).forward(request, response);
+    }
+
+    @Override
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+
+        request.setCharacterEncoding("UTF-8");
+
+        String action = request.getServletPath();
+        boolean api =
+                "/api/v1/leads/convert".equals(action);
+
+        if (!api
+                && !"/leads/execute-convert".equals(action)) {
+
+            if (api) {
+                sendJson(
+                        response,
+                        HttpServletResponse.SC_NOT_FOUND,
+                        jsonError(
+                                "NOT_FOUND",
+                                "Không tìm thấy API."
+                        )
+                );
+            } else {
+                response.sendError(
+                        HttpServletResponse.SC_NOT_FOUND
+                );
+            }
+
+            return;
+        }
+
+        Actor actor = actor(request);
+
+        if (actor == null) {
+
+            if (api) {
+                sendJson(
+                        response,
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        jsonError(
+                                "UNAUTHORIZED",
+                                "Chưa đăng nhập."
+                        )
+                );
+            } else {
+                response.sendRedirect(
+                        request.getContextPath() + "/login"
+                );
+            }
+
+            return;
+        }
+
+        String leadIdRaw =
+                request.getParameter("leadId");
+
+        long leadId;
+
+        try {
+            leadId = Long.parseLong(
+                    leadIdRaw == null
+                            ? ""
+                            : leadIdRaw.trim()
+            );
+
+        } catch (NumberFormatException ex) {
+
+            if (api) {
+                sendJson(
+                        response,
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        jsonError(
+                                "INVALID_REQUEST",
+                                "leadId không hợp lệ."
+                        )
+                );
+            } else {
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/leads?error=invalid_lead"
+                );
+            }
+
+            return;
+        }
+
+        try {
+
+            ConversionResult result =
+                    conversionService.convert(
+                            leadId,
+                            actor.id(),
+                            actor.role()
+                    );
+
+            if (api) {
+
+                sendJson(
+                        response,
+                        httpStatus(result),
+                        toJson(result)
+                );
+
+                return;
+            }
+
+            if (result.success()) {
+
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/leads?message=convert_success"
+                                + "&customerId="
+                                + result.customerId()
+                );
+
+            } else {
+
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/leads/convert?id="
+                                + leadId
+                                + "&error="
+                                + result.code()
+                                        .toLowerCase(
+                                                Locale.ROOT
+                                        )
+                );
+            }
+
+        } catch (SQLException ex) {
+
+            ex.printStackTrace();
+
+            if (api) {
+
+                sendJson(
+                        response,
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        jsonError(
+                                "DATABASE_ERROR",
+                                "Không thể chuyển đổi Lead do lỗi cơ sở dữ liệu."
+                        )
+                );
+
+            } else {
+
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/leads?error=db_error"
+                );
             }
         }
     }
 
-    private LeadInfo getLeadById(Connection conn, int id) throws SQLException {
-        String sql = "SELECT id, full_name, email, phone, company, source, status, owner FROM leads WHERE id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new LeadInfo(
-                        rs.getInt("id"),
+    private Actor actor(
+            HttpServletRequest request
+    ) {
+
+        HttpSession session =
+                request.getSession(false);
+
+        if (session == null) {
+            return null;
+        }
+
+        Object userId =
+                session.getAttribute("userId");
+
+        Object userRole =
+                session.getAttribute("userRole");
+
+        if (userId == null || userRole == null) {
+            return null;
+        }
+
+        try {
+
+            long id =
+                    Long.parseLong(
+                            userId.toString()
+                    );
+
+            if (id <= 0) {
+                return null;
+            }
+
+            String role =
+                    userRole.toString()
+                            .trim()
+                            .toUpperCase(
+                                    Locale.ROOT
+                            );
+
+            return new Actor(
+                    id,
+                    role
+            );
+
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private LeadInfo getLeadById(
+            Connection conn,
+            long id
+    ) throws SQLException {
+
+        String sql = """
+                SELECT
+                    l.id,
+                    l.full_name,
+                    l.email,
+                    l.phone,
+                    l.company,
+                    l.source,
+                    l.status,
+                    l.assigned_to,
+                    l.converted_customer_id,
+                    l.converted_contact_id,
+                    u.full_name AS owner_name
+                FROM leads l
+                LEFT JOIN users u
+                  ON u.id = l.assigned_to
+                WHERE l.id = ?
+                """;
+
+        try (PreparedStatement ps =
+                     conn.prepareStatement(sql)) {
+
+            ps.setLong(1, id);
+
+            try (ResultSet rs =
+                         ps.executeQuery()) {
+
+                if (!rs.next()) {
+                    return null;
+                }
+
+                return new LeadInfo(
+                        rs.getLong("id"),
                         rs.getString("full_name"),
                         rs.getString("email"),
                         rs.getString("phone"),
                         rs.getString("company"),
                         rs.getString("source"),
                         rs.getString("status"),
-                        rs.getString("owner")
-                    );
-                }
+                        nullableLong(
+                                rs,
+                                "assigned_to"
+                        ),
+                        nullableLong(
+                                rs,
+                                "converted_customer_id"
+                        ),
+                        nullableLong(
+                                rs,
+                                "converted_contact_id"
+                        ),
+                        rs.getString("owner_name")
+                );
             }
         }
-        return null;
     }
 
-    private boolean convertLeadToCustomerAndContact(int leadId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                LeadInfo lead = getLeadById(conn, leadId);
-                if (lead == null || "CONVERTED".equalsIgnoreCase(lead.getStatus())) {
-                    conn.rollback();
-                    return false;
-                }
+    private Long nullableLong(
+            ResultSet rs,
+            String column
+    ) throws SQLException {
 
-                // 1. Tạo Customer mới
-                String insertCust = "INSERT INTO customers (name, tax_code, industry, scale, website, address, owner, status) VALUES (?, '', 'Khác', 'Nhỏ', '', '', ?, 'ACTIVE')";
-                int newCustomerId = 0;
-                try (PreparedStatement psCust = conn.prepareStatement(insertCust, Statement.RETURN_GENERATED_KEYS)) {
-                    psCust.setString(1, (lead.getCompany() != null && !lead.getCompany().trim().isEmpty()) ? lead.getCompany() : lead.getFullName());
-                    psCust.setString(2, lead.getOwner());
-                    psCust.executeUpdate();
-                    try (ResultSet rsKeys = psCust.getGeneratedKeys()) {
-                        if (rsKeys.next()) {
-                            newCustomerId = rsKeys.getInt(1);
-                        }
-                    }
-                }
+        long value =
+                rs.getLong(column);
 
-                if (newCustomerId == 0) {
-                    conn.rollback();
-                    return false;
-                }
+        return rs.wasNull()
+                ? null
+                : value;
+    }
 
-                // 2. Tạo Contact liên kết với Customer vừa tạo
-                String insertContact = "INSERT INTO contacts (customer_id, full_name, email, phone, position) VALUES (?, ?, ?, ?, 'Đại diện')";
-                try (PreparedStatement psContact = conn.prepareStatement(insertContact)) {
-                    psContact.setInt(1, newCustomerId);
-                    psContact.setString(2, lead.getFullName());
-                    psContact.setString(3, lead.getEmail());
-                    psContact.setString(4, lead.getPhone());
-                    psContact.executeUpdate();
-                }
+    private int httpStatus(
+            ConversionResult result
+    ) {
 
-                // 3. Cập nhật trạng thái Lead thành CONVERTED
-                String updateLead = "UPDATE leads SET status = 'CONVERTED' WHERE id = ?";
-                try (PreparedStatement psLead = conn.prepareStatement(updateLead)) {
-                    psLead.setInt(1, leadId);
-                    psLead.executeUpdate();
-                }
-
-                conn.commit();
-                return true;
-            } catch (SQLException e) {
-                conn.rollback();
-                e.printStackTrace();
-                return false;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+        if (result.success()) {
+            return HttpServletResponse.SC_OK;
         }
+
+        return switch (result.code()) {
+
+            case "INVALID_REQUEST",
+                 "NOT_ELIGIBLE" ->
+                    HttpServletResponse.SC_BAD_REQUEST;
+
+            case "FORBIDDEN" ->
+                    HttpServletResponse.SC_FORBIDDEN;
+
+            case "NOT_FOUND",
+                 "CUSTOMER_NOT_FOUND" ->
+                    HttpServletResponse.SC_NOT_FOUND;
+
+            case "ALREADY_CONVERTED",
+                 "DUPLICATE_CONFLICT" ->
+                    HttpServletResponse.SC_CONFLICT;
+
+            default ->
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+        };
+    }
+
+    private String toJson(
+            ConversionResult result
+    ) {
+
+        return "{"
+                + "\"success\":"
+                + result.success()
+                + ",\"code\":\""
+                + escapeJson(result.code())
+                + "\""
+                + ",\"message\":\""
+                + escapeJson(result.message())
+                + "\""
+                + ",\"leadId\":"
+                + result.leadId()
+                + ",\"customerId\":"
+                + nullableNumber(
+                        result.customerId()
+                )
+                + ",\"contactId\":"
+                + nullableNumber(
+                        result.contactId()
+                )
+                + ",\"customerCreated\":"
+                + result.customerCreated()
+                + ",\"contactCreated\":"
+                + result.contactCreated()
+                + "}";
+    }
+
+    private String jsonError(
+            String code,
+            String message
+    ) {
+
+        return "{"
+                + "\"success\":false"
+                + ",\"code\":\""
+                + escapeJson(code)
+                + "\""
+                + ",\"message\":\""
+                + escapeJson(message)
+                + "\""
+                + "}";
+    }
+
+    private String nullableNumber(
+            Long value
+    ) {
+
+        return value == null
+                ? "null"
+                : value.toString();
+    }
+
+    private void sendJson(
+            HttpServletResponse response,
+            int status,
+            String json
+    ) throws IOException {
+
+        response.setStatus(status);
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType(
+                "application/json;charset=UTF-8"
+        );
+        response.setHeader(
+                "Cache-Control",
+                "no-store"
+        );
+
+        response.getWriter().write(json);
+    }
+
+    private String normalizeStatus(
+            String status
+    ) {
+
+        return status == null
+                ? ""
+                : status.trim()
+                        .toUpperCase(
+                                Locale.ROOT
+                        );
+    }
+
+    private String escapeJson(
+            String value
+    ) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
     }
 
     public static class LeadInfo {
-        private int id;
-        private String fullName, email, phone, company, source, status, owner;
-        public LeadInfo(int id, String fullName, String email, String phone, String company, String source, String status, String owner) {
-            this.id = id; this.fullName = fullName; this.email = email; this.phone = phone; this.company = company; this.source = source; this.status = status; this.owner = owner;
+
+        private final long id;
+        private final String fullName;
+        private final String email;
+        private final String phone;
+        private final String company;
+        private final String source;
+        private final String status;
+        private final Long assignedTo;
+        private final Long convertedCustomerId;
+        private final Long convertedContactId;
+        private final String owner;
+
+        public LeadInfo(
+                long id,
+                String fullName,
+                String email,
+                String phone,
+                String company,
+                String source,
+                String status,
+                Long assignedTo,
+                Long convertedCustomerId,
+                Long convertedContactId,
+                String owner
+        ) {
+
+            this.id = id;
+            this.fullName = fullName;
+            this.email = email;
+            this.phone = phone;
+            this.company = company;
+            this.source = source;
+            this.status = status;
+            this.assignedTo = assignedTo;
+            this.convertedCustomerId =
+                    convertedCustomerId;
+            this.convertedContactId =
+                    convertedContactId;
+            this.owner = owner;
         }
-        public int getId() { return id; }
-        public String getFullName() { return fullName; }
-        public String getEmail() { return email; }
-        public String getPhone() { return phone; }
-        public String getCompany() { return company; }
-        public String getSource() { return source; }
-        public String getStatus() { return status; }
-        public String getOwner() { return owner; }
+
+        public long getId() {
+            return id;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public String getCompany() {
+            return company;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public Long getAssignedTo() {
+            return assignedTo;
+        }
+
+        public Long getConvertedCustomerId() {
+            return convertedCustomerId;
+        }
+
+        public Long getConvertedContactId() {
+            return convertedContactId;
+        }
+
+        public String getOwner() {
+            return owner == null
+                    ? "Chưa phân công"
+                    : owner;
+        }
     }
 }
