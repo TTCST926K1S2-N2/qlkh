@@ -67,7 +67,16 @@ public class AuthenticationFilter implements Filter {
          * API gia hạn phiên cần trả 401 để session.js biết
          * phiên không còn hợp lệ, không redirect HTML.
          */
-        if (path.equals("/api/assignment-rules") || path.startsWith("/api/assignment-rules/") || path.equals("/api/v1/customer-care-list") || path.startsWith("/api/v1/customer-care-list/")
+        if (path.equals("/api/assignment-rules")
+                || path.startsWith("/api/assignment-rules/")
+                || path.equals("/api/v1/leads/convert")
+                || path.equals("/api/v1/leads/import")
+                || path.startsWith("/api/v1/leads/import/")
+                || path.equals("/api/v1/leads/tracking")
+                || path.equals("/api/v1/campaigns")
+                || path.equals("/api/v1/campaigns/link")
+                || path.equals("/api/v1/customer-care-list")
+                || path.startsWith("/api/v1/customer-care-list/")
             || path.equals("/api/v1/customer-support")
                 || path.startsWith("/api/v1/customer-support/")
                 || path.equals("/api/v1/customer-relationships")
@@ -122,7 +131,9 @@ public class AuthenticationFilter implements Filter {
             return false;
         }
 
-        return path.equals("/login")
+        return path.equals("/api/v1/lead-capture")
+                || path.equals("/lead-capture")
+                || path.equals("/login")
                 || path.equals("/logout")
                 || path.equals("/forgot-password")
                 || path.equals("/reset-password")
