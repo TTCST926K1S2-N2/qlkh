@@ -31,6 +31,8 @@ public class ContactService {
     private final CustomerDAO customerDAO;
     private final PermissionService permissionService;
 
+
+    private final LeadDuplicateService leadDuplicateService;
     public ContactService() {
         this(
                 new ContactDAO(),
@@ -47,6 +49,8 @@ public class ContactService {
         this.contactDAO = contactDAO;
         this.customerDAO = customerDAO;
         this.permissionService = permissionService;
+
+        this.leadDuplicateService = new LeadDuplicateService(contactDAO, customerDAO, permissionService);
     }
 
     private DataScope requireScope(String role) {
@@ -133,6 +137,40 @@ public class ContactService {
                     "Khong co quyen them nguoi lien he"
             );
         }
+
+        if ((contact.getEmail() != null && !contact.getEmail().isBlank())
+
+                || (contact.getPhone() != null && !contact.getPhone().isBlank())) {
+
+            List<LeadDuplicateService.DuplicateLead> duplicates =
+
+                    leadDuplicateService.findDuplicates(
+
+                            userId,
+
+                            role,
+
+                            contact.getEmail(),
+
+                            contact.getPhone()
+
+                    );
+
+
+
+            if (!duplicates.isEmpty()) {
+
+                throw new IllegalArgumentException(
+
+                        "Email hoac so dien thoai da ton tai trong lead tiem nang"
+
+                );
+
+            }
+
+        }
+
+
 
         return contactDAO.insert(contact);
     }
