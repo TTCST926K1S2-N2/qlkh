@@ -15,6 +15,21 @@ public class LeadDAO {
             "(full_name, email, phone, company, interest, status, source, source_form) " +
             "VALUES (?, ?, ?, ?, ?, 'NEW', 'WEBSITE', ?)";
 
+    private static final String INSERT_IMPORTED_LEAD_SQL =
+            "INSERT INTO leads " +
+            "(full_name, email, phone, company, job_title, tax_code, industry, " +
+            "company_size, website, address, status, source) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 'EXCEL')";
+
+    private static final String EXISTS_BY_EMAIL_OR_PHONE_SQL =
+            "SELECT 1 FROM leads " +
+            "WHERE " +
+            "(? IS NOT NULL AND LOWER(TRIM(email)) = ?) " +
+            "OR " +
+            "(? IS NOT NULL AND " +
+            "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '.', ''), '(', ''), ')', ''), '+', '') = ?) " +
+            "LIMIT 1";
+
     public long create(
             String fullName,
             String email,
@@ -53,10 +68,6 @@ public class LeadDAO {
         }
     }
 
-    /**
-     * S4-02: Luu Lead duoc nhap tu Excel.
-     * Khong tao Customer hoac Contact.
-     */
     public long createImportedLead(
             String fullName,
             String email,
@@ -70,16 +81,11 @@ public class LeadDAO {
             String address
     ) throws SQLException {
 
-        String sql =
-                "INSERT INTO leads " +
-                "(full_name, email, phone, company, " +
-                "job_title, tax_code, industry, company_size, website, address, " +
-                "status, source) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', 'EXCEL')";
-
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     sql, Statement.RETURN_GENERATED_KEYS)) {
+                     INSERT_IMPORTED_LEAD_SQL,
+                     Statement.RETURN_GENERATED_KEYS
+             )) {
 
             statement.setString(1, fullName);
             statement.setString(2, email);
@@ -92,8 +98,10 @@ public class LeadDAO {
             statement.setString(9, website);
             statement.setString(10, address);
 
-            if (statement.executeUpdate() != 1) {
-                throw new SQLException("Khong the import Lead");
+            int affectedRows = statement.executeUpdate();
+
+            if (affectedRows != 1) {
+                throw new SQLException("Khong the tao Lead tu Excel.");
             }
 
             try (ResultSet keys = statement.getGeneratedKeys()) {
@@ -102,13 +110,34 @@ public class LeadDAO {
                 }
             }
 
-            throw new SQLException("Khong lay duoc ID Lead");
+            throw new SQLException("Khong lay duoc ID Lead.");
         }
     }
 
-    /**
-     * S4-02: Lay email va so dien thoai cua Lead da ton tai.
-     */
+    public boolean existsByEmailOrPhone(
+            String normalizedEmail,
+            String normalizedPhone
+    ) throws SQLException {
+
+        if (normalizedEmail == null && normalizedPhone == null) {
+            return false;
+        }
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(EXISTS_BY_EMAIL_OR_PHONE_SQL)) {
+
+            statement.setString(1, normalizedEmail);
+            statement.setString(2, normalizedEmail);
+            statement.setString(3, normalizedPhone);
+            statement.setString(4, normalizedPhone);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
     public void findExistingLeadKeys(
             java.util.Set<String> emails,
             java.util.Set<String> phones

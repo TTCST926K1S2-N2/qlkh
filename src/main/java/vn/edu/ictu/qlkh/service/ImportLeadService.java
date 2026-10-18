@@ -7,14 +7,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import vn.edu.ictu.qlkh.dao.LeadDAO;
-import vn.edu.ictu.qlkh.model.Contact;
 import vn.edu.ictu.qlkh.model.ImportLeadResult;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -52,23 +50,14 @@ public class ImportLeadService {
                     "\\d{10}(-\\d{3})?"
             );
 
-    private final LeadDAO leadDAO = new LeadDAO();
-    private final CustomerService customerService;
-    private final ContactService contactService;
+    private final LeadDAO leadDAO;
 
     public ImportLeadService() {
-        this(
-                new CustomerService(),
-                new ContactService()
-        );
+        this(new LeadDAO());
     }
 
-    ImportLeadService(
-            CustomerService customerService,
-            ContactService contactService) {
-
-        this.customerService = customerService;
-        this.contactService = contactService;
+    ImportLeadService(LeadDAO leadDAO) {
+        this.leadDAO = leadDAO;
     }
 
     /*
@@ -96,7 +85,7 @@ public class ImportLeadService {
      * - doc Excel
      * - validate
      * - kiem tra trung
-     * - ghi Customer(POTENTIAL) + Contact
+     * - ghi Lead(source=EXCEL, status=NEW) vao bang leads
      */
     public ImportLeadResult importLeads(
             InputStream inputStream,
@@ -139,23 +128,11 @@ public class ImportLeadService {
         Set<String> usedEmails =
                 new HashSet<>();
 
+        Set<String> usedTaxCodes = new HashSet<>();
+
         Set<String> usedPhones =
                 new HashSet<>();
 
-        /*
-         * MST khong phai quy tac duplicate Lead.
-         * Tap nay chi dung de tranh 2 dong Excel
-         * cung tao Customer voi cung ma so thue.
-         */
-        Set<String> usedTaxCodes =
-                new HashSet<>();
-
-        loadExistingLeadKeys(
-                userId,
-                role,
-                usedEmails,
-                usedPhones
-        );
 
         DataFormatter formatter =
                 new DataFormatter(Locale.ROOT);
@@ -208,14 +185,10 @@ public class ImportLeadService {
                     validateLeadRow(lead);
 
                     String normalizedTaxCode =
-                            normalizeTaxCode(
-                                    lead.taxCode
-                            );
+                            normalizeTaxCode(lead.taxCode);
 
                     if (!normalizedTaxCode.isEmpty()
-                            && usedTaxCodes.contains(
-                                    normalizedTaxCode)) {
-
+                            && usedTaxCodes.contains(normalizedTaxCode)) {
                         throw new IllegalArgumentException(
                                 "Ma so thue bi trung trong tep Excel"
                         );
@@ -231,25 +204,35 @@ public class ImportLeadService {
                                     lead.phone
                             );
 
+                    boolean emailDuplicate =
+                            !normalizedEmail.isEmpty()
+                                    && (
+                                    usedEmails.contains(normalizedEmail)
+                                            || leadDAO.existsByEmailOrPhone(
+                                                    normalizedEmail,
+                                                    null
+                                            )
+                            );
+
+                    boolean phoneDuplicate =
+                            !normalizedPhone.isEmpty()
+                                    && (
+                                    usedPhones.contains(normalizedPhone)
+                                            || leadDAO.existsByEmailOrPhone(
+                                                    null,
+                                                    normalizedPhone
+                                            )
+                            );
+
                     boolean duplicate =
-                            (!normalizedEmail.isEmpty()
-                                    && usedEmails.contains(
-                                            normalizedEmail
-                                    ))
-                            ||
-                            (!normalizedPhone.isEmpty()
-                                    && usedPhones.contains(
-                                            normalizedPhone
-                                    ));
+                            emailDuplicate || phoneDuplicate;
 
                     if (duplicate) {
 
                         String message =
                                 buildDuplicateMessage(
-                                        normalizedEmail,
-                                        normalizedPhone,
-                                        usedEmails,
-                                        usedPhones
+                                        emailDuplicate,
+                                        phoneDuplicate
                                 );
 
                         result.addPreviewRow(
@@ -278,11 +261,7 @@ public class ImportLeadService {
                      * Import that moi ghi database.
                      */
                     if (!preview) {
-                        saveLead(
-                                lead,
-                                userId,
-                                role
-                        );
+                        saveLead(lead);
                     }
 
                     /*
@@ -302,9 +281,7 @@ public class ImportLeadService {
                     }
 
                     if (!normalizedTaxCode.isEmpty()) {
-                        usedTaxCodes.add(
-                                normalizedTaxCode
-                        );
+                        usedTaxCodes.add(normalizedTaxCode);
                     }
 
                     result.incrementSuccessCount();
@@ -384,30 +361,7 @@ public class ImportLeadService {
     }
 
     /*
-     * Lay tat ca Lead ma user hien tai duoc phep nhin thay.
-     *
-     * Theo Sprint 4 hien tai:
-     * Lead = Customer co status POTENTIAL
-     *        + Contact thuoc Customer do.
-     */
-    private void loadExistingLeadKeys(
-            long userId,
-            String role,
-            Set<String> emails,
-            Set<String> phones) throws IOException {
-
-        try {
-            leadDAO.findExistingLeadKeys(emails, phones);
-        } catch (SQLException exception) {
-            throw new IOException(
-                    "Khong the kiem tra Lead trung lap",
-                    exception
-            );
-        }
-    }
-
-    /*
-     * Chuyen mot dong Excel thanh LeadRow.
+     * Doc mot dong Lead tu file Excel.
      */
     private LeadRow readLeadRow(
             Row row,
@@ -634,16 +588,13 @@ public class ImportLeadService {
     }
 
     /*
-     * Import that mot Lead.
+     * Import that mot Lead vao bang leads.
      *
-     * Buoc 1: tao Customer status POTENTIAL.
-     * Buoc 2: lay customerId vua tao.
-     * Buoc 3: tao Contact cho Customer do.
+     * Customer va Contact chi duoc tao o buoc convert Lead (S4-08),
+     * khong duoc tao trong qua trinh import Excel.
      */
     private void saveLead(
-            LeadRow lead,
-            long userId,
-            String role) throws SQLException {
+            LeadRow lead) throws SQLException {
 
         leadDAO.createImportedLead(
                 lead.contactName,
@@ -658,24 +609,11 @@ public class ImportLeadService {
                 lead.address
         );
     }
-
     private String buildDuplicateMessage(
-            String email,
-            String phone,
-            Set<String> usedEmails,
-            Set<String> usedPhones) {
+            boolean emailDuplicate,
+            boolean phoneDuplicate) {
 
-        boolean emailDuplicate =
-                !email.isEmpty()
-                        && usedEmails.contains(email);
-
-        boolean phoneDuplicate =
-                !phone.isEmpty()
-                        && usedPhones.contains(phone);
-
-        if (emailDuplicate &&
-                phoneDuplicate) {
-
+        if (emailDuplicate && phoneDuplicate) {
             return "Email va so dien thoai da ton tai";
         }
 
@@ -685,23 +623,18 @@ public class ImportLeadService {
 
         return "So dien thoai da ton tai";
     }
-
-    private String normalizeTaxCode(
-            String taxCode) {
-
-        if (taxCode == null) {
-            return "";
-        }
-
-        return taxCode
-                .trim()
-                .toUpperCase(Locale.ROOT);
-    }
-
     /*
      * Giong quy tac S4-04:
      * trim + lowercase.
      */
+    private String normalizeTaxCode(String taxCode) {
+        if (taxCode == null) {
+            return "";
+        }
+
+        return taxCode.trim().toUpperCase(Locale.ROOT);
+    }
+
     private String normalizeEmail(
             String email) {
 

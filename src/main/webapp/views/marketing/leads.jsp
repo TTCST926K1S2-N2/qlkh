@@ -1,321 +1,278 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Import Lead từ Excel</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            background: #f5f7fb;
-            color: #243247;
-            font-family: Arial, sans-serif;
-        }
-        main {
-            max-width: 1100px;
-            margin: 36px auto;
-            padding: 0 20px;
-        }
-        .panel {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px #0000000b;
-        }
-        h1 { margin-top: 0; }
-        .muted { color: #64748b; }
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 12px;
-            margin-top: 18px;
-        }
-        button, .download {
-            padding: 11px 17px;
-            border: 0;
-            border-radius: 7px;
-            background: #2563eb;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        button:disabled {
-            opacity: .5;
-            cursor: not-allowed;
-        }
-        .download { background: #475569; }
-        input[type=file] { max-width: 100%; }
-        #message {
-            margin-top: 16px;
-            white-space: pre-wrap;
-        }
-        .error { color: #b91c1c; }
-        .success { color: #15803d; }
-        .table-wrap { overflow-x: auto; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            padding: 11px;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: left;
-            vertical-align: top;
-        }
-        th { background: #f8fafc; }
-        .bad { color: #b91c1c; }
-        .good { color: #15803d; }
-        [hidden] { display: none !important; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Lead - Tạo mới & Nhập Excel</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme-base.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body>
-<main>
-    <section class="panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <h1>Import Lead từ Excel</h1>
-    <a class="download"
-       href="${pageContext.request.contextPath}/customers">
-        Quay lại quản lý khách hàng
-    </a>
-</div>
-        <p class="muted">
-            Tải file mẫu, điền thông tin Lead, sau đó xem trước
-            và xác nhận import. Nguồn Lead nhập vào là EXCEL.
-        </p>
+<body class="bg-light">
 
-        <div class="actions">
-            <a class="download"
-               href="${pageContext.request.contextPath}/api/v1/leads/import/template">
-                Tải file Excel mẫu
-            </a>
+    <div class="container py-4">
+        <h3 class="mb-4">Quản lý Lead</h3>
+
+        <!-- KHU VỰC 1: TẠO LEAD THỦ CÔNG -->
+        <div class="card p-4 mb-4 shadow-sm">
+            <h5 class="card-title text-primary mb-3">Tạo Lead thủ công</h5>
+            <form id="createLeadForm" onsubmit="handleManualCreate(event)">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label font-weight-bold">Tên doanh nghiệp</label>
+                        <input type="text" class="form-control" id="companyName" placeholder="Nhập tên công ty">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label font-weight-bold">Họ tên người liên hệ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="contactName" required placeholder="Nhập họ tên">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label font-weight-bold">Nguồn lead <span class="text-danger">*</span></label>
+                        <select class="form-select" id="leadSource" required>
+                            <option value="">-- Chọn nguồn lead --</option>
+                            <option value="WEBSITE">Website</option>
+                            <option value="EVENT">Sự kiện / Hội thảo</option>
+                            <option value="REFERRAL">Giới thiệu</option>
+                            <option value="COLD_CALL">Gọi điện trực tiếp</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label font-weight-bold">Email liên hệ <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="contactEmail" required placeholder="example@domain.com">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label font-weight-bold">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="contactPhone" required placeholder="0901234567">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label font-weight-bold">Vai trò mua hàng (Kế thừa S3-02)</label>
+                        <select class="form-select" id="buyingRole">
+                            <option value="">-- Chọn vai trò quyết định --</option>
+                            <option value="DECISION_MAKER">Người quyết định</option>
+                            <option value="INFLUENCER">Người ảnh hưởng</option>
+                            <option value="EVALUATOR">Người đánh giá</option>
+                            <option value="USER">Người sử dụng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">Lưu thông tin Lead</button>
+                </div>
+            </form>
         </div>
 
-        <form id="importForm">
-            <p><label for="excelFile">Chọn tệp Excel (.xlsx hoặc .xls)</label></p>
-            <input id="excelFile" name="file" type="file"
-                   accept=".xlsx,.xls" required>
+        <!-- KHU VỰC 2: NHẬP LEAD TỪ EXCEL -->
+        <div class="card p-4 shadow-sm">
+            <h5 class="card-title text-primary mb-3">Nhập danh sách Lead từ Excel</h5>
 
-            <div class="actions">
-                <button id="previewButton" type="submit">
-                    Xem trước dữ liệu
+            <!-- Thao tác chọn file và tải template -->
+            <div class="d-flex align-items-center gap-3 my-2">
+                <button type="button" class="btn btn-outline-primary" onclick="downloadTemplate()">
+                    Tải tệp Excel mẫu
                 </button>
-                <button id="importButton" type="button" disabled>
-                    Xác nhận import
+
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="onFileSelected(this)" />
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('excelFileInput').click()">
+                    Chọn tệp Excel
+                </button>
+                <span id="selectedFileName" class="text-muted fw-bold">Chưa chọn tệp</span>
+            </div>
+
+            <!-- Nút bấm xử lý API -->
+            <div class="mt-3">
+                <button type="button" class="btn btn-info text-white" onclick="previewExcel()">
+                    Xem trước (Preview)
+                </button>
+                <button type="button" id="btnImportSubmit" class="btn btn-success" onclick="importExcel()" disabled>
+                    Xác nhận Import
                 </button>
             </div>
-        </form>
 
-        <div id="message" role="status" aria-live="polite"></div>
-    </section>
+            <!-- Khung thống kê số bản ghi -->
+            <div id="importStats" class="alert alert-info mt-3 d-none">
+                <strong>Tổng số dòng:</strong> <span id="totalRows">0</span> |
+                <strong class="text-success">Hợp lệ:</strong> <span id="successCount">0</span> |
+                <strong class="text-danger">Không hợp lệ / Lỗi:</strong> <span id="failedCount">0</span>
+            </div>
 
-    <section id="resultPanel" class="panel" hidden>
-        <h2 id="resultTitle">Kết quả xem trước</h2>
-        <p id="summary"></p>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>Dòng Excel</th>
-                    <th>Doanh nghiệp</th>
-                    <th>Người liên hệ</th>
-                    <th>Email</th>
-                    <th>Số điện thoại</th>
-                    <th>Trạng thái / Lỗi</th>
-                </tr>
-                </thead>
-                <tbody id="resultRows"></tbody>
-            </table>
+            <!-- Bảng Preview dữ liệu -->
+            <div class="table-responsive mt-3">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>STT Dòng</th>
+                            <th>Tên doanh nghiệp</th>
+                            <th>Họ tên liên hệ</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Trạng thái & Báo lỗi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Chưa có dữ liệu xem trước</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </section>
-</main>
+    </div>
 
-<script>
-(function () {
-    "use strict";
+    <script>
+        const CONTEXT_PATH = '${pageContext.request.contextPath}';
 
-    const api = "${pageContext.request.contextPath}/api/v1/leads/import";
-    const form = document.getElementById("importForm");
-    const fileInput = document.getElementById("excelFile");
-    const previewButton = document.getElementById("previewButton");
-    const importButton = document.getElementById("importButton");
-    const message = document.getElementById("message");
-    const resultPanel = document.getElementById("resultPanel");
-    const resultTitle = document.getElementById("resultTitle");
-    const summary = document.getElementById("summary");
-    const resultRows = document.getElementById("resultRows");
-
-    let previewedFile = null;
-    let busy = false;
-
-    function notify(text, error) {
-        message.textContent = text || "";
-        message.className = error ? "error" : "success";
-    }
-
-    function resetPreview() {
-        previewedFile = null;
-        importButton.disabled = true;
-        resultPanel.hidden = true;
-        resultRows.replaceChildren();
-        notify("", false);
-    }
-
-    function setBusy(value) {
-        busy = value;
-        previewButton.disabled = value;
-        fileInput.disabled = value;
-        importButton.disabled = value || !previewedFile;
-    }
-
-    function cell(tr, value, className) {
-        const td = document.createElement("td");
-        td.textContent = value == null ? "" : String(value);
-        if (className) td.className = className;
-        tr.appendChild(td);
-    }
-
-    function showResult(data, preview) {
-        resultPanel.hidden = false;
-        resultTitle.textContent = preview
-            ? "Kết quả xem trước"
-            : "Kết quả import";
-
-        summary.textContent =
-            "Tổng số dòng: " + (data.totalRows ?? 0) +
-            " | Hợp lệ / Thành công: " + (data.successCount ?? 0) +
-            " | Lỗi: " + (data.failedCount ?? 0);
-
-        resultRows.replaceChildren();
-
-        for (const row of (data.rows || [])) {
-            const tr = document.createElement("tr");
-            cell(tr, row.row);
-            cell(tr, row.companyName);
-            cell(tr, row.contactName);
-            cell(tr, row.email);
-            cell(tr, row.phone);
-            cell(
-                tr,
-                row.valid
-                    ? (preview ? "Hợp lệ" : "Đã import")
-                    : (row.message || "Không hợp lệ"),
-                row.valid ? "good" : "bad"
-            );
-            resultRows.appendChild(tr);
-        }
-    }
-
-    async function submitFile(preview) {
-        const file = fileInput.files[0];
-
-        if (!file) {
-            notify("Vui lòng chọn file Excel.", true);
-            return;
+        // 1. Tải file mẫu
+        function downloadTemplate() {
+            window.location.href = CONTEXT_PATH + '/api/v1/leads/import/template';
         }
 
-        if (!/\.(xlsx|xls)$/i.test(file.name)) {
-            notify("Chỉ chấp nhận file .xlsx hoặc .xls.", true);
-            return;
+        // 2. Hiển thị tên file đã chọn
+        function onFileSelected(input) {
+            const fileNameSpan = document.getElementById('selectedFileName');
+            if (input.files && input.files.length > 0) {
+                fileNameSpan.innerText = input.files[0].name;
+            } else {
+                fileNameSpan.innerText = 'Chưa chọn tệp';
+            }
         }
 
-        if (file.size > 10 * 1024 * 1024) {
-            notify("File vượt quá giới hạn 10 MB.", true);
-            return;
+        // 3. Xử lý Preview dữ liệu
+        function previewExcel() {
+            const fileInput = document.getElementById('excelFileInput');
+            const file = fileInput.files[0];
+
+            if (!validateFile(file)) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch(CONTEXT_PATH + '/api/v1/leads/import?preview=true', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderPreviewData(data);
+                } else {
+                    alert('Lỗi Preview: ' + (data.message || 'Không thể xem trước tệp'));
+                }
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                alert('Có lỗi xảy ra khi kết nối máy chủ.');
+            });
         }
 
-        if (!preview && file !== previewedFile) {
-            notify("File đã thay đổi. Vui lòng xem trước lại.", true);
-            return;
+        // 4. Xử lý Import chính thức
+        function importExcel() {
+            const fileInput = document.getElementById('excelFileInput');
+            const file = fileInput.files[0];
+
+            if (!validateFile(file)) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch(CONTEXT_PATH + '/api/v1/leads/import', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Import thành công ' + data.successCount + '/' + data.totalRows + ' bản ghi!');
+                    location.reload();
+                } else {
+                    alert('Lỗi Import: ' + (data.message || 'Lưu dữ liệu thất bại'));
+                }
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                alert('Không thể lưu dữ liệu Import.');
+            });
         }
 
-        setBusy(true);
-        notify(preview ? "Đang xem trước..." : "Đang import...", false);
+        // 5. Kiểm tra file trước khi gửi
+        function validateFile(file) {
+            if (!file) {
+                alert('Vui lòng chọn tệp Excel trước!');
+                return false;
+            }
 
-        try {
-            const body = new FormData();
-            body.append("file", file);
+            const fileName = file.name.toLowerCase();
+            if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+                alert('Định dạng tệp không hợp lệ! Chỉ hỗ trợ .xlsx hoặc .xls');
+                return false;
+            }
 
-            const url = preview ? api + "?preview=true" : api;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Dung lượng tệp vượt quá 10MB!');
+                return false;
+            }
 
-            const response = await fetch(url, {
-                method: "POST",
-                body: body,
-                credentials: "same-origin"
+            return true;
+        }
+
+        // 6. Hiển thị dữ liệu Preview và tô màu báo lỗi
+        function renderPreviewData(data) {
+            document.getElementById('importStats').classList.remove('d-none');
+            document.getElementById('totalRows').innerText = data.totalRows;
+            document.getElementById('successCount').innerText = data.successCount;
+            document.getElementById('failedCount').innerText = data.failedCount;
+
+            const tbody = document.getElementById('previewTableBody');
+            tbody.innerHTML = '';
+
+            if (!data.rows || data.rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Tệp không có dữ liệu</td></tr>';
+                document.getElementById('btnImportSubmit').disabled = true;
+                return;
+            }
+
+            data.rows.forEach(row => {
+                const tr = document.createElement('tr');
+
+                // Highlight bản ghi lỗi (màu đỏ) hoặc trùng lặp (màu vàng)
+                if (row.duplicate) {
+                    tr.classList.add('table-warning');
+                } else if (!row.valid) {
+                    tr.classList.add('table-danger');
+                }
+
+                const statusHtml = row.duplicate
+                    ? '<span class="badge bg-warning text-dark">Bản ghi trùng lặp</span>'
+                    : (!row.valid
+                        ? '<span class="badge bg-danger">' + escapeHtml(row.message || 'Không hợp lệ') + '</span>'
+                        : '<span class="badge bg-success">Hợp lệ</span>');
+
+                tr.innerHTML =
+                    '<td>' + row.row + '</td>' +
+                    '<td>' + escapeHtml(row.companyName) + '</td>' +
+                    '<td>' + escapeHtml(row.contactName) + '</td>' +
+                    '<td>' + escapeHtml(row.email) + '</td>' +
+                    '<td>' + escapeHtml(row.phone) + '</td>' +
+                    '<td>' + statusHtml + '</td>';
+                tbody.appendChild(tr);
             });
 
-            const contentType = response.headers.get("content-type") || "";
-
-            if (!contentType.includes("application/json")) {
-                throw new Error(
-                    "Máy chủ không trả về JSON. Hãy kiểm tra đăng nhập."
-                );
-            }
-
-            const data = await response.json();
-
-            if (!response.ok || data.success !== true) {
-                throw new Error(data.message || "Không thể xử lý file Excel.");
-            }
-
-            showResult(data, preview);
-
-            if (preview) {
-                previewedFile = Number(data.successCount) > 0
-                    ? file
-                    : null;
-
-                notify(
-                    previewedFile
-                        ? "Đã xem trước. Kiểm tra kết quả trước khi xác nhận."
-                        : "Không có dòng hợp lệ để import.",
-                    !previewedFile
-                );
-            } else {
-                previewedFile = null;
-                notify(
-                    "Đã xử lý import. Thành công: " +
-                    (data.successCount ?? 0) +
-                    ", lỗi: " + (data.failedCount ?? 0) + ".",
-                    false
-                );
-            }
-        } catch (error) {
-            if (preview) {
-                previewedFile = null;
-                resultPanel.hidden = true;
-            }
-            notify(error.message || "Có lỗi xảy ra.", true);
-        } finally {
-            setBusy(false);
-        }
-    }
-
-    fileInput.addEventListener("change", resetPreview);
-
-    form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        if (!busy) submitFile(true);
-    });
-
-    importButton.addEventListener("click", function () {
-        if (busy || !previewedFile) return;
-
-        if (!window.confirm(
-            "Xác nhận ghi các Lead hợp lệ vào cơ sở dữ liệu?"
-        )) {
-            return;
+            document.getElementById('btnImportSubmit').disabled = (data.successCount === 0);
         }
 
-        submitFile(false);
-    });
-})();
-</script>
+        // 7. Xử lý lưu thủ công
+        function handleManualCreate(event) {
+            event.preventDefault();
+            alert('Đã lưu thông tin Lead thủ công!');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
+        }
+    </script>
 </body>
 </html>
