@@ -34,6 +34,48 @@ public class LeadService {
             int page,
             int size
     ) throws SQLException {
+        return search(userId, role, keyword, status, source,
+                assignedTo, page, size, null, null, "createdAt", "desc");
+    }
+
+    public LeadDAO.SearchPage search(
+            long userId,
+            String role,
+            String keyword,
+            String status,
+            String source,
+            Long assignedTo,
+            int page,
+            int size,
+            java.time.LocalDate createdFrom,
+            java.time.LocalDate createdTo,
+            String sortBy,
+            String sortDirection
+    ) throws SQLException {
+        return search(userId, role, keyword, status, source,
+                assignedTo, page, size, createdFrom, createdTo,
+                sortBy, sortDirection, null);
+    }
+
+    public LeadDAO.SearchPage search(
+            long userId,
+            String role,
+            String keyword,
+            String status,
+            String source,
+            Long assignedTo,
+            int page,
+            int size,
+            java.time.LocalDate createdFrom,
+            java.time.LocalDate createdTo,
+            String sortBy,
+            String sortDirection,
+            String classification
+    ) throws SQLException {
+        if (createdFrom != null && createdTo != null
+                && createdFrom.isAfter(createdTo)) {
+            throw new IllegalArgumentException("Invalid date range");
+        }
 
         if (userId <= 0) {
             throw new SecurityException("Nguoi dung khong hop le");
@@ -58,6 +100,34 @@ public class LeadService {
             throw new SecurityException("Khong co quyen truy cap");
         }
 
+        String normalizedClassification = normalize(classification);
+
+        if (normalizedClassification != null
+                && !"HOT".equals(normalizedClassification)
+                && !"WARM".equals(normalizedClassification)
+                && !"COLD".equals(normalizedClassification)) {
+            throw new IllegalArgumentException("Invalid classification");
+        }
+
+        if (normalizedClassification == null
+                && createdFrom == null && createdTo == null
+                && (sortBy == null || sortBy.isBlank()
+                    || "createdAt".equals(sortBy))
+                && (sortDirection == null || sortDirection.isBlank()
+                    || "desc".equalsIgnoreCase(sortDirection))) {
+            return leadDAO.searchVisible(
+                    userId,
+                    scope.name(),
+                    keyword == null || keyword.isBlank() ? null : keyword.trim(),
+                    normalize(status),
+                    normalize(source),
+                    assignedTo,
+                    page,
+                    size
+            );
+        }
+
+        if (normalizedClassification == null) {
         return leadDAO.searchVisible(
                 userId,
                 scope.name(),
@@ -66,7 +136,29 @@ public class LeadService {
                 normalize(source),
                 assignedTo,
                 page,
-                size
+                size,
+                createdFrom,
+                createdTo,
+                sortBy,
+                sortDirection
+
+        );
+        }
+
+        return leadDAO.searchVisible(
+                userId,
+                scope.name(),
+                keyword == null || keyword.isBlank() ? null : keyword.trim(),
+                normalize(status),
+                normalize(source),
+                assignedTo,
+                page,
+                size,
+                createdFrom,
+                createdTo,
+                sortBy,
+                sortDirection,
+                normalizedClassification
         );
     }
 

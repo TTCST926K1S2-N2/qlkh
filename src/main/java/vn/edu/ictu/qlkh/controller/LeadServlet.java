@@ -71,7 +71,12 @@ public class LeadServlet extends HttpServlet {
                     request.getParameter("source"),
                     assignedTo,
                     page,
-                    size
+                    size,
+                    parseDate(request.getParameter("createdFrom")),
+                    parseDate(request.getParameter("createdTo")),
+                    request.getParameter("sortBy"),
+                    request.getParameter("sortDirection"),
+                    request.getParameter("classification")
             );
 
             response.setStatus(HttpServletResponse.SC_OK);
@@ -86,6 +91,18 @@ public class LeadServlet extends HttpServlet {
         } catch (SQLException e) {
             getServletContext().log("Failed to list leads", e);
             sendError(response, 500, "Internal server error");
+        }
+    }
+
+    private java.time.LocalDate parseDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return java.time.LocalDate.parse(value.trim());
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date");
         }
     }
 
@@ -146,6 +163,9 @@ public class LeadServlet extends HttpServlet {
                     .append(',')
                     .append("\"score\":")
                     .append(lead.score() == null ? "null" : lead.score())
+                    .append(',')
+                    .append("\"slaStatus\":")
+                    .append(quote(lead.slaStatus()))
                     .append(',')
                     .append("\"createdAt\":")
                     .append(quote(lead.createdAt() == null ? null : lead.createdAt().toString()))

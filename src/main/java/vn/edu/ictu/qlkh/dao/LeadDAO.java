@@ -1,4 +1,3 @@
-```java
 package vn.edu.ictu.qlkh.dao;
 
 import vn.edu.ictu.qlkh.util.DBConnection;
@@ -95,6 +94,44 @@ public class LeadDAO {
             int page,
             int size
     ) throws SQLException {
+        return searchVisible(userId, scope, keyword, status, source,
+                assignedTo, page, size, null, null, "createdAt", "desc");
+    }
+
+    public SearchPage searchVisible(
+            long userId,
+            String scope,
+            String keyword,
+            String status,
+            String source,
+            Long assignedTo,
+            int page,
+            int size,
+            java.time.LocalDate createdFrom,
+            java.time.LocalDate createdTo,
+            String sortBy,
+            String sortDirection
+    ) throws SQLException {
+        return searchVisible(userId, scope, keyword, status, source,
+                assignedTo, page, size, createdFrom, createdTo,
+                sortBy, sortDirection, null);
+    }
+
+    public SearchPage searchVisible(
+            long userId,
+            String scope,
+            String keyword,
+            String status,
+            String source,
+            Long assignedTo,
+            int page,
+            int size,
+            java.time.LocalDate createdFrom,
+            java.time.LocalDate createdTo,
+            String sortBy,
+            String sortDirection,
+            String classification
+    ) throws SQLException {
 
         if (userId <= 0) {
             throw new SecurityException("Nguoi dung khong hop le");
@@ -158,16 +195,99 @@ public class LeadDAO {
             params.add(assignedTo);
         }
 
+        if (createdFrom != null) {
+            conditions.append(" AND l.created_at >= ? ");
+            params.add(java.sql.Timestamp.valueOf(createdFrom.atStartOfDay()));
+        }
+
+        if (createdTo != null) {
+            conditions.append(" AND l.created_at < ? ");
+            params.add(java.sql.Timestamp.valueOf(createdTo.plusDays(1).atStartOfDay()));
+        }
+
+        if (classification != null && !classification.isBlank()) {
+            String category = classification.trim().toUpperCase(java.util.Locale.ROOT);
+
+            if (!"HOT".equals(category)
+                    && !"WARM".equals(category)
+                    && !"COLD".equals(category)) {
+                throw new IllegalArgumentException("Invalid classification");
+            }
+
+            String hot = "(SELECT hot_threshold FROM lead_scoring_config WHERE id = 1)";
+            String warm = "(SELECT warm_threshold FROM lead_scoring_config WHERE id = 1)";
+
+            switch (category) {
+                case "HOT":
+                    conditions.append(" AND l.score >= " + hot + " ");
+                    break;
+                case "WARM":
+                    conditions.append(" AND l.score >= " + warm
+                            + " AND l.score < " + hot + " ");
+                    break;
+                case "COLD":
+                    conditions.append(" AND l.score < " + warm + " ");
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid classification");
+            }
+        }
+
+        String orderColumn;
+        switch (sortBy == null || sortBy.isBlank() ? "createdAt" : sortBy) {
+            case "name": case "fullName": orderColumn = "l.full_name"; break;
+            case "status": orderColumn = "l.status"; break;
+            case "source": orderColumn = "l.source"; break;
+            case "score": orderColumn = "l.score"; break;
+            case "createdAt": orderColumn = "l.created_at"; break;
+            default: throw new IllegalArgumentException("Invalid sortBy");
+        }
+
+        String direction;
+        if (sortDirection == null || sortDirection.isBlank()
+                || "desc".equalsIgnoreCase(sortDirection)) {
+            direction = "DESC";
+        } else if ("asc".equalsIgnoreCase(sortDirection)) {
+            direction = "ASC";
+        } else {
+            throw new IllegalArgumentException("Invalid sortDirection");
+        }
+
         String fromWhere = " FROM leads l " + conditions;
 
         String countSql = "SELECT COUNT(*)" + fromWhere;
+        String slaColumns = "";
+        try (Connection checkConnection = DBConnection.getConnection()) {
+            java.sql.DatabaseMetaData metadata = checkConnection.getMetaData();
+            boolean hasDeadline = false;
+            boolean hasFirstContact = false;
+
+            try (ResultSet columns = metadata.getColumns(
+                    checkConnection.getCatalog(), null, "leads", null)) {
+                while (columns.next()) {
+                    String column = columns.getString("COLUMN_NAME");
+                    if ("sla_deadline".equalsIgnoreCase(column)) {
+                        hasDeadline = true;
+                    }
+                    if ("first_contact_at".equalsIgnoreCase(column)) {
+                        hasFirstContact = true;
+                    }
+                }
+            }
+
+            if (hasDeadline && hasFirstContact) {
+                slaColumns = ", l.sla_deadline, l.first_contact_at ";
+            }
+        }
+
         String dataSql =
                 "SELECT l.id, l.full_name, l.email, l.phone, " +
                 "l.company, l.interest, l.status, l.source, " +
                 "l.source_form, l.assigned_to, l.score, " +
                 "l.created_at, l.updated_at " +
+                slaColumns +
                 fromWhere +
-                " ORDER BY l.created_at DESC, l.id DESC " +
+                " ORDER BY " + orderColumn + " " + direction + ", l.id DESC " +
                 " LIMIT ? OFFSET ?";
 
         try (Connection connection = DBConnection.getConnection()) {
@@ -208,6 +328,31 @@ public class LeadDAO {
                         java.math.BigDecimal score =
                                 rs.getBigDecimal("score");
 
+                        String slaStatus = null;
+
+                        if (!slaColumns.isEmpty()) {
+                            java.sql.Timestamp deadline =
+                                    rs.getTimestamp("sla_deadline");
+                            java.sql.Timestamp firstContact =
+                                    rs.getTimestamp("first_contact_at");
+
+                            if (deadline != null) {
+                                long remaining = deadline.getTime()
+                                        - System.currentTimeMillis();
+
+                                if (firstContact != null) {
+                                    slaStatus = firstContact.after(deadline)
+                                            ? "overdue" : "on_time";
+                                } else if (remaining < 0) {
+                                    slaStatus = "overdue";
+                                } else if (remaining <= 3600000) {
+                                    slaStatus = "urgent";
+                                } else {
+                                    slaStatus = "on_time";
+                                }
+                            }
+                        }
+
                         items.add(new LeadItem(
                                 rs.getLong("id"),
                                 rs.getString("full_name"),
@@ -221,7 +366,8 @@ public class LeadDAO {
                                 assigned,
                                 score,
                                 created == null ? null : created.toLocalDateTime(),
-                                updated == null ? null : updated.toLocalDateTime()
+                                updated == null ? null : updated.toLocalDateTime(),
+                                slaStatus
                         ));
                     }
                 }
@@ -258,8 +404,29 @@ public class LeadDAO {
             Long assignedTo,
             java.math.BigDecimal score,
             java.time.LocalDateTime createdAt,
-            java.time.LocalDateTime updatedAt
-    ) {}
+            java.time.LocalDateTime updatedAt,
+            String slaStatus
+    ) {
+        public LeadItem(
+                long id,
+                String fullName,
+                String email,
+                String phone,
+                String company,
+                String interest,
+                String status,
+                String source,
+                String sourceForm,
+                Long assignedTo,
+                java.math.BigDecimal score,
+                java.time.LocalDateTime createdAt,
+                java.time.LocalDateTime updatedAt
+        ) {
+            this(id, fullName, email, phone, company, interest,
+                    status, source, sourceForm, assignedTo, score,
+                    createdAt, updatedAt, null);
+        }
+    }
 
     public record SearchPage(
             List<LeadItem> items,
@@ -503,4 +670,3 @@ public class LeadDAO {
         }
     }
 }
-```

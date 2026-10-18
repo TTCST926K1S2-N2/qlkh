@@ -10,6 +10,7 @@
         keyword: $("keyword"),
         status: $("status"),
         source: $("source"),
+        classification: $("classification"),
         assignedTo: $("assignedTo"),
         createdFrom: $("createdFrom"),
         createdTo: $("createdTo"),
@@ -82,6 +83,7 @@
             keyword: el.keyword.value.trim(),
             status: el.status.value,
             source: el.source.value,
+            classification: el.classification.value,
             assignedTo: el.assignedTo.value.trim(),
             createdFrom: el.createdFrom.value,
             createdTo: el.createdTo.value,
@@ -178,7 +180,7 @@
         if (["OVERDUE", "BREACHED", "EXPIRED"].includes(status)) {
             css = "sla-overdue";
             label = "Quá hạn";
-        } else if (["WARNING", "NEAR_DEADLINE"].includes(status)) {
+        } else if (["WARNING", "NEAR_DEADLINE", "URGENT"].includes(status)) {
             css = "sla-warning";
             label = "Sắp đến hạn";
         } else if (status && !["OK", "ON_TIME", "WITHIN_SLA"].includes(status)) {
@@ -307,6 +309,7 @@
         el.keyword.value = "";
         el.status.value = "";
         el.source.value = "";
+        el.classification.value = "";
         el.assignedTo.value = "";
         el.createdFrom.value = "";
         el.createdTo.value = "";
@@ -337,8 +340,16 @@
         const name = window.prompt("Nhập tên bộ lọc:");
         if (!name || !name.trim()) return;
 
-        const filters = readSavedFilters();
-        filters.push({ name: name.trim(), values: getFilters() });
+        const normalizedName = name.trim();
+        const filters = readSavedFilters().filter(
+            item => item && typeof item.name === "string"
+        );
+        const unique = filters.filter(
+            item => item.name.trim().toLocaleLowerCase() !== normalizedName.toLocaleLowerCase()
+        );
+        unique.push({ name: normalizedName, values: getFilters() });
+        filters.length = 0;
+        filters.push(...unique);
 
         try {
             localStorage.setItem("leadSavedFilters", JSON.stringify(filters));
@@ -362,6 +373,7 @@
         el.keyword.value = values.keyword || "";
         el.status.value = values.status || "";
         el.source.value = values.source || "";
+        el.classification.value = values.classification || "";
         el.assignedTo.value = values.assignedTo || "";
         el.createdFrom.value = values.createdFrom || "";
         el.createdTo.value = values.createdTo || "";

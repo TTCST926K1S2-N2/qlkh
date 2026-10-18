@@ -9,6 +9,12 @@
 </head>
 <body>
 <div class="page-container">
+        <div style="margin-bottom:12px">
+        <button type="button" class="btn btn-secondary"
+                onclick="window.location.href = '${pageContext.request.contextPath}/';">
+            Về trang chủ
+        </button>
+    </div>
     <header class="page-header">
         <div><h1>Quản lý Lead</h1><p>Danh sách khách hàng tiềm năng và trạng thái xử lý</p></div>
         <button type="button" class="btn btn-primary" id="refreshBtn">Làm mới danh sách</button>
@@ -24,7 +30,16 @@
             </div>
             <div class="form-group"><label for="source">Nguồn Lead</label>
                 <select id="source">
-                    <option value="">Tất cả nguồn</option><option value="WEBSITE">Website</option><option value="FACEBOOK">Facebook</option><option value="REFERRAL">Giới thiệu</option><option value="OTHER">Khác</option>
+                    <option value="">Tất cả nguồn</option><option value="WEBSITE">Website</option><option value="FACEBOOK">Facebook</option><option value="REFERRAL">Giới thiệu</option><option value="EXCEL">Excel</option><option value="MANUAL">Nhập thủ công</option><option value="TEST">Test</option><option value="OTHER">Khác</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="classification">Phân loại Lead</label>
+                <select id="classification">
+                    <option value="">Tất cả phân loại</option>
+                    <option value="HOT">HOT - Nóng</option>
+                    <option value="WARM">WARM - Ấm</option>
+                    <option value="COLD">COLD - Lạnh</option>
                 </select>
             </div>
             <div class="form-group"><label for="assignedTo">Người phụ trách (ID)</label><input id="assignedTo" type="number" min="1" step="1" placeholder="Nhập ID nhân viên"></div>
