@@ -7,7 +7,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Thông tin project -->
+    <!-- Th├┤ng tin project -->
     <groupId>vn.edu.ictu</groupId>
     <artifactId>qlkh</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -15,7 +15,7 @@
 
     <name>He Thong Quan Ly Khach Hang</name>
 
-    <!-- Cấu hình Java -->
+    <!-- Cß║Ñu h├¼nh Java -->
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -71,11 +71,34 @@
     <version>2.0.3</version>
     <scope>runtime</scope>
 </dependency>
-    </dependencies>
+    
+        <!-- S2-01: Apache POI for Excel import -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.15.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.18.3</version>
+        </dependency>
+        <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>2.18.3</version>
+    </dependency>
+</dependencies>
 
     <build>
 
-        <!-- Tên file WAR sau khi build -->
+        <!-- T├¬n file WAR sau khi build -->
         <finalName>qlkh</finalName>
 
         <plugins>
@@ -87,7 +110,7 @@
                 <version>3.13.0</version>
             </plugin>
 
-            <!-- Tạo file WAR -->
+            <!-- Tß║ío file WAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>

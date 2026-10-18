@@ -176,8 +176,22 @@ public class RoleServlet extends HttpServlet {
              * - không cho admin tự bỏ ADMIN
              * - lưu role và group
              */
+            Object auditUserValue =
+                    session.getAttribute("userEmail");
+
+            String auditUsername =
+                    auditUserValue instanceof String
+                            ? ((String) auditUserValue).trim()
+                            : "";
+
+            if (auditUsername.isBlank()) {
+                auditUsername =
+                        "userId:" + currentAdminUserId;
+            }
+
             roleService.updateRoleAndGroup(
                     currentAdminUserId,
+                    auditUsername,
                     targetUserId,
                     roles,
                     groupId

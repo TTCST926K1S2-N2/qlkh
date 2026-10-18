@@ -530,6 +530,11 @@ class RoleServiceTest {
             );
         }
 
+                @Override
+        public void replaceUserRoles(long userId, Collection<String> roleCodes, String auditUsername, String oldValue) {
+            replaceUserRoles(userId, roleCodes);
+        }
+
         @Override
         public void replaceUserRoles(
                 long userId,

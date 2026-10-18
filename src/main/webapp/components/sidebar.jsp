@@ -88,9 +88,7 @@
 
         <div class="sidebar-user">
 
-            <div class="user-avatar">
-                <%= userName.substring(0, 1).toUpperCase() %>
-            </div>
+            <div class="user-avatar"><span class="qlkh-avatar-initial"><%= userName.substring(0, 1).toUpperCase() %></span></div>
 
             <div class="user-information">
 
@@ -192,6 +190,149 @@
                     </a>
 
                 </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/contacts.jsp"
+                       class="<%= currentURI.contains("/views/sales/contacts.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quản lý người liên hệ
+                        </span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/lead-sla.jsp"
+                       class="<%= currentURI.contains("/views/sales/lead-sla.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quản lý SLA Lead
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/lead-campaign-tracking"
+                       class="<%= currentURI.contains("/lead-campaign-tracking") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Theo dõi Lead theo Chiến dịch &amp; Nguồn</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/company-relationships.jsp"
+                       class="<%= currentURI.contains("/views/sales/company-relationships.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quan hệ công ty mẹ - con
+                        </span>
+                    </a>
+                </li>
+                <!-- DANH MỤC DÙNG CHUNG -->
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/common-categories.jsp"
+                       class="<%= currentURI.contains("/views/sales/common-categories.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Danh mục dùng chung
+                        </span>
+
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/product/product-service.jsp"
+                       class="<%= currentURI.contains("/views/product/product-service.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Sản phẩm / Dịch vụ & Bảng giá
+                        </span>
+
+                    </a>
+                </li>
+
+                <% if ("MANAGER".equals(role) || "ADMIN".equals(role)) { %>
+
+                <li>
+
+                    <a href="${pageContext.request.contextPath}/views/admin/pipeline-stages.jsp"
+                       class="<%= currentURI.contains("/views/admin/pipeline-stages.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Cấu hình Pipeline bán hàng
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <% } %>
+
+
+                <% if ("ADMIN".equals(role)
+                        || "MANAGER".equals(role)) { %>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/admin/custom-field.jsp"
+                       class="<%= currentURI.contains("/views/admin/custom-field.jsp")
+                               ? "active"
+                               : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Quản lý trường tùy chỉnh
+                        </span>
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="${pageContext.request.contextPath}/views/sales/sales-org.jsp"
+                        class="<%=
+                                currentURI.contains("/views/sales/sales-org.jsp")
+                                        ? "active"
+                                        : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Cơ cấu tổ chức kinh doanh
+                        </span>
+
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="${pageContext.request.contextPath}/views/admin/win-loss-competitors.jsp"
+                        class="<%=
+                                currentURI.contains("/views/admin/win-loss-competitors.jsp")
+                                        ? "active"
+                                        : "" %>">
+
+                        <span class="menu-indicator"></span>
+
+                        <span class="menu-text">
+                            Lý do thắng/thua & Đối thủ
+                        </span>
+
+                    </a>
+                </li>
+
+                <% } %>
 
             </ul>
 
@@ -275,6 +416,20 @@
                     </a>
 
                 </li>
+                <li>
+                <a
+                    href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
+                    class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
+
+                    <span class="menu-indicator"></span>
+
+                    <span class="menu-text">
+                        Nh&#7853;t k&#253; thay &#273;&#7893;i
+                    </span>
+
+                </a>
+            </li>
+
 
             </ul>
 
@@ -300,7 +455,7 @@
 
                 <li>
 
-                    <a href="${pageContext.request.contextPath}/profile"
+                    <a href="${pageContext.request.contextPath}/user/profile.jsp"
                        class="<%= currentURI.contains("/profile")
                                ? "active"
                                : "" %>">

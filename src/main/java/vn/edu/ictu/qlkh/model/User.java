@@ -8,6 +8,8 @@ public class User {
     private String email;
     private String passwordHash;
     private String fullName;
+    private String phone;
+    private String emailSignature;
     private String role;
     private String status;
     private int failedLoginAttempts;
@@ -46,6 +48,22 @@ public class User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmailSignature() {
+        return emailSignature;
+    }
+
+    public void setEmailSignature(String emailSignature) {
+        this.emailSignature = emailSignature;
     }
 
     public String getRole() {

@@ -1,0 +1,262 @@
+
+.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.system-layout {
+    min-height: 100vh;
+    display: flex;
+    background: #f5f7fb;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.page-subtitle {
+    margin: 6px 0 0;
+    color: #6c757d;
+}
+
+.page-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.custom-tabs {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.custom-tabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 0.75rem 1.25rem;
+    background: transparent;
+}
+
+.custom-tabs .nav-link:hover {
+    color: #0d6efd;
+}
+
+.custom-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom: 2px solid #0d6efd;
+    font-weight: 600;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-actions .btn {
+    min-width: 90px;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    color: #6c757d;
+    white-space: nowrap;
+    background: #f8f9fa;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.badge-product {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+}
+
+.badge-service {
+    background-color: #f3e5f5;
+    color: #9c27b0;
+}
+
+.modal-content {
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    min-height: 40px;
+}
+
+textarea.form-control {
+    min-height: auto;
+}
+
+.detail-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 320px;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+}
+
+.toast-header {
+    background: #ffffff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.toast-body {
+    color: #212529;
+}
+
+.toast-success {
+    border-left: 4px solid #198754;
+}
+
+.toast-danger {
+    border-left: 4px solid #dc3545;
+}
+
+.toast-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast-primary {
+    border-left: 4px solid #0d6efd;
+}
+
+.btn {
+    white-space: nowrap;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+}
+
+@media (max-width: 992px) {
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .page-actions {
+        width: 100%;
+    }
+
+    .page-actions .btn {
+        flex: 1;
+    }
+
+    .filter-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.4rem;
+    }
+
+    .page-actions {
+        flex-direction: column;
+    }
+
+    .page-actions .btn {
+        width: 100%;
+    }
+
+    .filter-actions {
+        width: 100%;
+    }
+
+    .filter-actions .btn {
+        flex: 1;
+    }
+
+    .toast {
+        min-width: auto;
+        width: calc(100vw - 30px);
+    }
+}
+/* S2-05 ROLE VISIBILITY */
+
+body:not([data-user-role="MANAGER"])
+.manager-only-cost {
+    display: none !important;
+}
+
+body[data-user-role="SALES"] #btnAddProduct,
+body[data-user-role="SALES"] #btnAddPriceList,
+body[data-user-role="SALES"] #btnAddPriceListItem,
+body[data-user-role="SALES"] button[data-action="edit"],
+body[data-user-role="SALES"] button[data-action="delete"] {
+    display: none !important;
+}

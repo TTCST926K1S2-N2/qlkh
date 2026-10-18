@@ -1,0 +1,131 @@
+:root{--navy:#10263c;--navy2:#183650;--blue:#2475d2;--ink:#182d44;--muted:#718197;--border:#e6ebf2;--bg:#f3f6fb;--white:#fff}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);font-size:14px}a{color:#2166bf;text-decoration:none}a:hover{text-decoration:underline}.hidden{display:none!important}.app-shell{display:flex;min-height:100vh}.sidebar{width:235px;flex-shrink:0;background:var(--navy);color:#fff;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0;height:100vh}.brand{display:flex;align-items:center;gap:11px;padding:25px 18px;color:#fff;border-bottom:1px solid #29415a}.brand:hover{text-decoration:none}.brand-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2a9bd6,#2364c6);font-size:20px;font-weight:800}.brand b{display:block;font-size:12px;letter-spacing:.5px}.brand small{display:block;font-size:10px;color:#9fb4ca;margin-top:4px}.sidebar-group{padding:28px 12px}.sidebar-label{display:block;color:#7493b0;font-size:10px;letter-spacing:1.3px;font-weight:800;padding:0 12px;margin-bottom:14px}.nav-link{display:flex;align-items:center;gap:12px;color:#bdcde0;border-radius:9px;padding:13px 12px;margin:5px 0;font-size:13px}.nav-link:hover,.nav-link.active{background:#256fa9;color:#fff;text-decoration:none}.sidebar-foot{margin-top:auto;border-top:1px solid #29415a;padding:20px;color:#819bb3;font-size:11px}.main-shell{min-width:0;flex:1}.topbar{height:69px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 34px;gap:15px}.topbar-title{color:#7b8da2}.topbar-sep{padding:0 11px;color:#bac6d3}.topbar-back{font-size:13px;font-weight:650}.customer360-container{max-width:1480px;margin:0 auto;padding:32px 34px 60px}.page-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}.eyebrow,.section-label{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#4785c6}.page-heading h1{font-size:30px;letter-spacing:-.7px;margin:8px 0}.page-heading p{color:var(--muted);margin:0}.live-indicator{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;background:#e9f8ef;border:1px solid #c8eed5;color:#23874b;padding:9px 12px;border-radius:30px;font-size:12px;font-weight:700}.live-indicator span{height:7px;width:7px;background:#31aa66;border-radius:50%}.hero-card{background:linear-gradient(110deg,#173b65,#216bb5);color:#fff;border-radius:17px;padding:29px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;box-shadow:0 12px 25px rgba(25,80,139,.13);margin-bottom:20px}.hero-main{display:flex;gap:20px;align-items:center;min-width:0}.company-avatar{height:72px;width:72px;flex-shrink:0;display:grid;place-items:center;font-size:33px;border-radius:17px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2)}.hero-caption{font-size:10px;letter-spacing:1.5px;color:#c6e3ff;font-weight:750}.hero-details h2{font-size:23px;line-height:1.3;margin:9px 0 13px}.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;color:#d7e9fb;font-size:12px}.status-badge{display:inline-flex;align-items:center;white-space:nowrap;background:#ddf9e9;color:#166c40;padding:8px 13px;border-radius:99px;font-size:12px;font-weight:750}.status-badge[data-status="POTENTIAL"]{background:#fff2ce;color:#8a5800}.status-badge[data-status="INACTIVE"]{background:#f4e6e8;color:#a23e47}.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}.stat-card,.card{background:#fff;border:1px solid var(--border);box-shadow:0 3px 15px rgba(24,52,88,.035);border-radius:15px}.stat-card{padding:19px 21px}.stat-top{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#718197;font-size:12px;font-weight:650}.stat-icon{height:37px;width:37px;border-radius:10px;display:grid;place-items:center;font-size:21px}.stat-icon.blue{color:#2774d4;background:#eaf2ff}.stat-icon.violet{color:#7e57cc;background:#f1edff}.stat-icon.amber{color:#bd7c17;background:#fff4de}.stat-icon.green{color:#248c73;background:#e6f8f2}.stat-card strong{display:block;font-size:30px;margin:10px 0 3px;letter-spacing:-1px}.stat-card small{font-size:11px;color:#91a0b1}.dashboard-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(310px,1fr);gap:20px}.dashboard-primary,.dashboard-secondary{display:flex;flex-direction:column;gap:20px;min-width:0}.card{padding:24px}.card-header{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px}.card-header h2{font-size:17px;margin:6px 0 4px}.card-header p{font-size:12px;color:#8493a6;margin:0}.section-icon{height:37px;width:37px;display:grid;place-items:center;background:#edf4fc;border-radius:10px;color:#397fc8;font-size:19px}.company-grid{display:grid;grid-template-columns:1fr 1fr;gap:19px}.info-item{min-width:0}.info-item span{display:block;color:#8291a5;font-size:12px;margin-bottom:7px}.info-item strong{font-size:13px;font-weight:650;overflow-wrap:anywhere;line-height:1.6}.section-body{min-height:65px}.customer360-contact-list{display:grid;gap:12px}.customer360-contact-item{display:flex;gap:14px;align-items:flex-start;padding:16px;border:1px solid #e8edf4;border-radius:12px;background:#fbfcff}.contact-avatar{width:46px;height:46px;flex-shrink:0;border-radius:13px;background:#e7f0ff;color:#236fc0;display:grid;place-items:center;font-size:17px;font-weight:800}.contact-main{min-width:0;flex:1}.contact-name-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.contact-name-line h3{margin:0;font-size:14px}.contact-job{color:#7c8a9d;font-size:12px;margin:6px 0 9px}.contact-details{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12px;color:#4b688a;overflow-wrap:anywhere}.primary-tag{background:#e8f8ef;color:#1c8950;border-radius:99px;padding:4px 8px;font-size:10px;font-weight:750}.timeline-list{position:relative;margin-left:7px;padding-left:25px;border-left:2px solid #e4ecf6}.timeline-event{position:relative;padding:2px 0 24px}.timeline-event:last-child{padding-bottom:0}.timeline-event:before{content:"";position:absolute;left:-33px;top:5px;width:12px;height:12px;background:#2d83d4;border:3px solid #e8f2ff;border-radius:50%}.timeline-event h3{font-size:13px;margin:0 0 8px;line-height:1.5}.timeline-event time{font-size:11px;color:#8394a9}.timeline-type{font-size:10px;font-weight:750;color:#2a7bc9;letter-spacing:.7px;margin-bottom:6px}.empty-state{border:1px dashed #d6e0eb;background:#f9fbfe;border-radius:12px;text-align:center;padding:25px 15px;color:#8190a3;font-size:12px;line-height:1.7}.empty-icon{display:block;font-size:26px;color:#a4b8d0;margin-bottom:9px}.empty-state strong{display:block;color:#465c74;font-size:13px;margin-bottom:3px}.state-box{background:#fff;border:1px solid var(--border);padding:30px;border-radius:14px;text-align:center}.error-state{color:#a5293b}.error-state p{overflow-wrap:anywhere}@media(max-width:1150px){.sidebar{width:200px}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-grid{grid-template-columns:1fr}}@media(max-width:700px){.app-shell{display:block}.sidebar{height:auto;min-height:0;width:100%;position:static}.brand{padding:13px 18px}.sidebar-group,.sidebar-foot{display:none}.topbar{padding:0 17px;height:55px}.topbar-back{font-size:11px}.customer360-container{padding:22px 15px 40px}.page-heading{align-items:flex-start}.page-heading h1{font-size:25px}.page-heading p{font-size:12px}.live-indicator{display:none}.hero-card{padding:19px;flex-direction:column}.hero-main{gap:12px}.company-avatar{height:51px;width:51px;font-size:24px}.hero-details h2{font-size:17px}.stats-grid{gap:10px}.stat-card{padding:14px}.stat-top{font-size:11px}.stat-icon{width:29px;height:29px}.card{padding:18px}.company-grid{gap:15px}.contact-details{flex-direction:column;gap:6px}}
+
+/* CUSTOMER 360 - KHONG SIDEBAR */
+.sidebar,
+.topbar,
+.company-avatar,
+.stat-icon,
+.section-icon {
+    display: none !important;
+}
+
+.app-shell {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh;
+}
+
+.main-shell {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    min-width: 0 !important;
+}
+
+.customer360-container {
+    width: 100% !important;
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding: 28px 36px !important;
+}
+
+@media (max-width: 768px) {
+    .customer360-container {
+        padding: 16px !important;
+    }
+}
+
+/* NUT QUAY LAI DANH SACH KHACH HANG */
+.customer360-back {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.customer360-back:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+
+/* Customer 360 - Back button */
+.c360-back-right {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    background: #ffffff;
+    color: #2563eb !important;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none !important;
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.07);
+    transition: background 0.2s, box-shadow 0.2s;
+    z-index: 2;
+}
+
+.c360-back-right:hover {
+    background: #eff6ff;
+    border-color: #60a5fa;
+    box-shadow: 0 5px 16px rgba(37, 99, 235, 0.12);
+}
+
+@media (max-width: 700px) {
+    .c360-back-right {
+        position: static;
+        margin-bottom: 16px;
+        width: fit-content;
+    }
+}
+/* Anchor positioning for Customer 360 header */
+.c360-back-right {
+    right: max(24px, calc((100vw - 1100px) / 2));
+}
+/* Align back button with live data badge */
+@media (min-width: 701px) {
+    .c360-back-right {
+        position: absolute;
+        top: 48px;
+        right: max(145px, calc((100vw - 1100px) / 2 + 120px));
+        margin: 0;
+    }
+}
+/* C360 CONTRACT UI V3 */
+.c360-contracts{margin:20px 0!important;padding:26px!important;border-radius:18px}
+.c360-contract-heading{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.c360-contract-heading h2{margin:7px 0 6px;font-size:23px;color:#102b4e}
+.c360-contract-heading p,.c360-contract-form-head p{margin:0;color:#7b8ba4;font-size:13px}
+.c360-contract-summary{padding:18px 20px;border:1px solid #dbe7f8;background:linear-gradient(110deg,#f0f6ff,#f9fbff);border-radius:12px;color:#24466e;font-weight:650;line-height:1.7;overflow-wrap:anywhere}
+.c360-contract-subheading{margin:24px 0 12px}.c360-contract-subheading h3{font-size:16px;color:#183557;margin:0}
+.c360-contract-list{display:grid;gap:12px}
+.c360-contract-item{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:19px;border:1px solid #e1e8f2;border-radius:13px;background:#fff;box-shadow:0 3px 12px rgba(30,54,92,.035)}
+.c360-contract-item-main{min-width:0;display:grid;gap:8px}
+.c360-contract-item-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.c360-contract-code{color:#194f9e;font-size:14px}
+.c360-contract-badge{border-radius:99px;padding:5px 10px;font-size:11px;font-weight:700;background:#e8efff;color:#365d9e}
+.c360-contract-badge[data-status="SIGNED"]{background:#dcfce7;color:#166534}
+.c360-contract-badge[data-status="PENDING"]{background:#fef3c7;color:#92400e}
+.c360-contract-badge[data-status="CANCELLED"]{background:#fee2e2;color:#991b1b}
+.c360-contract-name{font-size:14px;color:#263b58;font-weight:600;overflow-wrap:anywhere}
+.c360-contract-date{color:#8290a5;font-size:12px}
+.c360-contract-item-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}
+.c360-contract-amount{font-size:18px;color:#102e56}
+.c360-contract-edit,.c360-contract-reset{border:1px solid #cfdbed;background:#fff;color:#2456a2;border-radius:9px;padding:10px 15px;font-weight:600;cursor:pointer}
+.c360-contract-edit:hover,.c360-contract-reset:hover{background:#eef5ff}
+.c360-contract-form{grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 20px;padding:22px;border:1px solid #e3eaf4;border-radius:14px;background:#f9fbff;align-items:end;margin-top:22px}
+.c360-contract-form-head{grid-column:1/-1}.c360-contract-form-head h3{margin:0 0 6px;color:#1b365a}
+.c360-contract-form label{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:#34445e;min-width:0}
+.c360-contract-form input:not([type="hidden"]),.c360-contract-form select{box-sizing:border-box;width:100%;height:43px;padding:10px 12px;border:1px solid #d7e0ed;border-radius:9px;background:#fff;color:#22324b;font:inherit;font-weight:400;outline:none}
+.c360-contract-form input:focus,.c360-contract-form select:focus{border-color:#3973d4;box-shadow:0 0 0 3px rgba(57,115,212,.12)}
+.c360-contract-actions{grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:3px}
+.c360-contract-save{border:1px solid #245bc2;background:#245bc2;color:#fff;border-radius:9px;padding:11px 20px;font-weight:700;cursor:pointer}.c360-contract-save:hover{background:#19499f}
+.c360-contract-message{font-size:13px;color:#147d52;margin:12px 0 0}
+@media(max-width:760px){.c360-contracts{padding:18px!important}.c360-contract-form{grid-template-columns:1fr}.c360-contract-item{align-items:stretch;flex-direction:column}.c360-contract-item-side{align-items:flex-start}.c360-contract-actions{justify-content:stretch}.c360-contract-actions button{flex:1}}

@@ -67,6 +67,28 @@ public class AuthenticationFilter implements Filter {
          * API gia hạn phiên cần trả 401 để session.js biết
          * phiên không còn hợp lệ, không redirect HTML.
          */
+        if (path.equals("/api/v1/leads/import") || path.startsWith("/api/v1/leads/import/") || path.equals("/api/v1/leads/tracking") || path.equals("/api/v1/campaigns") || path.equals("/api/v1/campaigns/link") || path.equals("/api/v1/customer-care-list") || path.startsWith("/api/v1/customer-care-list/")
+            || path.equals("/api/v1/customer-support")
+                || path.startsWith("/api/v1/customer-support/")
+                || path.equals("/api/v1/customer-relationships")
+                || path.startsWith("/api/v1/customer-relationships/")
+                || path.equals("/api/v1/customers")
+                || path.startsWith("/api/v1/customers/")
+                || path.equals("/api/v1/contracts")
+                || path.startsWith("/api/v1/contracts/")
+
+                || path.equals("/api/v1/contacts")
+                || path.startsWith("/api/v1/contacts/")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.getWriter().write(
+                    "{\"success\":false,\"message\":\"Chua dang nhap\"}"
+            );
+            return;
+        }
+
         if ("/extend-session".equals(path)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setCharacterEncoding("UTF-8");
@@ -100,7 +122,9 @@ public class AuthenticationFilter implements Filter {
             return false;
         }
 
-        return path.equals("/login")
+        return path.equals("/api/v1/lead-capture")
+                || path.equals("/lead-capture")
+                || path.equals("/login")
                 || path.equals("/logout")
                 || path.equals("/forgot-password")
                 || path.equals("/reset-password")

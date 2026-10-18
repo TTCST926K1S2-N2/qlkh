@@ -218,6 +218,21 @@ public class RoleDAO {
             Collection<String> roleCodes
     ) throws SQLException {
 
+        replaceUserRoles(
+                userId,
+                roleCodes,
+                null,
+                null
+        );
+    }
+
+    public void replaceUserRoles(
+            long userId,
+            Collection<String> roleCodes,
+            String auditUsername,
+            String oldValue
+    ) throws SQLException {
+
         if (roleCodes == null || roleCodes.isEmpty()) {
             throw new IllegalArgumentException(
                     "Người dùng phải có ít nhất một vai trò."
@@ -321,6 +336,30 @@ public class RoleDAO {
                                 "Không tìm thấy tài khoản cần cập nhật."
                         );
                     }
+                }
+
+                String newValue =
+                        String.join(
+                                ",",
+                                normalizedRoles.stream()
+                                        .sorted()
+                                        .toList()
+                        );
+
+                if (auditUsername != null
+                        && !auditUsername.isBlank()
+                        && (oldValue == null
+                            || !oldValue.equals(newValue))) {
+
+                    new AuditLogDAO().logAction(
+                            connection,
+                            auditUsername,
+                            "UPDATE",
+                            "USER_ROLE",
+                            oldValue,
+                            newValue,
+                            "targetUserId=" + userId
+                    );
                 }
 
                 connection.commit();

@@ -233,6 +233,29 @@ public class UserService {
     /**
      * Cập nhật thông tin tài khoản.
      */
+    public String validateUserForImport(
+            String fullName, String email, String role, String status)
+            throws SQLException {
+
+        String normalizedFullName = normalizeRequired(fullName);
+        String normalizedEmail = normalizeEmail(email);
+        String normalizedRole = normalizeRequired(role).toUpperCase();
+        String normalizedStatus = normalizeRequired(status).toUpperCase();
+
+        String validationMessage = validateUserInput(
+                normalizedFullName, normalizedEmail, normalizedRole, normalizedStatus);
+
+        if (validationMessage != null) {
+            return validationMessage;
+        }
+
+        if (userDAO.existsByEmail(normalizedEmail, null)) {
+            return "Email đã tồn tại trong hệ thống.";
+        }
+
+        return null;
+    }
+
     public UpdateUserResult updateUser(
             long userId,
             String fullName,
@@ -410,6 +433,192 @@ public class UserService {
         return password.toString();
     }
 
+
+    /**
+     * HTQLKH-44 / S2-02:
+     * Lay ho so cua nguoi dung dang dang nhap.
+     */
+    public User getProfile(long userId)
+            throws SQLException {
+
+        if (userId <= 0) {
+            return null;
+        }
+
+        return userDAO.findById(userId);
+    }
+
+    /**
+     * HTQLKH-44 / S2-02:
+     * Cap nhat ho so ca nhan.
+     *
+     * Nguoi dung chi duoc sua:
+     * - ho ten
+     * - so dien thoai
+     * - chu ky email
+     *
+     * Email, role, status va nhom khong duoc thay doi
+     * boi chuc nang nay.
+     */
+    public ProfileUpdateResult updateProfile(
+            long userId,
+            String fullName,
+            String phone,
+            String emailSignature)
+            throws SQLException {
+
+        if (userId <= 0) {
+            return ProfileUpdateResult.failed(
+                    "Tai khoan khong hop le."
+            );
+        }
+
+        User existingUser =
+                userDAO.findById(userId);
+
+        if (existingUser == null) {
+            return ProfileUpdateResult.failed(
+                    "Khong tim thay tai khoan."
+            );
+        }
+
+        String normalizedFullName =
+                normalizeRequired(fullName);
+
+        String normalizedPhone =
+                normalizePhone(phone);
+
+        String normalizedSignature =
+                emailSignature == null
+                        ? null
+                        : emailSignature.trim();
+
+        if (normalizedFullName.isBlank()) {
+            return ProfileUpdateResult.failed(
+                    "Ho ten khong duoc de trong."
+            );
+        }
+
+        if (normalizedFullName.length() > 255) {
+            return ProfileUpdateResult.failed(
+                    "Ho ten khong duoc vuot qua 255 ky tu."
+            );
+        }
+
+        if (normalizedPhone != null
+                && !isValidVietnamesePhone(
+                        normalizedPhone)) {
+
+            return ProfileUpdateResult.failed(
+                    "So dien thoai Viet Nam khong dung dinh dang."
+            );
+        }
+
+        boolean updated =
+                userDAO.updateProfile(
+                        userId,
+                        normalizedFullName,
+                        normalizedPhone,
+                        normalizedSignature
+                );
+
+        if (!updated) {
+            return ProfileUpdateResult.failed(
+                    "Khong the cap nhat ho so."
+            );
+        }
+
+        User updatedUser =
+                userDAO.findById(userId);
+
+        return ProfileUpdateResult.success(
+                updatedUser
+        );
+    }
+
+    /**
+     * Chuan hoa so dien thoai.
+     * Cho phep bo trong.
+     */
+    private String normalizePhone(
+            String phone) {
+
+        if (phone == null
+                || phone.isBlank()) {
+
+            return null;
+        }
+
+        return phone.trim()
+                .replace(" ", "")
+                .replace("-", "")
+                .replace(".", "");
+    }
+
+    /**
+     * Dinh dang so dien thoai di dong Viet Nam:
+     * 03x, 05x, 07x, 08x, 09x
+     * hoac dang quoc te +84.
+     */
+    private boolean isValidVietnamesePhone(
+            String phone) {
+
+        return phone.matches(
+                "^(0|\\+84)[35789]\\d{8}$"
+        );
+    }
+
+    /**
+     * Ket qua cap nhat ho so ca nhan.
+     */
+    public static final class ProfileUpdateResult {
+
+        private final boolean success;
+        private final String message;
+        private final User user;
+
+        private ProfileUpdateResult(
+                boolean success,
+                String message,
+                User user) {
+
+            this.success = success;
+            this.message = message;
+            this.user = user;
+        }
+
+        public static ProfileUpdateResult success(
+                User user) {
+
+            return new ProfileUpdateResult(
+                    true,
+                    null,
+                    user
+            );
+        }
+
+        public static ProfileUpdateResult failed(
+                String message) {
+
+            return new ProfileUpdateResult(
+                    false,
+                    message,
+                    null
+            );
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public User getUser() {
+            return user;
+        }
+    }
     private String normalizeRequired(
             String value) {
 
