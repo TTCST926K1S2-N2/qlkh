@@ -286,6 +286,13 @@
                     </a>
 
                 </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/lead-assignment-rules.jsp"
+                       class="<%= currentURI.contains("/views/sales/lead-assignment-rules.jsp") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Quy tắc phân bổ Lead</span>
+                    </a>
+                </li>
 
                 <% } %>
 
