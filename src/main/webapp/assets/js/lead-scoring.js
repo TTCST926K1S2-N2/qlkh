@@ -7,13 +7,9 @@
     const LEADS_API = `${CONTEXT_PATH}/api/v1/lead-scoring/`;
 
     const DEFAULT_CONFIG = {
-        industryWeight: 30,
-        companySizeWeight: 25,
-        sourceWeight: 20,
-        interestWeight: 25,
-        hotThreshold: 70,
-        warmThreshold: 40,
-        targetIndustries: []
+        expectedValueWeight: 50,
+        completenessWeight: 30,
+        openOpportunityWeight: 20
     };
 
     let currentConfig = { ...DEFAULT_CONFIG };
@@ -88,60 +84,73 @@
     }
 
     function readConfigForm() {
-        const config = {};
+        const expectedValueWeight = Number(
+            getElement("expectedValueWeight", "expectedValue")?.value
+        );
 
-        const industryInput = $("targetIndustries");
-        config.targetIndustries = industryInput
-            ? [...new Set(
-                industryInput.value
-                    .split(/\r?\n/)
-                    .map(value => value.trim())
-                    .filter(Boolean)
-              )]
-            : [];
+        const completenessWeight = Number(
+            getElement("completenessWeight", "completeness")?.value
+        );
 
-        for (const key of Object.keys(DEFAULT_CONFIG).filter(key => key !== "targetIndustries")) {
-            const input = $(key);
-            config[key] = input && input.value.trim() !== ""
-                ? Number(input.value)
-                : NaN;
-        }
+        const openOpportunityWeight = Number(
+            getElement("openOpportunityWeight", "openOpportunity")?.value
+        );
 
-        return config;
+        return {
+            expectedValueWeight,
+            completenessWeight,
+            openOpportunityWeight
+        };
     }
 
     function validateConfig(config) {
+        const fields = [
+            {
+                key: "expectedValueWeight",
+                ids: ["expectedValueWeight", "expectedValue"],
+                label: "Trọng số giá trị kỳ vọng"
+            },
+            {
+                key: "completenessWeight",
+                ids: ["completenessWeight", "completeness"],
+                label: "Trọng số độ đầy đủ thông tin"
+            },
+            {
+                key: "openOpportunityWeight",
+                ids: ["openOpportunityWeight", "openOpportunity"],
+                label: "Trọng số cơ hội đang mở"
+            }
+        ];
+
         clearFieldErrors();
 
-        for (const key of Object.keys(DEFAULT_CONFIG).filter(key => key !== "targetIndustries")) {
-            const value = config[key];
+        for (const field of fields) {
+            const input = getElement(...field.ids);
+            const rawValue = input?.value?.trim() ?? "";
+            const value = config[field.key];
 
-            if (!Number.isFinite(value) || value < 0 || value > 100) {
+            if (
+                rawValue === "" ||
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 100
+            ) {
                 showFieldError(
-                    [key],
-                    `${key} phai nam trong khoang 0-100.`
+                    field.ids,
+                    `${field.label} phải nằm trong khoảng 0–100.`
                 );
                 return false;
             }
         }
 
         const total =
-            config.industryWeight +
-            config.companySizeWeight +
-            config.sourceWeight +
-            config.interestWeight;
+            config.expectedValueWeight +
+            config.completenessWeight +
+            config.openOpportunityWeight;
 
         if (Math.abs(total - 100) > 0.000001) {
             showMessage(
-                `Tong bon trong so phai bang 100%. Hien tai: ${total}%.`,
-                "danger"
-            );
-            return false;
-        }
-
-        if (config.warmThreshold >= config.hotThreshold) {
-            showMessage(
-                "Nguong Lead Am phai nho hon nguong Lead Nong.",
+                `Tổng trọng số hiện tại là ${total}%. Tổng ba trọng số phải bằng 100%.`,
                 "danger"
             );
             return false;
@@ -187,49 +196,51 @@
     }
 
     function fillConfigForm(config) {
-        const industryInput = $("targetIndustries");
-        if (industryInput) {
-            industryInput.value = Array.isArray(config.targetIndustries)
-                ? config.targetIndustries.join("\n")
-                : "";
-        }
-        for (const key of Object.keys(DEFAULT_CONFIG).filter(key => key !== "targetIndustries")) {
-            const input = $(key);
+        const fields = [
+            ["expectedValueWeight", "expectedValue"],
+            ["completenessWeight", "completeness"],
+            ["openOpportunityWeight", "openOpportunity"]
+        ];
+
+        fields.forEach(([id1, id2]) => {
+            const input = getElement(id1, id2);
+            const key = id1;
 
             if (input && Number.isFinite(Number(config[key]))) {
                 input.value = config[key];
             }
-        }
+        });
 
         updateWeightTotal();
     }
 
     function updateWeightTotal() {
         const config = readConfigForm();
-        const weights = [
-            config.industryWeight,
-            config.companySizeWeight,
-            config.sourceWeight,
-            config.interestWeight
+
+        const values = [
+            config.expectedValueWeight,
+            config.completenessWeight,
+            config.openOpportunityWeight
         ];
 
-        const element = getElement(
+        const totalElement = getElement(
             "weightTotal",
             "totalWeight",
             "totalPercentage"
         );
 
-        if (!element) return;
+        if (!totalElement) return;
 
-        if (weights.some((value) => !Number.isFinite(value))) {
-            element.textContent = "Tong trong so: --";
+        if (values.some((value) => !Number.isFinite(value))) {
+            totalElement.textContent = "Tổng: --";
             return;
         }
 
-        const total = weights.reduce((sum, value) => sum + value, 0);
-        element.textContent = `Tong trong so: ${total}%`;
-        element.classList.toggle("text-danger", total !== 100);
-        element.classList.toggle("text-success", total === 100);
+        const total = values.reduce((sum, value) => sum + value, 0);
+        totalElement.textContent = `Tổng trọng số: ${total}%`;
+
+        totalElement.classList.toggle("text-danger", total !== 100);
+        totalElement.classList.toggle("text-success", total === 100);
     }
 
     async function loadConfig() {
@@ -240,14 +251,17 @@
 
             const config = getPayload(result);
 
-            currentConfig = Object.fromEntries(
-                Object.entries(DEFAULT_CONFIG).map(([key, fallback]) => [
-                    key,
-                    key === "targetIndustries"
-                        ? (Array.isArray(config[key]) ? config[key] : fallback)
-                        : (config[key] == null ? fallback : Number(config[key]))
-                ])
-            );
+            currentConfig = {
+                expectedValueWeight:
+                    Number(config.expectedValueWeight ??
+                        DEFAULT_CONFIG.expectedValueWeight),
+                completenessWeight:
+                    Number(config.completenessWeight ??
+                        DEFAULT_CONFIG.completenessWeight),
+                openOpportunityWeight:
+                    Number(config.openOpportunityWeight ??
+                        DEFAULT_CONFIG.openOpportunityWeight)
+            };
 
             fillConfigForm(currentConfig);
         } catch (error) {
@@ -304,8 +318,8 @@
     }
 
     function classifyLead(score) {
-        if (score >= currentConfig.hotThreshold) return "Nóng";
-        if (score >= currentConfig.warmThreshold) return "Ấm";
+        if (score >= 70) return "Nóng";
+        if (score >= 40) return "Ấm";
         return "Lạnh";
     }
 
@@ -442,33 +456,15 @@
         if (saveButton && saveButton.type !== "submit") {
             saveButton.addEventListener("click", saveConfig);
         }
-        const resetButton = $("resetScoringConfig");
 
-        if (resetButton) {
-            resetButton.addEventListener("click", () => {
-                const defaults = { ...DEFAULT_CONFIG };
-
-                Object.entries(defaults).forEach(([id, value]) => {
-                    const input = $(id);
-
-                    if (!input) return;
-
-                    input.value = Array.isArray(value)
-                        ? value.join("\n")
-                        : value;
-
-                    input.classList.remove("is-invalid");
-                });
-
-                updateWeightTotal();
-                showMessage(
-                    "Đã khôi phục giá trị mặc định. Bấm Lưu cấu hình để áp dụng.",
-                    "info"
-                );
-            });
-        }
-
-        Object.keys(DEFAULT_CONFIG).forEach((id) => {
+        [
+            "expectedValueWeight",
+            "expectedValue",
+            "completenessWeight",
+            "completeness",
+            "openOpportunityWeight",
+            "openOpportunity"
+        ].forEach((id) => {
             const input = $(id);
 
             if (input) {
