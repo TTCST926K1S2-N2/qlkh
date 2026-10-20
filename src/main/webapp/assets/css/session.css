@@ -1,0 +1,123 @@
+/* Container Modal toàn màn hình */
+.session-modal {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+.session-modal.session-modal--hidden {
+    display: none !important;
+}
+
+/* Nền tối mờ phía sau */
+.session-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+}
+
+/* Hộp nội dung Modal */
+.session-modal__box {
+    position: relative;
+    background: #ffffff;
+    width: 90%;
+    max-width: 440px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    z-index: 1;
+}
+
+.session-modal__title {
+    margin: 0 0 12px 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.session-modal__desc {
+    margin: 0 0 8px 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #475569;
+}
+
+.session-modal__timer {
+    margin: 0 0 12px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.session-modal__countdown {
+    color: #ef4444;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+/* Thông báo lỗi khi gọi backend thất bại */
+.session-modal__alert {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.session-modal__alert.session-modal--hidden {
+    display: none !important;
+}
+
+/* Nút hành động */
+.session-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.session-btn {
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.session-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.session-btn--primary {
+    background-color: #4f46e5;
+    color: #ffffff;
+}
+
+.session-btn--primary:hover:not(:disabled) {
+    background-color: #4338ca;
+}
+
+.session-btn--secondary {
+    background-color: #f8fafc;
+    color: #475569;
+    border-color: #cbd5e1;
+}
+
+.session-btn--secondary:hover:not(:disabled) {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}

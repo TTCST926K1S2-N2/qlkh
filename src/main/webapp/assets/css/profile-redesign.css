@@ -1,0 +1,43 @@
+/* Profile redesign - scoped to the profile page */
+body:has(.profile-redesign) { background: #f4f7fc; }
+.profile-redesign { margin-left:270px; min-height:100vh; background:#f4f7fc; color:#14253f; padding:0 34px 42px; max-width:none; }
+.profile-redesign .redesign-topbar { height:62px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e4ebf5; color:#718198; font-size:12px; letter-spacing:.4px; }
+.profile-redesign .redesign-heading { display:flex; justify-content:space-between; gap:16px; align-items:center; padding:27px 0 25px; }
+.profile-redesign .redesign-kicker { font-size:12px; font-weight:800; color:#268dd3; letter-spacing:1px; }
+.profile-redesign .redesign-heading h1 { font-size:30px; margin:7px 0 5px; color:#12243f; }
+.profile-redesign .redesign-heading p { margin:0; font-size:14px; color:#6d7f97; }
+.profile-redesign .redesign-breadcrumb { color:#7d8ca0; font-size:12px; white-space:nowrap; }
+.profile-redesign .redesign-grid { display:grid; grid-template-columns:minmax(290px, .85fr) minmax(450px, 1.65fr); gap:20px; align-items:start; }
+.profile-redesign .redesign-right { display:grid; gap:18px; min-width:0; }
+.profile-redesign .redesign-card { background:#fff; border:1px solid #e0e8f3; border-radius:15px; overflow:hidden; box-shadow:0 6px 22px rgba(30,60,100,.055); }
+.profile-redesign .redesign-card-heading { display:flex; align-items:center; gap:12px; padding:20px 22px; border-bottom:1px solid #edf1f6; }
+.profile-redesign .redesign-heading-icon { display:grid; place-items:center; width:39px; height:39px; border-radius:11px; background:#eaf5ff; color:#238bd0; font-size:23px; flex-shrink:0; }
+.profile-redesign .redesign-card-heading h2 { margin:0 0 4px; font-size:18px; color:#14253f; }
+.profile-redesign .redesign-card-heading p { margin:0; color:#78869a; font-size:12px; }
+.profile-redesign .profile-content { max-width:none; padding:0; }
+.profile-redesign .profile-card { border:0; border-radius:0; box-shadow:none; }
+.profile-redesign .profile-card-header { display:none; }
+.profile-redesign .profile-card-body { padding:22px; }
+.profile-redesign .profile-grid { gap:19px; }
+.profile-redesign .profile-actions { margin-top:20px; }
+.profile-redesign .avatar-card { border:0; border-radius:0; max-width:none; padding:0; margin:0; box-shadow:none; }
+.profile-redesign .avatar-card-header { display:none; }
+.profile-redesign .avatar-preview-wrapper { display:flex; flex-direction:column; text-align:center; align-items:center; margin:0; gap:13px; }
+.profile-redesign .avatar-preview { width:155px; height:155px; border:5px solid #f0f6fd; box-shadow:0 5px 20px rgba(27,62,100,.11); }
+.profile-redesign .avatar-user-info { text-align:center; align-items:center; max-width:100%; }
+.profile-redesign .avatar-user-info strong { font-size:19px; }
+.profile-redesign .avatar-user-info span { font-size:12px; }
+.profile-redesign #avatarForm { padding:22px; }
+.profile-redesign .upload-area { padding:19px 12px; margin-top:22px; }
+.profile-redesign .upload-note { font-size:12px; }
+.profile-redesign .form-actions { flex-wrap:wrap; justify-content:center; gap:9px; }
+.profile-redesign .form-actions .btn { padding:11px 13px; font-size:13px; }
+.profile-redesign .avatar-message { margin:16px 22px 0; }
+.profile-redesign .redesign-summary-grid { display:grid; grid-template-columns:1fr 1fr; padding:22px; gap:16px; }
+.profile-redesign .redesign-summary-grid > div { min-width:0; padding:15px; border-radius:10px; background:#f7faff; }
+.profile-redesign .redesign-summary-grid small { display:block; color:#7d8a9b; margin-bottom:8px; }
+.profile-redesign .redesign-summary-grid strong { display:block; color:#1a3656; font-size:14px; overflow-wrap:anywhere; }
+.profile-redesign .redesign-note { margin-top:20px; border:1px solid #f1dca6; background:#fff9eb; border-radius:12px; padding:16px 20px; color:#6c5a31; font-size:13px; }
+@media (max-width:1150px) { .profile-redesign .redesign-grid { grid-template-columns:1fr; } .profile-redesign .redesign-avatar-card { max-width:none; } }
+@media (max-width:900px) { .profile-redesign { margin-left:0; padding:0 20px 30px; } .profile-redesign .redesign-heading { padding-top:25px; } }
+@media (max-width:600px) { .profile-redesign { padding:0 14px 22px; } .profile-redesign .redesign-heading { align-items:flex-start; } .profile-redesign .redesign-breadcrumb { display:none; } .profile-redesign .profile-grid,.profile-redesign .redesign-summary-grid { grid-template-columns:1fr; } .profile-redesign .profile-card-body { padding:17px; } }
