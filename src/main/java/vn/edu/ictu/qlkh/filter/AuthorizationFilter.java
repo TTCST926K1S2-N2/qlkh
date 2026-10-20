@@ -54,7 +54,9 @@ public class AuthorizationFilter implements Filter {
          * Không kiểm tra lại chính trang Access Denied.
          * Tránh vòng lặp khi request bị từ chối và được forward đến đây.
          */
-        if ("/access-denied".equals(path)
+        if ("/api/v1/lead-capture".equals(path)
+                || "/lead-capture".equals(path)
+                || "/access-denied".equals(path)
                 || path.startsWith("/views/errors/")
                 || path.startsWith("/assets/")
                 || path.startsWith("/favicon")) {
@@ -93,6 +95,17 @@ public class AuthorizationFilter implements Filter {
                     "accessDeniedMessage",
                     "Bạn không có quyền truy cập chức năng này."
             );
+
+            if (path.equals("/api/assignment-rules")
+                    || path.startsWith("/api/assignment-rules/")) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("application/json;charset=UTF-8");
+                response.setHeader("Cache-Control", "no-store");
+                response.getWriter().write(
+                        "{\"success\":false,\"message\":\"Access denied\"}"
+                );
+                return;
+            }
 
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 

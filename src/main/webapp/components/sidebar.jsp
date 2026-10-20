@@ -201,7 +201,40 @@
                         </span>
                     </a>
                 </li>
-                                <li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/lead-list"
+                       class="<%= currentURI.contains("/lead-list") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Danh sách Lead</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/lead-sla.jsp"
+                       class="<%= currentURI.contains("/views/sales/lead-sla.jsp")
+                               ? "active"
+                               : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">
+                            Quản lý SLA Lead
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/leads/duplicates"
+                       class="<%= currentURI.contains("/leads/duplicates") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Xử lý Lead trùng</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/lead-campaign-tracking"
+                       class="<%= currentURI.contains("/lead-campaign-tracking") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Theo dõi Lead theo Chiến dịch &amp; Nguồn</span>
+                    </a>
+                </li>
+                <li>
                     <a href="${pageContext.request.contextPath}/views/sales/company-relationships.jsp"
                        class="<%= currentURI.contains("/views/sales/company-relationships.jsp")
                                ? "active"
@@ -227,7 +260,7 @@
 
                     </a>
                 </li>
-                                <li>
+                <li>
                     <a href="${pageContext.request.contextPath}/views/product/product-service.jsp"
                        class="<%= currentURI.contains("/views/product/product-service.jsp")
                                ? "active"
@@ -259,6 +292,13 @@
 
                     </a>
 
+                </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/sales/lead-assignment-rules.jsp"
+                       class="<%= currentURI.contains("/views/sales/lead-assignment-rules.jsp") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Quy tắc phân bổ Lead</span>
+                    </a>
                 </li>
 
                 <% } %>
@@ -315,7 +355,16 @@
 
                 <% } %>
 
-            </ul>
+                            <% if ("ADMIN".equals(role) || "MANAGER".equals(role)) { %>
+                <li>
+                    <a href="${pageContext.request.contextPath}/views/marketing/lead-scoring.jsp"
+                       class="<%= currentURI.contains("/views/marketing/lead-scoring.jsp") ? "active" : "" %>">
+                        <span class="menu-indicator"></span>
+                        <span class="menu-text">Chấm điểm Lead</span>
+                    </a>
+                </li>
+                <% } %>
+</ul>
 
         <%
             }
@@ -397,7 +446,7 @@
                     </a>
 
                 </li>
-            <li>
+                <li>
                 <a
                     href="${pageContext.request.contextPath}/views/system/audit-log.jsp"
                     class="<%= currentURI.contains("/views/system/audit-log.jsp") ? "active" : "" %>">
@@ -546,7 +595,12 @@
 
             <% } %>
 
-        </ul>
+        <li class="sidebar-item" id="s210wl">
+    <a href="${pageContext.request.contextPath}/views/admin/win-loss-competitors.jsp" class="sidebar-link">
+        <span>Win/Loss & Competitors</span>
+    </a>
+</li>
+</ul>
 
     </nav>
 

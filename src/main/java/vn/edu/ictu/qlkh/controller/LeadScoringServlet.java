@@ -81,9 +81,12 @@ public class LeadScoringServlet extends HttpServlet {
         }
         try {
             LeadScoringConfig config = mapper.readValue(req.getInputStream(), LeadScoringConfig.class);
-            LeadScoringService.validate(config);
+            LeadScoringService.validateLeadConfig(config);
             service.saveConfig(config, userId(req));
+
             send(res, 200, message(true, "Da luu cau hinh cham diem"));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            send(res, 400, message(false, "Du lieu JSON khong hop le"));
         } catch (IllegalArgumentException e) {
             send(res, 400, message(false, e.getMessage()));
         } catch (SQLException e) {
